@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -8,125 +8,88 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // CEK APAKAH USER SUDAH LOGIN?
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      navigate('/dashboard'); // Kalau udah ada token, lempar langsung ke dashboard
-    }
+    if (token) navigate('/dashboard');
   }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
     try {
-      // Tembak API Backend
       const res = await axios.post('http://localhost:5000/api/auth/login', { 
         email, 
         password 
       });
-      
-      // SIMPAN TOKEN & DATA USER KE LOCALSTORAGE
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
-
-      // Info Sukses
-      console.log("Login Success:", res.data.user);
       navigate('/dashboard'); 
     } catch (err) {
-      console.error(err);
-      // Alert lebih informatif
-      alert(err.response?.data?.msg || 'Login Gagal! Cek koneksi internet atau kredensial lo.');
+      alert(err.response?.data?.msg || 'Login Gagal! Cek kredensial lo.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 font-sans p-4">
-      <div className="w-full max-w-md rounded-2xl bg-white p-10 shadow-xl border-b-8 border-indigo-700">
-        
-        {/* LOGO SECTION */}
-        <div className="mb-10 text-center">
-          <div className="inline-block bg-indigo-700 text-white px-4 py-1 rounded-lg font-black text-2xl mb-2 shadow-lg shadow-indigo-200">
-            PT
+    <div className="relative flex overflow-hidden justify-center items-center p-4 min-h-screen font-sans">
+      {/* BACKGROUND IMAGE */}
+      <div 
+        className="absolute inset-0 z-0 scale-110 bg-center bg-cover"
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1513002749550-c59d786b8e6c?auto=format&fit=crop&w=2000&q=80')" }}
+      ></div>
+
+      {/* OVERLAY - FIXED LINE 42 (Pake blur-sm biar gak warning) */}
+      <div className="absolute inset-0 z-10 bg-blue-400 opacity-10 backdrop-blur-sm"></div>
+
+      {/* LOGIN CARD */}
+      <div className="relative z-20 w-full max-w-95 p-10 bg-white/80 border border-white/50 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[3rem] backdrop-blur-2xl">
+        <div className="flex justify-center mb-8">
+          <div className="p-4 bg-white border shadow-sm rounded-2xl border-slate-100">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3 3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
           </div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tighter">
-            PROTRACK <span className="text-indigo-700">ERP</span>
-          </h1>
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-1">
-            Enterprise Resource Planning
+        </div>
+
+        <div className="mb-10 text-center">
+          <h1 className="text-2xl font-black italic uppercase tracking-tight text-slate-800">ProTrack <span className="text-indigo-600">ERP</span></h1>
+          <p className="mt-2 text-[10px] font-black leading-relaxed uppercase tracking-[0.2em] text-slate-500">
+            Internal Access Only
           </p>
         </div>
 
-        {/* LOGIN FORM */}
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase text-slate-500 tracking-wider">
-              Email Address
-            </label>
-            <input 
-              type="email" 
-              required
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium text-slate-800"
-              placeholder="nama@protrack.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <label className="block text-xs font-bold uppercase text-slate-500 tracking-wider">
-                Password
-              </label>
-              <Link to="/forgot-password" title="forgot" className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 uppercase tracking-tighter">
-                Lupa Password?
-              </Link>
-            </div>
-            <input 
-              type="password" 
-              required
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all font-medium text-slate-800"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input 
+            type="email" 
+            required 
+            className="px-4 py-3 w-full text-sm font-medium transition-all outline-none border border-slate-200/50 bg-slate-100/50 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 text-slate-800" 
+            placeholder="Email Address" 
+            value={email} 
+            onChange={(e) => setEmail(e.target.value)} 
+          />
+          <input 
+            type="password" 
+            required 
+            className="px-4 py-3 w-full text-sm font-medium transition-all outline-none border border-slate-200/50 bg-slate-100/50 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 text-slate-800" 
+            placeholder="Password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+          />
           <button 
             type="submit" 
-            disabled={loading}
-            className={`w-full rounded-xl p-4 font-black text-white shadow-lg shadow-indigo-100 transition-all active:scale-95 flex justify-center items-center gap-2 ${
-              loading ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-700 hover:bg-indigo-800'
-            }`}
+            disabled={loading} 
+            className={`w-full rounded-xl py-3.5 font-black text-white shadow-lg transition-all active:scale-95 ${loading ? 'bg-slate-400' : 'bg-slate-900 shadow-slate-200 hover:bg-black'}`} 
           >
-            {loading ? (
-              <>
-                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                CHECKING...
-              </>
-            ) : 'SIGN IN TO SYSTEM'}
+            {loading ? 'VALIDATING...' : 'SIGN IN'}
           </button>
         </form>
 
-        {/* FOOTER */}
-        <div className="mt-8 text-center pt-6 border-t border-slate-100">
-          <p className="text-sm text-slate-500 font-medium">
-            Belum punya akses?{' '}
-            <Link to="/register" className="text-indigo-700 font-black hover:underline">
-              Minta Akun
-            </Link>
+        <div className="mt-12 text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">
+             © 2026 ProTrack ERP • v1.0
           </p>
         </div>
-
-        <p className="mt-8 text-center text-[10px] text-slate-300 font-bold uppercase tracking-[0.2em]">
-          © 2026 ProTrack ERP • Version 1.0
-        </p>
       </div>
     </div>
   );

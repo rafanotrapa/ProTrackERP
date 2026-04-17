@@ -1,20 +1,24 @@
 const jwt = require('jsonwebtoken');
 
-module.exports = function (req, res, next) {
-  // 1. Ambil token dari header
-  const token = req.header('Authorization')?.split(' ')[1]; // Format: "Bearer <token>"
+const protect = (req, res, next) => {
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) return res.status(401).json({ msg: 'No token, access denied' });
 
-  // 2. Cek kalau nggak ada token
-  if (!token) {
-    return res.status(401).json({ msg: 'No token, authorization denied' });
-  }
-
-  // 3. Verifikasi token
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.user; // Masukin data user ke request
-    next(); // Lanjut ke controller
+    req.user = decoded; // Ini yang buat req.user.id di controller ada isinya
+    next();
   } catch (err) {
     res.status(401).json({ msg: 'Token is not valid' });
   }
 };
+
+const admin = (req, res, next) => {
+  if (req.user && req.user.role === 'Admin') {
+    next();
+  } else {
+    res.status(403).json({ msg: 'Akses ditolak! Bukan Admin.' });
+  }
+};
+
+module.exports = { protect, admin };

@@ -1,10 +1,9 @@
 const User = require('../models/User');
+const Log = require('../models/Log'); // <--- WAJIB IMPORT INI
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer'); 
-const crypto = require('crypto');
 
-// 1. REGISTER (Udah Oke)
+// 1. REGISTER (Admin Adds Employee)
 exports.register = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
@@ -17,14 +16,24 @@ exports.register = async (req, res) => {
     user = new User({ username, email, password: hashedPassword, role });
     await user.save();
 
-    res.status(201).json({ msg: 'Akun berhasil dibuat, silakan login!' });
+    // ==========================================
+    // INSERT LOG: REGISTER
+    // ==========================================
+    await Log.create({
+      user: req.user ? req.user.username : 'Admin', // Siapa yang daftarin
+      action: `REGISTERED NEW EMPLOYEE: ${username} (${role})`,
+      category: 'ACCOUNT',
+      type: 'CREATE'
+    });
+
+    res.status(201).json({ msg: 'Akun karyawan berhasil dibuat!' });
   } catch (err) {
     console.error(err);
-    res.status(500).send('Ada masalah di server saat register');
+    res.status(500).send('Server Error saat register');
   }
 };
 
-// 2. LOGIN (Udah Oke)
+// 2. LOGIN
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -38,84 +47,90 @@ exports.login = async (req, res) => {
       expiresIn: '1d'
     });
 
+    // ==========================================
+    // INSERT LOG: LOGIN (Opsional tapi bagus buat audit)
+    // ==========================================
+    await Log.create({
+      user: user.username,
+      action: `USER LOGGED IN TO SYSTEM`,
+      category: 'ACCOUNT',
+      type: 'LOGIN'
+    });
+
     res.json({ token, user: { id: user._id, username: user.username, role: user.role } });
   } catch (err) {
-    res.status(500).send('Ada masalah di server saat login');
+    console.error(err);
+    res.status(500).send('Server Error saat login');
   }
 };
 
-// 3. FORGOT PASSWORD (DIUBAH KE PORT FRONTEND)
-exports.forgotPassword = async (req, res) => {
+// 3. GET ALL USERS
+exports.getAllUsers = async (req, res) => {
   try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ msg: 'Email nggak ada di database, Fa!' });
-
-    const resetToken = crypto.randomBytes(20).toString('hex');
-
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
-    await user.save();
-
-    // Setup Kurir Mailtrap
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    // PENTING: Arahkan ke localhost:5173 (Vite), bukan 5000!
-    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
-
-    const mailOptions = {
-      from: '"ProTrack Support" <support@protrack.com>',
-      to: user.email,
-      subject: 'Reset Password ProTrack ERP',
-      html: `
-        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #ddd;">
-          <h2>Halo, ${user.username}!</h2>
-          <p>Lo nerima email ini karena ada permintaan reset password buat akun ProTrack lo.</p>
-          <p>Klik tombol di bawah ini buat ganti password (berlaku cuma 10 menit):</p>
-          <a href="${resetUrl}" style="background: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0;">RESET PASSWORD SEKARANG</a>
-          <p>Kalau lo gak ngerasa minta ini, cuekin aja email ini ya.</p>
-          <hr />
-          <small>ProTrack ERP Monitoring System</small>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    res.json({ msg: 'Email reset password sudah dikirim ke Mailtrap!' });
+    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    res.json(users);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Gagal kirim email');
+    res.status(500).json({ msg: "Gagal mengambil data user" });
   }
 };
 
-// 4. RESET PASSWORD (Udah Oke)
-exports.resetPassword = async (req, res) => {
+// 4. DELETE USER (Revoke Access)
+exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findOne({
-      resetPasswordToken: req.params.token,
-      resetPasswordExpire: { $gt: Date.now() }
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ msg: 'User tidak ditemukan' });
+
+    if (user._id.toString() === req.user.id) {
+      return res.status(400).json({ msg: 'Lo nggak bisa hapus akun lo sendiri, Fa!' });
+    }
+
+    const deletedUsername = user.username;
+    await User.findByIdAndDelete(req.params.id);
+
+    // ==========================================
+    // INSERT LOG: DELETE USER
+    // ==========================================
+    await Log.create({
+      user: req.user.username, // Siapa admin yang hapus
+      action: `REVOKED ACCESS / DELETED ACCOUNT: ${deletedUsername}`,
+      category: 'ACCOUNT',
+      type: 'DELETE'
     });
 
-    if (!user) return res.status(400).json({ msg: 'Token gak valid atau udah basi!' });
+    res.json({ msg: 'Akses user berhasil dicabut' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Gagal menghapus user" });
+  }
+};
+
+// 5. ADMIN FORCE RESET PASSWORD (Override)
+exports.adminResetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ msg: 'User tidak ditemukan' });
 
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     user.password = hashedPassword;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
     await user.save();
 
-    res.json({ msg: 'Password berhasil diganti! Silakan login ulang.' });
+    // ==========================================
+    // INSERT LOG: RESET PASSWORD
+    // ==========================================
+    await Log.create({
+      user: req.user.username,
+      action: `FORCE RESET PASSWORD FOR: ${user.username}`,
+      category: 'ACCOUNT',
+      type: 'SECURITY'
+    });
+
+    res.json({ msg: `Password untuk ${user.username} berhasil di-override!` });
   } catch (err) {
     console.error(err);
-    res.status(500).send('Gagal update password');
+    res.status(500).json({ msg: "Gagal reset password" });
   }
 };

@@ -20,7 +20,7 @@ const Register = () => {
     { label: 'Marketing Division', value: 'Marketing' },
     { label: 'Procurement Division', value: 'Procurement' },
     { label: 'Finance Division', value: 'Finance' },
-    { label: 'Project Manager', value: 'Management' },
+    { label: 'Management', value: 'Management' },
     { label: 'Company Owner', value: 'Owner' },
     { label: 'Super Admin Access', value: 'Admin' }
   ];

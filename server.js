@@ -35,6 +35,7 @@ app.use('/api/item', require('./routes/itemRoutes'));
 app.use('/api/supplier_quotation', require('./routes/supplierQuotationRoutes'));
 app.use('/api/client_quotation', require('./routes/clientQuotationRoutes'));
 app.use('/api/logs', require('./routes/logRoutes'));
+app.use('/api/po', require('./routes/poRoutes'));
 
 // Route baru buat Invoice Submission (Procurement -> Finance)
 app.use('/api/invoice_submission', supplierInvoiceRoutes);

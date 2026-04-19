@@ -22,7 +22,7 @@ const Dashboard = () => {
       { title: 'Vendor Directory', icon: '📦', desc: 'Kelola Master Supplier / Vendor.', path: '/vendor', color: 'border-emerald-500' },
       { title: 'Supplier Quotation', icon: '📥', desc: 'Input COGS dan barang dari supplier.', path: '/add-supplier-quotation', color: 'border-teal-500' },
       { title: 'Purchase Order', icon: '📝', desc: 'Buat pesanan resmi ke supplier.', path: '/create-po', color: 'border-blue-600' },
-      { title: 'Return Goods', icon: '🔄', desc: 'Proses pengembalian barang ke vendor.', path: '/return-goods', color: 'border-red-500' },
+      { title: 'Receive & QC Goods', icon: '🔍', desc: 'Terima, cek barang & proses retur.', path: '/receive-qc', color: 'border-amber-500' }, // <-- SUDAH DISESUAIKAN
       { title: 'Invoice Submission', icon: '📤', desc: 'Kirim invoice supplier ke Finance.', path: '/upload-to-finance', color: 'border-slate-600' },
     ],
     Finance: [

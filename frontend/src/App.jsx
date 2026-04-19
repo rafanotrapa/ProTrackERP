@@ -23,6 +23,8 @@ import AddVendor from './pages/AddVendor';
 import ExistingVendors from './pages/ExistingVendors'; 
 import AddSupplierQuotation from './pages/AddSupplierQuotation'; 
 import InvoiceSubmission from './pages/SupplierInvoice'; 
+import CreatePO from './pages/CreatePO';           // <-- NEW IMPORT
+import ReceiveQCGoods from './pages/ReceiveQCGoods';  // <-- IMPORT YANG BENAR UNTUK QC
 
 // --- MONITORING & TIMELINE MODULE ---
 import ProjectList from './pages/ProjectList';
@@ -93,6 +95,16 @@ function App() {
           <Route 
             path="/upload-to-finance" 
             element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><InvoiceSubmission /></ProtectedRoute>} 
+          />
+          
+          {/* --- NEW PROCUREMENT ROUTES (SUDAH DISINKRONKAN DENGAN DASHBOARD) --- */}
+          <Route 
+            path="/create-po" 
+            element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><CreatePO /></ProtectedRoute>} 
+          />
+          <Route 
+            path="/receive-qc" 
+            element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><ReceiveQCGoods /></ProtectedRoute>} 
           />
 
           {/* 6. MONITORING & TIMELINE */}

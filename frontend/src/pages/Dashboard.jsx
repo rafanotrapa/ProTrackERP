@@ -24,6 +24,7 @@ const Dashboard = () => {
       { title: 'Purchase Order', icon: '📝', desc: 'Buat pesanan resmi ke supplier.', path: '/create-po', color: 'border-blue-600' },
       { title: 'Receive & QC Goods', icon: '🔍', desc: 'Terima, cek barang & proses retur.', path: '/receive-qc', color: 'border-amber-500' }, // <-- SUDAH DISESUAIKAN
       { title: 'Invoice Submission', icon: '📤', desc: 'Kirim invoice supplier ke Finance.', path: '/upload-to-finance', color: 'border-slate-600' },
+      { title: 'Delivery Management', icon: '🚚', desc: 'Jadwal & pantau pengiriman ke klien.', path: '/delivery-management', color: 'border-cyan-500' }
     ],
     Finance: [
       { title: 'Client Invoice', icon: '🧾', desc: 'Generate tagihan dari Quotation.', path: '/client-invoice', color: 'border-violet-500' },

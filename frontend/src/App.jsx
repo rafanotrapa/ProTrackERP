@@ -17,14 +17,15 @@ import AddProject from './pages/AddProject';
 import AddClientQuotation from './pages/AddClientQuotation';
 import AddClientInvoice from './pages/AddClientInvoice'; 
 
-// --- PROCUREMENT MODULE ---
+// --- PROCUREMENT & LOGISTICS MODULE ---
 import VendorMenu from './pages/VendorMenu'; 
 import AddVendor from './pages/AddVendor';
 import ExistingVendors from './pages/ExistingVendors'; 
 import AddSupplierQuotation from './pages/AddSupplierQuotation'; 
 import InvoiceSubmission from './pages/SupplierInvoice'; 
-import CreatePO from './pages/CreatePO';           // <-- NEW IMPORT
-import ReceiveQCGoods from './pages/ReceiveQCGoods';  // <-- IMPORT YANG BENAR UNTUK QC
+import CreatePO from './pages/CreatePO';           
+import ReceiveQCGoods from './pages/ReceiveQCGoods';  
+import DeliveryManagement from './pages/DeliveryManagement'; // <-- NEW IMPORT UNTUK LOGISTIK
 
 // --- MONITORING & TIMELINE MODULE ---
 import ProjectList from './pages/ProjectList';
@@ -75,7 +76,7 @@ function App() {
             element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Manager', 'Owner']}><AddClientInvoice /></ProtectedRoute>} 
           />
 
-          {/* 5. PROCUREMENT MODULE */}
+          {/* 5. PROCUREMENT & LOGISTICS MODULE */}
           <Route 
             path="/vendor" 
             element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Manager', 'Owner']}><VendorMenu /></ProtectedRoute>} 
@@ -97,7 +98,7 @@ function App() {
             element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><InvoiceSubmission /></ProtectedRoute>} 
           />
           
-          {/* --- NEW PROCUREMENT ROUTES (SUDAH DISINKRONKAN DENGAN DASHBOARD) --- */}
+          {/* --- PROCUREMENT NEW ROUTES --- */}
           <Route 
             path="/create-po" 
             element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><CreatePO /></ProtectedRoute>} 
@@ -105,6 +106,10 @@ function App() {
           <Route 
             path="/receive-qc" 
             element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><ReceiveQCGoods /></ProtectedRoute>} 
+          />
+          <Route 
+            path="/delivery-management" 
+            element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><DeliveryManagement /></ProtectedRoute>} 
           />
 
           {/* 6. MONITORING & TIMELINE */}

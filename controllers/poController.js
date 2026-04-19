@@ -82,3 +82,25 @@ exports.qcCheckPO = async (req, res) => {
     res.status(500).json({ msg: 'Server error saat QC Check' });
   }
 };
+
+// 5. UPDATE DELIVERY STATUS (Logistics)
+exports.updateDelivery = async (req, res) => {
+  try {
+    const { status, deliveryDate, courierName, trackingNumber } = req.body;
+    const po = await PurchaseOrder.findById(req.params.id);
+    
+    if (!po) return res.status(404).json({ msg: 'PO tidak ditemukan' });
+
+    // Update status sesuai fase
+    po.deliveryStatus = status;
+    if (deliveryDate) po.deliveryDate = deliveryDate;
+    if (courierName) po.courierName = courierName;
+    if (trackingNumber) po.trackingNumber = trackingNumber;
+
+    await po.save();
+    res.json({ msg: `Status Pengiriman diupdate menjadi: ${status}`, data: po });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Server error saat update delivery' });
+  }
+};

@@ -9,16 +9,16 @@ import Footer from '../components/Footer';
 const InvoiceSubmission = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [supplierQuotes, setSupplierQuotes] = useState([]);
+  const [approvedPOs, setApprovedPOs] = useState([]); // Ubah state name biar relevan
   const [openDropdown, setOpenDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef(null);
 
-  // 1. INISIALISASI STATE KETAT (Semua wajib string kosong, bukan null/undefined)
   const [formData, setFormData] = useState({
     submissionId: `SUB-${Date.now()}`,
+    poId: '',          // Tambah referensi PO
+    poNumber: '',      // Tambah referensi PO Number
     projectId: '',
-    projectName: '',
     vendorName: '',
     invoiceNumber: '',
     amount: '',
@@ -30,12 +30,16 @@ const InvoiceSubmission = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/supplier_quotation', {
+        // KITA NARIK DARI PO, BUKAN QUOTATION LAGI
+        const res = await axios.get('http://localhost:5000/api/po', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setSupplierQuotes(res.data || []);
+        
+        // FILTER: Hanya ambil PO yang barangnya udah nyampe dan lolos QC
+        const passedPOs = (res.data || []).filter(po => po.qcStatus === 'Passed');
+        setApprovedPOs(passedPOs);
       } catch (err) {
-        console.error("Gagal load master data:", err);
+        console.error("Gagal load data PO:", err);
       }
     };
     fetchData();
@@ -48,17 +52,19 @@ const InvoiceSubmission = () => {
   }, []);
 
   const filteredOptions = useMemo(() => {
-    return supplierQuotes.filter(q => 
-      `${q.projectId || ''} ${q.projectName || ''} ${q.vendorId || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
+    return approvedPOs.filter(po => 
+      `${po.poNumber || ''} ${po.projectId || ''} ${po.vendorId?.vendorName || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [supplierQuotes, searchTerm]);
+  }, [approvedPOs, searchTerm]);
 
-  const handleSelect = (q) => {
+  const handleSelect = (po) => {
     setFormData((prev) => ({
       ...prev,
-      projectId: q.projectId || '',
-      projectName: q.projectName || '',
-      vendorName: q.vendorId || '',
+      poId: po._id,
+      poNumber: po.poNumber || '',
+      projectId: po.projectId || '',
+      vendorName: po.vendorId?.vendorName || 'Unknown Vendor',
+      amount: po.totalAmount || '' // Auto-fill nominal dari PO
     }));
     setOpenDropdown(false);
     setSearchTerm('');
@@ -78,6 +84,7 @@ const InvoiceSubmission = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.file) return Swal.fire('MISSING FILE', 'Upload scan invoice supplier dulu Fa!', 'warning');
+    if (!formData.poId) return Swal.fire('WARNING', 'Pilih referensi Purchase Order!', 'warning');
 
     setLoading(true);
     const data = new FormData();
@@ -92,6 +99,7 @@ const InvoiceSubmission = () => {
 
     try {
       const token = localStorage.getItem('token');
+      // Pastikan route/controller backend lu udah siap nerima data poNumber dan poId
       await axios.post('http://localhost:5000/api/supplier_invoices', data, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
@@ -111,7 +119,6 @@ const InvoiceSubmission = () => {
     <div className="min-h-screen bg-white font-sans flex flex-col text-slate-900">
       <Header />
 
-      {/* HEADER SECTION */}
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
         <button onClick={() => navigate('/dashboard')} className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm active:scale-90 group transition-all">
           <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
@@ -132,32 +139,34 @@ const InvoiceSubmission = () => {
               <div className="space-y-6">
                 <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Billing Reference</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* PROJECT DROP (SEARCHABLE) */}
+                <div className="grid grid-cols-1 gap-6">
+                  {/* PO DROP (SEARCHABLE) */}
                   <div className="space-y-1 relative" ref={dropdownRef}>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Project Reference</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Purchase Order Reference (QC Passed)</label>
                     <div onClick={() => setOpenDropdown(!openDropdown)} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm">
-                      <span className="truncate">{formData.projectId ? `${formData.projectId} - ${formData.projectName}` : '-- Select Project --'}</span>
+                      <span className="truncate">{formData.poNumber ? `${formData.poNumber} - ${formData.vendorName}` : '-- Select Validated PO --'}</span>
                       <span className={`text-[8px] transition-transform ${openDropdown ? 'rotate-180' : ''}`}>▼</span>
                     </div>
                     {openDropdown && (
                       <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
                         <div className="p-4 bg-slate-50 border-b relative">
-                          <input type="text" placeholder="Search project/vendor..." className="w-full p-2 pl-8 text-xs outline-none font-bold italic bg-white border rounded-lg focus:border-indigo-600" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} autoFocus />
+                          <input type="text" placeholder="Search PO or Vendor..." className="w-full p-2 pl-8 text-xs outline-none font-bold italic bg-white border rounded-lg focus:border-indigo-600" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} autoFocus />
                           <Search size={14} className="absolute left-7 top-7 text-slate-400" />
                         </div>
                         <ul className="max-h-56 overflow-y-auto">
-                          {filteredOptions.length > 0 ? filteredOptions.map(q => (
-                            <li key={q._id} onClick={() => handleSelect(q)} className="px-5 py-4 hover:bg-indigo-600 group cursor-pointer transition-all border-b border-slate-50 last:border-none">
-                              <p className="text-[10px] font-black text-indigo-600 group-hover:text-white uppercase italic">{q.projectId}</p>
-                              <p className="text-xs font-black text-slate-800 group-hover:text-white uppercase truncate">{q.projectName || 'Unnamed Project'}</p>
+                          {filteredOptions.length > 0 ? filteredOptions.map(po => (
+                            <li key={po._id} onClick={() => handleSelect(po)} className="px-5 py-4 hover:bg-indigo-600 group cursor-pointer transition-all border-b border-slate-50 last:border-none">
+                              <p className="text-[10px] font-black text-indigo-600 group-hover:text-white uppercase italic">{po.poNumber}</p>
+                              <p className="text-xs font-black text-slate-800 group-hover:text-white uppercase truncate">{po.vendorId?.vendorName || 'Unknown'} (Proj: {po.projectId})</p>
                             </li>
-                          )) : <li className="px-5 py-6 text-center text-[10px] font-bold text-slate-400 uppercase">No Quotations Found</li>}
+                          )) : <li className="px-5 py-6 text-center text-[10px] font-bold text-slate-400 uppercase">No QC Passed PO Found</li>}
                         </ul>
                       </div>
                     )}
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* VENDOR (READ-ONLY) */}
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Vendor (Autofill)</label>
@@ -167,9 +176,21 @@ const InvoiceSubmission = () => {
                       className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-400 outline-none italic cursor-not-allowed" 
                     />
                   </div>
+                  {/* AMOUNT (AUTOFILL TAPI BISA DIEDIT JIKA ADA PAJAK) */}
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Billing Amount (IDR)</label>
+                    <input 
+                      type="number" 
+                      required 
+                      value={formData.amount || ''} 
+                      placeholder="0" 
+                      onChange={(e) => setFormData({...formData, amount: e.target.value})} 
+                      className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-black text-xl text-indigo-600 outline-none focus:border-indigo-600 shadow-sm" 
+                    />
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
                   {/* INVOICE NUMBER */}
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none text-nowrap">Supp. Invoice Number</label>
@@ -179,18 +200,6 @@ const InvoiceSubmission = () => {
                       placeholder="INV-001/BJK/2026" 
                       onChange={(e) => setFormData({...formData, invoiceNumber: e.target.value})} 
                       className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 transition-all shadow-sm italic" 
-                    />
-                  </div>
-                  {/* AMOUNT */}
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Billing Amount (IDR)</label>
-                    <input 
-                      type="number" 
-                      required 
-                      value={formData.amount || ''} 
-                      placeholder="0" 
-                      onChange={(e) => setFormData({...formData, amount: e.target.value})} 
-                      className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-black text-2xl text-indigo-600 outline-none focus:border-indigo-600 shadow-sm" 
                     />
                   </div>
                 </div>
@@ -211,9 +220,9 @@ const InvoiceSubmission = () => {
             {/* RIGHT COLUMN: DOCUMENT UPLOAD */}
             <div className="space-y-6">
               <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Digital Evidence</h3>
-              <div className="relative h-full">
+              <div className="relative h-full min-h-[300px]">
                 <input type="file" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
-                <div className={`h-80 border-4 border-dashed rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-300 ${formData.file ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-100 bg-slate-50 hover:border-indigo-300 group'}`}>
+                <div className={`h-full border-4 border-dashed rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-300 ${formData.file ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-100 bg-slate-50 hover:border-indigo-300 group'}`}>
                   {formData.file ? (
                     <div className="text-center animate-in zoom-in duration-300">
                       <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-200">

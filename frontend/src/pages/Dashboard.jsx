@@ -19,8 +19,8 @@ const Dashboard = () => {
       { title: 'Timeline Monitoring', icon: '📊', desc: 'Pantau progress fisik & payment.', path: '/timeline', color: 'border-orange-500' }
     ],
     Procurement: [
-      { title: 'Vendor & Items', icon: '📦', desc: 'Kelola Master Supplier & Katalog.', path: '/vendor', color: 'border-emerald-500' },
-      { title: 'Supplier Quotation', icon: '📥', desc: 'Input COGS dari supplier.', path: '/supplier-quote', color: 'border-teal-500' },
+      { title: 'Vendor Directory', icon: '📦', desc: 'Kelola Master Supplier / Vendor.', path: '/vendor', color: 'border-emerald-500' },
+      { title: 'Supplier Quotation', icon: '📥', desc: 'Input COGS dan barang dari supplier.', path: '/add-supplier-quotation', color: 'border-teal-500' },
       { title: 'Purchase Order', icon: '📝', desc: 'Buat pesanan resmi ke supplier.', path: '/create-po', color: 'border-blue-600' },
       { title: 'Return Goods', icon: '🔄', desc: 'Proses pengembalian barang ke vendor.', path: '/return-goods', color: 'border-red-500' },
       { title: 'Invoice Submission', icon: '📤', desc: 'Kirim invoice supplier ke Finance.', path: '/upload-to-finance', color: 'border-slate-600' },
@@ -52,10 +52,8 @@ const Dashboard = () => {
   if (user.role === 'Admin') {
     userModules = [...allModules.Admin];
   } else if (user.role === 'Management') {
-    // Management dapet semua akses operasional
     userModules = [...allModules.Marketing, ...allModules.Procurement, ...allModules.Finance];
   } else if (user.role === 'Owner') {
-    // Owner cuma fokus ke modul Insight & Report
     userModules = [...allModules.Owner, ...allModules.Finance.filter(f => f.title === 'Financial Report')];
   } else {
     userModules = allModules[user.role] || [];
@@ -63,11 +61,8 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen font-sans bg-slate-50 flex flex-col">
-      
-      {/* 1. KUSTOM HEADER (Warna Slate-900) */}
       <Header />
 
-      {/* MAIN CONTENT */}
       <div className="flex-1 p-6 mx-auto w-full max-w-7xl md:p-12">
         <header className="flex flex-col gap-4 justify-between items-start mb-12 md:flex-row md:items-end">
           <div>
@@ -90,7 +85,6 @@ const Dashboard = () => {
           </div>
         </header>
         
-        {/* GRID MODULE CARDS */}
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {userModules.length > 0 ? (
             userModules.map((mod, idx) => (
@@ -109,7 +103,6 @@ const Dashboard = () => {
                   Launch Module <span className="ml-2">→</span>
                 </div>
 
-                {/* Decorative Pattern inside card */}
                 <div className="absolute -right-4 -bottom-4 text-slate-50 font-black text-6xl italic opacity-0 group-hover:opacity-100 transition-opacity">
                   {idx + 1}
                 </div>
@@ -122,10 +115,7 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-
-      {/* 2. KUSTOM FOOTER (Full Width & Luxury) */}
       <Footer />
-      
     </div>
   );
 };

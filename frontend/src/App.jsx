@@ -15,16 +15,14 @@ import SystemLogs from './pages/SystemLogs';
 // --- MARKETING MODULE ---
 import AddProject from './pages/AddProject';
 import AddClientQuotation from './pages/AddClientQuotation';
-import AddClientInvoice from './pages/AddClientInvoice'; // Pindah ke Marketing sesuai dashboard terbaru
+import AddClientInvoice from './pages/AddClientInvoice'; 
 
 // --- PROCUREMENT MODULE ---
 import VendorMenu from './pages/VendorMenu'; 
 import AddVendor from './pages/AddVendor';
 import ExistingVendors from './pages/ExistingVendors'; 
-import AddItem from './pages/AddItem'; 
-import ExistingItems from './pages/ExistingItems';
-import AddSupplierQuotation from './pages/AddSupplierQuotation';
-import InvoiceSubmission from './pages/SupplierInvoice'; // NEW MODUL
+import AddSupplierQuotation from './pages/AddSupplierQuotation'; 
+import InvoiceSubmission from './pages/SupplierInvoice'; 
 
 // --- MONITORING & TIMELINE MODULE ---
 import ProjectList from './pages/ProjectList';
@@ -89,15 +87,7 @@ function App() {
             element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Manager', 'Owner']}><ExistingVendors /></ProtectedRoute>} 
           />
           <Route 
-            path="/add-item" 
-            element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><AddItem /></ProtectedRoute>} 
-          />
-          <Route 
-            path="/existing-items" 
-            element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Manager', 'Owner']}><ExistingItems /></ProtectedRoute>} 
-          />
-          <Route 
-            path="/supplier-quote" 
+            path="/add-supplier-quotation" 
             element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><AddSupplierQuotation /></ProtectedRoute>} 
           />
           <Route 
@@ -115,7 +105,7 @@ function App() {
             element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Manager', 'Owner']}><ProjectTimeline /></ProtectedRoute>} 
           />
 
-          {/* 7. OWNER & FINANCE INSIGHT (Placeholder logic for owner-insight) */}
+          {/* 7. OWNER & FINANCE INSIGHT */}
           <Route 
             path="/owner-insight" 
             element={<ProtectedRoute allowRoles={['Owner', 'Admin']}><div className="p-20 text-center font-black italic uppercase text-slate-300">Executive Summary Insight Module</div></ProtectedRoute>} 

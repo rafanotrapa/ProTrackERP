@@ -15,7 +15,7 @@ const Dashboard = () => {
     Marketing: [
       { title: 'Add Project', icon: '📁', desc: 'Input data project baru.', path: '/add-project', color: 'border-blue-500' },
       { title: 'Create Quotation', icon: '📝', desc: 'Buat penawaran harga detail.', path: '/client-quote', color: 'border-green-500' },
-      { title: 'Create Invoice', icon: '🧾', desc: 'Buat invoice untuk customer.', path: '/client-invoice', color: 'border-orange-500' },
+      { title: 'Create Invoice', icon: '🧾', desc: 'Buat invoice untuk customer.', path: '/create-invoice', color: 'border-orange-500' },
       { title: 'Timeline Monitoring', icon: '📊', desc: 'Pantau progress fisik & payment.', path: '/timeline', color: 'border-orange-500' }
     ],
     Procurement: [
@@ -31,7 +31,7 @@ const Dashboard = () => {
       { title: 'Client Payment', icon: '💰', desc: 'Input pembayaran masuk dari client.', path: '/client-payment', color: 'border-emerald-600' },
       { title: 'Payment Verification', icon: '🛡️', desc: 'Verifikasi bukti bayar client.', path: '/verify-payment', color: 'border-fuchsia-500' },
       { title: 'Supplier Payment', icon: '💸', desc: 'Proses pembayaran hutang ke vendor.', path: '/supplier-payment', color: 'border-rose-500' },
-      { title: 'Financial Report', icon: '📈', desc: 'Laporan laba rugi per project.', path: '/finance-report', color: 'border-slate-900' },
+      { title: 'Financial Report', icon: '📈', desc: 'Laporan laba rugi per project.', path: '/financial-report', color: 'border-slate-900' },
     ],
     Admin: [
       { title: 'User Management', icon: '👥', desc: 'Atur akun karyawan dan role.', path: '/manage-users', color: 'border-slate-800' },

@@ -4,6 +4,8 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
 const supplierInvoiceRoutes = require('./routes/supplierInvoiceRoutes');
+const supplierPaymentRoutes = require('./routes/supplierpaymentroutes');
+const financialRoutes = require('./routes/financialRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -36,9 +38,13 @@ app.use('/api/supplier_quotation', require('./routes/supplierQuotationRoutes'));
 app.use('/api/client_quotation', require('./routes/clientQuotationRoutes'));
 app.use('/api/logs', require('./routes/logRoutes'));
 app.use('/api/po', require('./routes/poRoutes'));
+app.use('/api/create_invoice', require('./routes/createInvoiceRoutes'));
+app.use('/api/financial', financialRoutes);
 
 // Route baru buat Invoice Submission (Procurement -> Finance)
 app.use('/api/invoice_submission', supplierInvoiceRoutes);
+
+
 
 // --- BASE ENDPOINT ---
 app.get('/', (req, res) => {

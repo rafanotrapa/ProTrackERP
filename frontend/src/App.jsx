@@ -15,7 +15,7 @@ import SystemLogs from './pages/SystemLogs';
 // --- MARKETING MODULE ---
 import AddProject from './pages/AddProject';
 import AddClientQuotation from './pages/AddClientQuotation';
-import AddClientInvoice from './pages/AddClientInvoice'; 
+import AddClientInvoice from './pages/AddClientInvoice';
 
 // --- PROCUREMENT & LOGISTICS MODULE ---
 import VendorMenu from './pages/VendorMenu'; 
@@ -25,7 +25,10 @@ import AddSupplierQuotation from './pages/AddSupplierQuotation';
 import InvoiceSubmission from './pages/SupplierInvoice'; 
 import CreatePO from './pages/CreatePO';           
 import ReceiveQCGoods from './pages/ReceiveQCGoods';  
-import DeliveryManagement from './pages/DeliveryManagement'; // <-- NEW IMPORT UNTUK LOGISTIK
+import DeliveryManagement from './pages/DeliveryManagement'; 
+
+import SupplierPayment from './pages/SupplierPayment';
+import FinancialReport from './pages/financialReport';
 
 // --- MONITORING & TIMELINE MODULE ---
 import ProjectList from './pages/ProjectList';
@@ -62,7 +65,7 @@ function App() {
             element={<ProtectedRoute allowRoles={['Admin', 'Manager', 'Owner']}><SystemLogs /></ProtectedRoute>} 
           />
 
-          {/* 4. MARKETING MODULE */}
+          {/* 4. MARKETING & FINANCE MODULE (COMBINED ACCESS) */}
           <Route 
             path="/add-project" 
             element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Manager', 'Owner']}><AddProject /></ProtectedRoute>} 
@@ -71,10 +74,9 @@ function App() {
             path="/client-quote" 
             element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Manager', 'Owner']}><AddClientQuotation /></ProtectedRoute>} 
           />
-          <Route 
-            path="/client-invoice" 
-            element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Manager', 'Owner']}><AddClientInvoice /></ProtectedRoute>} 
-          />
+          
+          {/* FIX: GABUNGKAN ROLE DISINI BIAR FINANCE GAK MENTAL */}
+          <Route path="/create-invoice" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><AddClientInvoice /></ProtectedRoute>} />
 
           {/* 5. PROCUREMENT & LOGISTICS MODULE */}
           <Route 
@@ -98,7 +100,6 @@ function App() {
             element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><InvoiceSubmission /></ProtectedRoute>} 
           />
           
-          {/* --- PROCUREMENT NEW ROUTES --- */}
           <Route 
             path="/create-po" 
             element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><CreatePO /></ProtectedRoute>} 
@@ -127,7 +128,14 @@ function App() {
             path="/owner-insight" 
             element={<ProtectedRoute allowRoles={['Owner', 'Admin']}><div className="p-20 text-center font-black italic uppercase text-slate-300">Executive Summary Insight Module</div></ProtectedRoute>} 
           />
-
+          <Route 
+             path="/supplier-payment" 
+             element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><SupplierPayment /></ProtectedRoute>} 
+          />
+          <Route 
+            path="/financial-report" 
+            element={<ProtectedRoute allowRoles={['Finance', 'Owner', 'Admin']}><FinancialReport /></ProtectedRoute>} 
+          />
           {/* 8. CATCH-ALL */}
           <Route path="*" element={<Login />} />
 

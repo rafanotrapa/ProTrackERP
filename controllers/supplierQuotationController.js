@@ -1,17 +1,16 @@
 const SupplierQuotation = require('../models/SupplierQuotation');
 
+// 1. Fungsi Create (Sudah gue rapihin)
 exports.createQuotation = async (req, res) => {
   try {
     const { quotationId, projectId, vendorId, topOption, remarks } = req.body;
     
-    // Karena dari frontend dikirim pakai FormData (JSON.stringify), kita harus parse balik ke Array
     let items = [];
     if (req.body.items) {
       items = JSON.parse(req.body.items);
     }
 
-    // Ambil path file kalau ada yang di-upload (asumsi lu pake middleware Multer)
-    const documentUrl = req.file ? req.file.path : '';
+    const documentUrl = req.file ? `/uploads/documents/${req.file.filename}` : '';
 
     const newQuotation = new SupplierQuotation({
       quotationId,
@@ -24,10 +23,35 @@ exports.createQuotation = async (req, res) => {
     });
 
     await newQuotation.save();
-    res.status(201).json({ msg: 'Supplier Quotation berhasil disimpan!', data: newQuotation });
+    res.status(201).json({ success: true, msg: 'Supplier Quotation & Dokumen berhasil disimpan!', data: newQuotation });
 
   } catch (err) {
     console.error("Error save quotation:", err);
-    res.status(500).json({ msg: 'Gagal menyimpan Quotation ke server' });
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+// 2. Fungsi Get All
+exports.getAllQuotations = async (req, res) => {
+  try {
+    const data = await SupplierQuotation.find().sort({ timestamp: -1 });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+// 3. FUNGSI BARU: Get by Project ID (BIAR AUTO-FILL JALAN)
+exports.getQuotationByProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const quotation = await SupplierQuotation.findOne({ projectId: projectId }).sort({ timestamp: -1 });
+
+    if (!quotation) {
+      return res.status(404).json({ msg: 'Penawaran supplier tidak ditemukan untuk project ini' });
+    }
+    res.json(quotation);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
   }
 };

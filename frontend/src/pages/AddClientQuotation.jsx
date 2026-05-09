@@ -11,7 +11,7 @@ const AddClientQuotation = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
 
-  // FUNGSI FORMAT RIBUAN (Biar konsisten sama Add Project)
+  // FUNGSI FORMAT RIBUAN
   const formatRupiah = (value) => {
     if (!value) return '';
     let numberString = value.toString().replace(/[^0-9]/g, '');
@@ -29,7 +29,7 @@ const AddClientQuotation = () => {
     timestamp: new Date().toISOString().split('T')[0]
   });
 
-  // Fetch List Project
+  // Fetch List Project untuk Dropdown
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -39,36 +39,65 @@ const AddClientQuotation = () => {
         });
         setProjects(res.data);
       } catch (err) {
-        console.error("Gagal load project");
+        console.error("Gagal load project list");
       }
     };
     fetchProjects();
   }, []);
 
-  // LOGIC AUTO-FILL (Trigger saat Project ID dipilih)
+  const [rawItems, setRawItems] = useState([]);
+
+  // LOGIC AUTO-FILL (Ini yang gue benerin total)
   useEffect(() => {
     if (!formData.projectId) return;
 
-    const fetchDetail = async () => {
+    const fetchAllDetails = async () => {
       setFetching(true);
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`http://localhost:5000/api/project/${formData.projectId}`, {
+        
+        // 1. Ambil data Project buat dapet Nama Client & Project Name
+        const resProject = await axios.get(`http://localhost:5000/api/project/${formData.projectId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
+        // 2. Ambil data Supplier Quotation buat dapet List Item Barang & TOP
+        // Pastikan endpoint ini (/api/supplier_quotation/project/:id) sudah lo buat di backend
+        const resSQ = await axios.get(`http://localhost:5000/api/supplier_quotation/project/${formData.projectId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Mapping items supplier untuk tampilan teks di textarea (selectedItems)
+        const supplierItems = resSQ.data.items || [];
+        const itemNamesString = supplierItems.length > 0 
+          ? supplierItems.map(item => `- ${item.itemName} (${item.quantity} ${item.unit})`).join('\n')
+          : 'Tidak ada item ditemukan';
+
+        // 3. Update Form Data (PENTING: items: supplierItems dimasukkan agar data array ikut tersimpan)
         setFormData(prev => ({
-          ...prev,
-          clientName: res.data.clientName || 'N/A',
-          selectedItems: res.data.itemsFromSQ 
-        }));
+  ...prev,
+  // Ambil nama project asli dari database Project
+  projectName: resProject.data.projectName || 'Tanpa Nama Project', 
+  clientName: resProject.data.clientName || 'N/A',
+  selectedItems: itemNamesString,
+  items: supplierItems,
+  topOption: resSQ.data.topOption || 'COD'
+}));
+
       } catch (err) {
-        console.error("Gagal tarik detail BJK");
+        console.error("Error fetching project/supplier details:", err);
+        // Fallback jika data supplier belum ada tapi data project berhasil ditarik
+        setFormData(prev => ({ 
+          ...prev, 
+          selectedItems: 'Belum ada penawaran supplier untuk project ini.',
+          items: [] 
+        }));
       } finally {
         setFetching(false);
       }
     };
-    fetchDetail();
+    
+    fetchAllDetails();
   }, [formData.projectId]);
 
   const handleChange = (e) => {
@@ -169,7 +198,7 @@ const AddClientQuotation = () => {
                   <textarea 
                     value={formData.selectedItems} 
                     readOnly 
-                    className="w-full bg-transparent font-bold text-slate-600 outline-none h-12 resize-none italic text-sm" 
+                    className="w-full bg-transparent font-bold text-slate-600 outline-none h-24 resize-none italic text-sm" 
                     placeholder="Technical specs will appear here..."
                   />
                 </div>

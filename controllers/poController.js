@@ -1,6 +1,6 @@
 const PurchaseOrder = require('../models/PurchaseOrder');
 const SupplierQuotation = require('../models/SupplierQuotation');
-const Vendor = require('../models/Vendor'); // <-- TAMBAHAN WAJIB
+const Vendor = require('../models/Vendor'); 
 
 // 1. CREATE PO (Procurement)
 exports.createPO = async (req, res) => {
@@ -10,13 +10,12 @@ exports.createPO = async (req, res) => {
     const quote = await SupplierQuotation.findById(quotationId);
     if (!quote) return res.status(404).json({ msg: 'Quotation dasar tidak ditemukan!' });
 
-    // --- PENYELAMAT: CARI OBJECT ID ASLI DARI VENDOR ---
+    // CARI OBJECT ID ASLI DARI VENDOR
     let realVendorObjectId = null;
     if (quote.vendorId) {
-        // Cari vendor di database yang ID string-nya cocok sama quotation
         const vendorData = await Vendor.findOne({ vendorId: quote.vendorId });
         if (vendorData) {
-            realVendorObjectId = vendorData._id; // Ambil ObjectId aslinya
+            realVendorObjectId = vendorData._id; 
         }
     }
 
@@ -29,7 +28,7 @@ exports.createPO = async (req, res) => {
       poNumber,
       quotationId,
       projectId: quote.projectId,
-      vendorId: realVendorObjectId, // <-- MASUKIN OBJECT ID BIAR MONGOOSE SENENG
+      vendorId: realVendorObjectId, 
       items: quote.items,       
       totalAmount,
       shippingAddress
@@ -39,7 +38,6 @@ exports.createPO = async (req, res) => {
     res.status(201).json({ msg: 'Purchase Order resmi diterbitkan!', data: newPO });
   } catch (err) {
     console.error("Error create PO:", err.message);
-    // Tembak pesan error asli Mongoose ke UI biar gampang nge-trace-nya
     res.status(500).json({ msg: `Gagal membuat PO: ${err.message}` });
   }
 };
@@ -57,7 +55,7 @@ exports.getAllPOs = async (req, res) => {
   }
 };
 
-// 3. FINANCE APPROVAL (Nanti dipanggil dari modul Finance)
+// 3. FINANCE APPROVAL
 exports.financeApprovePO = async (req, res) => {
   try {
     const po = await PurchaseOrder.findById(req.params.id);
@@ -72,19 +70,27 @@ exports.financeApprovePO = async (req, res) => {
   }
 };
 
-// 4. QC CHECK / RETURN GOODS (Procurement)
+// 4. QC CHECK / RETURN GOODS (Procurement/Gudang)
 exports.qcCheckPO = async (req, res) => {
   try {
-    const { status, qcRemarks } = req.body; 
+    const { status, qcRemarks } = req.body; // status = 'Passed' atau 'Returned'
     const po = await PurchaseOrder.findById(req.params.id);
     if (!po) return res.status(404).json({ msg: 'PO tidak ditemukan' });
 
-    if (po.paymentStatus !== 'Approved') {
-        return res.status(400).json({ msg: 'Gagal QC! Barang ilegal dikirim sebelum Finance bayar DP.' });
+    // HAPUS BLOK PENGECEKAN PAYMENT STATUS (Biar gak nunggu DP Finance lagi)
+    // if (po.paymentStatus !== 'Approved') { ... } <-- INI UDAH GUE BUANG
+
+    // Gembok Baru: Kalau udah 'Passed', gak boleh diubah lagi.
+    if (po.qcStatus === 'Passed') {
+        return res.status(400).json({ msg: 'Gagal! Barang ini sudah berstatus PASSED.' });
     }
 
     po.qcStatus = status;
-    if (qcRemarks) po.qcRemarks = qcRemarks;
+    
+    // Kalau diretur lagi, catatannya ditambah, gak dioverwrite.
+    if (qcRemarks) {
+        po.qcRemarks = po.qcRemarks ? `${po.qcRemarks} | Update: ${qcRemarks}` : qcRemarks;
+    }
     
     await po.save();
 

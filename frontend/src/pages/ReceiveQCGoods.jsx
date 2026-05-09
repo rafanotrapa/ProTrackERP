@@ -28,13 +28,13 @@ const ReceiveQCGoods = () => {
   const handleQC = async (id, actionStatus) => {
     let qcRemarks = '';
     
-    // Kalau reject/return, minta alasan wajib!
+    // Kalau reject/return, wajib kasih alasan untuk tracking
     if (actionStatus === 'Returned') {
       const { value: text } = await Swal.fire({
         title: 'REJECT / RETURN GOODS',
         input: 'textarea',
         inputLabel: 'Alasan Retur / Gagal QC',
-        inputPlaceholder: 'Barang cacat, quantity kurang...',
+        inputPlaceholder: 'Contoh: Barang cacat, quantity kurang...',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
         inputValidator: (value) => { if (!value) return 'Alasan retur wajib diisi!' }
@@ -45,7 +45,7 @@ const ReceiveQCGoods = () => {
       // Konfirmasi Pass QC
       const result = await Swal.fire({
         title: 'QC PASSED?',
-        text: 'Barang sudah sesuai dan siap diteruskan ke Finance untuk pelunasan?',
+        text: 'Barang sudah sesuai dan lengkap? Status ini akan membuka akses pembuatan Invoice.',
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#22c55e',
@@ -61,21 +61,9 @@ const ReceiveQCGoods = () => {
       });
       
       Swal.fire('BERHASIL', `Status QC diupdate menjadi ${actionStatus}`, 'success');
-      fetchPOs(); // Refresh data
+      fetchPOs(); // Refresh data biar UI langsung update
     } catch (err) {
       Swal.fire('ERROR', err.response?.data?.msg || 'Gagal update status QC', 'error');
-    }
-  };
-
-  // Kita kasih API pura-pura buat testing Finance Approve (Khusus Development)
-  const handleDummyFinanceApprove = async (id) => {
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/po/${id}/finance-approve`, {}, { headers: { Authorization: `Bearer ${token}` } });
-      Swal.fire('DP APPROVED!', 'Finance telah menyetujui, Supplier mengirim barang.', 'success');
-      fetchPOs();
-    } catch (err) {
-      Swal.fire('ERROR', 'Gagal update payment status', 'error');
     }
   };
 
@@ -95,7 +83,7 @@ const ReceiveQCGoods = () => {
       </div>
 
       <main className="flex-1 p-8 md:p-12 lg:p-16">
-        <div className="mx-auto max-w-7xl bg-white rounded-[3rem] shadow-xl border border-slate-100 overflow-hidden">
+        <div className="mx-auto max-w-6xl bg-white rounded-[3rem] shadow-xl border border-slate-100 overflow-hidden">
           <div className="p-8 border-b border-slate-100">
              <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">Incoming Shipments</h2>
           </div>
@@ -106,14 +94,13 @@ const ReceiveQCGoods = () => {
                 <tr className="bg-slate-900 text-white">
                   <th className="p-6 text-[10px] font-black uppercase tracking-widest italic">PO Number / Project</th>
                   <th className="p-6 text-[10px] font-black uppercase tracking-widest italic">Supplier</th>
-                  <th className="p-6 text-[10px] font-black uppercase tracking-widest italic text-center">Status Finance</th>
                   <th className="p-6 text-[10px] font-black uppercase tracking-widest italic text-center">Status QC</th>
                   <th className="p-6 text-[10px] font-black uppercase tracking-widest italic text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {purchaseOrders.length === 0 ? (
-                   <tr><td colSpan="5" className="p-12 text-center text-slate-400 font-bold italic">No Purchase Orders found.</td></tr>
+                   <tr><td colSpan="4" className="p-12 text-center text-slate-400 font-bold italic">No Purchase Orders found.</td></tr>
                 ) : purchaseOrders.map((po) => (
                   <tr key={po._id} className="hover:bg-slate-50/50 transition-colors group">
                     <td className="p-6">
@@ -128,19 +115,6 @@ const ReceiveQCGoods = () => {
                     <td className="p-6">
                        <p className="text-xs font-bold text-slate-700 uppercase">{po.vendorId?.vendorName || 'N/A'}</p>
                     </td>
-                    
-                    {/* STATUS FINANCE */}
-                    <td className="p-6 text-center">
-                       {po.paymentStatus === 'Approved' ? (
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-lg text-[10px] font-black uppercase tracking-widest">DP APPROVED</span>
-                       ) : (
-                          <div className="flex flex-col items-center gap-2">
-                             <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest">WAITING FINANCE</span>
-                             {/* TOMBOL DUMMY BUAT TESTING - NANTI BISA DIHAPUS KALO MODUL FINANCE UDAH JADI */}
-                             <button onClick={() => handleDummyFinanceApprove(po._id)} className="text-[8px] font-black underline text-blue-500 hover:text-blue-700">Simulate Approve</button>
-                          </div>
-                       )}
-                    </td>
 
                     {/* STATUS QC */}
                     <td className="p-6 text-center">
@@ -152,17 +126,17 @@ const ReceiveQCGoods = () => {
                     {/* ACTIONS */}
                     <td className="p-6">
                       <div className="flex justify-end gap-2">
-                        {/* Tombol QC hanya aktif kalau Finance udah bayar DP dan QC belum Passed/Returned */}
+                        {/* Tombol QC aktif selama status belum Passed */}
                         <button 
                           onClick={() => handleQC(po._id, 'Passed')}
-                          disabled={po.paymentStatus !== 'Approved' || po.qcStatus !== 'Waiting Delivery'}
+                          disabled={po.qcStatus === 'Passed'}
                           className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-green-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-green-50 hover:border-green-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         >
                           <CheckCircle size={14}/> PASS
                         </button>
                         <button 
                           onClick={() => handleQC(po._id, 'Returned')}
-                          disabled={po.paymentStatus !== 'Approved' || po.qcStatus !== 'Waiting Delivery'}
+                          disabled={po.qcStatus === 'Passed'}
                           className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 text-red-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-red-50 hover:border-red-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         >
                           <XCircle size={14}/> RETURN

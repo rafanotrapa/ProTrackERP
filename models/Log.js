@@ -8,7 +8,7 @@ const logSchema = new mongoose.Schema({
   action: { 
     type: String, 
     required: true 
-  }, // Contoh: "Created Invoice #INV-001" atau "Deleted User John"
+  }, 
   category: { 
     type: String, 
     required: true,

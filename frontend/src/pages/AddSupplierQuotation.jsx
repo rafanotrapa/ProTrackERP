@@ -13,7 +13,7 @@ const AddSupplierQuotation = () => {
   // Master Data States
   const [projects, setProjects] = useState([]);
   const [vendors, setVendors] = useState([]);
-  const [items, setItems] = useState([]); // Master item dari database lama lu
+  const [items, setItems] = useState([]);
 
   // Dropdown UI States
   const [openDropdown, setOpenDropdown] = useState(null); 
@@ -43,7 +43,8 @@ const AddSupplierQuotation = () => {
     document: null 
   });
 
-  // State Khusus Multi-Item (Add Goods)
+  // State Khusus Multi-Item
+  // NOTE: 'cogs' di sini sekarang berperan sebagai Harga Per Unit
   const [quotationItems, setQuotationItems] = useState([
     { itemName: '', quantity: 1, unit: 'Pcs', cogs: '' }
   ]);
@@ -102,10 +103,15 @@ const AddSupplierQuotation = () => {
 
     if (name === 'cogs') {
       const rawValue = value.replace(/\./g, '');
-      updatedItems[index][name] = rawValue;
+      // DIPAKSA JADI NUMBER BIAR MONGOOSE GAK ERROR
+      updatedItems[index][name] = rawValue ? Number(rawValue) : '';
+    } else if (name === 'quantity') {
+      // DIPAKSA JADI NUMBER BIAR MONGOOSE GAK ERROR
+      updatedItems[index][name] = value ? Number(value) : '';
     } else {
       updatedItems[index][name] = value;
     }
+    
     setQuotationItems(updatedItems);
   };
 
@@ -131,7 +137,7 @@ const AddSupplierQuotation = () => {
     const data = new FormData();
     Object.keys(formData).forEach(key => data.append(key, formData[key]));
     
-    // Convert array of items to JSON string untuk dikirim lewat FormData
+    // Convert array of items to JSON string
     data.append('items', JSON.stringify(quotationItems));
 
     try {
@@ -140,7 +146,7 @@ const AddSupplierQuotation = () => {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       Swal.fire({ icon: 'success', title: 'SAVED', text: 'Quotation recorded.', confirmButtonColor: '#0f172a' });
-      navigate('/dashboard'); // Atau kembali ke '/vendor'
+      navigate('/dashboard'); 
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || "Gagal simpan quotation!" });
     } finally { setLoading(false); }
@@ -151,7 +157,7 @@ const AddSupplierQuotation = () => {
       <Header />
 
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
-        <button onClick={() => navigate('/vendor')} className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group">
+        <button onClick={() => navigate('/dashboard')} className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group">
           <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
         </button>
         <div>
@@ -212,7 +218,7 @@ const AddSupplierQuotation = () => {
             </div>
           </div>
 
-          {/* SECTION 2: ADD GOODS & COGS (DINAMIS) */}
+          {/* SECTION 2: ADD GOODS & COGS (DINAMIS & AUTO-CALCULATE) */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Goods & Commercials</h3>
             
@@ -220,8 +226,8 @@ const AddSupplierQuotation = () => {
               {quotationItems.map((item, index) => (
                 <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 bg-slate-50 border border-slate-200 rounded-2xl items-end relative transition-all hover:border-indigo-300">
                   
-                  {/* Select Item (Pakai Master Data atau ketik bebas) */}
-                  <div className="md:col-span-4 space-y-1">
+                  {/* Select Item */}
+                  <div className="md:col-span-3 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Item Name</label>
                     <input 
                       list={`item-list-${index}`} 
@@ -229,7 +235,7 @@ const AddSupplierQuotation = () => {
                       value={item.itemName} 
                       onChange={(e) => handleItemChange(index, e)} 
                       required 
-                      placeholder="Cth: Router Cisco / Ketik untuk cari..." 
+                      placeholder="Ketik nama barang..." 
                       className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"
                     />
                     <datalist id={`item-list-${index}`}>
@@ -237,21 +243,36 @@ const AddSupplierQuotation = () => {
                     </datalist>
                   </div>
                   
+                  {/* Quantity */}
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Qty</label>
                     <input type="number" name="quantity" value={item.quantity} onChange={(e) => handleItemChange(index, e)} min="1" required className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
 
+                  {/* UoM */}
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">UoM</label>
                     <input name="unit" value={item.unit} onChange={(e) => handleItemChange(index, e)} required placeholder="Pcs/Lot" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
 
-                  <div className="md:col-span-3 space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">COGS (Rp)</label>
-                    <input type="text" name="cogs" value={formatRupiah(item.cogs)} onChange={(e) => handleItemChange(index, e)} required placeholder="0" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-base font-black text-indigo-600 outline-none focus:border-indigo-600 shadow-sm"/>
+                  {/* HARGA PER UNIT */}
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Harga/Unit (Rp)</label>
+                    <input type="text" name="cogs" value={formatRupiah(item.cogs)} onChange={(e) => handleItemChange(index, e)} required placeholder="0" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-sm font-black text-indigo-600 outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
 
+                  {/* TOTAL HARGA (AUTO CALCULATE) */}
+                  <div className="md:col-span-2 space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Total (Rp)</label>
+                    <input 
+                      type="text" 
+                      readOnly 
+                      value={formatRupiah((item.quantity || 0) * (item.cogs || 0))} 
+                      className="w-full p-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-black text-slate-500 outline-none cursor-not-allowed shadow-inner"
+                    />
+                  </div>
+
+                  {/* Tombol Hapus */}
                   <div className="md:col-span-1 flex justify-center pb-1">
                     {quotationItems.length > 1 && (
                       <button type="button" onClick={() => removeItemRow(index)} className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200">

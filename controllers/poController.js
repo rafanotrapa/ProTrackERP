@@ -1,13 +1,24 @@
 const PurchaseOrder = require('../models/PurchaseOrder');
 const SupplierQuotation = require('../models/SupplierQuotation');
+const Vendor = require('../models/Vendor'); // <-- TAMBAHAN WAJIB
 
 // 1. CREATE PO (Procurement)
 exports.createPO = async (req, res) => {
   try {
-    const { poNumber, quotationId, shippingAddress } = req.body; // <-- DIHAPUS DARI SINI
+    const { poNumber, quotationId, shippingAddress } = req.body; 
 
     const quote = await SupplierQuotation.findById(quotationId);
     if (!quote) return res.status(404).json({ msg: 'Quotation dasar tidak ditemukan!' });
+
+    // --- PENYELAMAT: CARI OBJECT ID ASLI DARI VENDOR ---
+    let realVendorObjectId = null;
+    if (quote.vendorId) {
+        // Cari vendor di database yang ID string-nya cocok sama quotation
+        const vendorData = await Vendor.findOne({ vendorId: quote.vendorId });
+        if (vendorData) {
+            realVendorObjectId = vendorData._id; // Ambil ObjectId aslinya
+        }
+    }
 
     let totalAmount = 0;
     if (quote.items && quote.items.length > 0) {
@@ -18,18 +29,18 @@ exports.createPO = async (req, res) => {
       poNumber,
       quotationId,
       projectId: quote.projectId,
-      vendorId: quote.vendorId, 
+      vendorId: realVendorObjectId, // <-- MASUKIN OBJECT ID BIAR MONGOOSE SENENG
       items: quote.items,       
       totalAmount,
       shippingAddress
-      // <-- DIHAPUS DARI SINI
     });
 
     await newPO.save();
     res.status(201).json({ msg: 'Purchase Order resmi diterbitkan!', data: newPO });
   } catch (err) {
-    console.error("Error create PO:", err);
-    res.status(500).json({ msg: 'Gagal membuat Purchase Order' });
+    console.error("Error create PO:", err.message);
+    // Tembak pesan error asli Mongoose ke UI biar gampang nge-trace-nya
+    res.status(500).json({ msg: `Gagal membuat PO: ${err.message}` });
   }
 };
 
@@ -64,7 +75,7 @@ exports.financeApprovePO = async (req, res) => {
 // 4. QC CHECK / RETURN GOODS (Procurement)
 exports.qcCheckPO = async (req, res) => {
   try {
-    const { status, qcRemarks } = req.body; // status = 'Passed' atau 'Returned'
+    const { status, qcRemarks } = req.body; 
     const po = await PurchaseOrder.findById(req.params.id);
     if (!po) return res.status(404).json({ msg: 'PO tidak ditemukan' });
 
@@ -91,7 +102,6 @@ exports.updateDelivery = async (req, res) => {
     
     if (!po) return res.status(404).json({ msg: 'PO tidak ditemukan' });
 
-    // Update status sesuai fase
     po.deliveryStatus = status;
     if (deliveryDate) po.deliveryDate = deliveryDate;
     if (courierName) po.courierName = courierName;

@@ -1,13 +1,24 @@
 const SupplierQuotation = require('../models/SupplierQuotation');
 
-// 1. Fungsi Create (Sudah gue rapihin)
+// 1. Fungsi Create (Sudah diperbaiki dengan Parsing & Casting Ketat)
 exports.createQuotation = async (req, res) => {
   try {
     const { quotationId, projectId, vendorId, topOption, remarks } = req.body;
     
-    let items = [];
+    let parsedItems = [];
     if (req.body.items) {
-      items = JSON.parse(req.body.items);
+      // 1. Parse JSON string dari FormData React
+      const rawItems = JSON.parse(req.body.items);
+      
+      // 2. Mapping wajib: Pastikan tipe data dikonversi sesuai Mongoose Schema
+      parsedItems = rawItems.map(item => ({
+        itemName: String(item.itemName),
+        // Paksa jadi Number, kalau kosong default ke 1
+        quantity: Number(item.quantity) || 1, 
+        unit: String(item.unit),
+        // Bersihkan karakter aneh/titik rupiah (jika ada), lalu paksa jadi Number
+        cogs: Number(String(item.cogs).replace(/[^0-9]/g, '')) || 0 
+      }));
     }
 
     const documentUrl = req.file ? `/uploads/documents/${req.file.filename}` : '';
@@ -16,7 +27,7 @@ exports.createQuotation = async (req, res) => {
       quotationId,
       projectId,
       vendorId,
-      items,
+      items: parsedItems, // <-- Masukkan array yang sudah steril
       topOption,
       remarks,
       documentUrl

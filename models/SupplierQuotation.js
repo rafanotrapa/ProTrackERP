@@ -5,7 +5,7 @@ const SupplierQuotationSchema = new mongoose.Schema({
   projectId: { type: String, required: true, trim: true },
   vendorId: { type: String, required: true },
   
-  // NGGAK PAKE selectedItems LAGI, GANTI JADI ARRAY OF OBJECTS
+
   items: [{ 
     itemName: { type: String, required: true },
     quantity: { type: Number, required: true, default: 1 },
@@ -15,7 +15,7 @@ const SupplierQuotationSchema = new mongoose.Schema({
   
   topOption: { type: String },
   remarks: { type: String },
-  documentUrl: { type: String }, // <-- Tambahan buat nyimpen path file PDF/IMG
+  documentUrl: { type: String }, 
   timestamp: { type: Date, default: Date.now }
 }, { 
   collection: 'supplier_quotation' 

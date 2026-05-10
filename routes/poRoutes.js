@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// Cukup panggil protect, HAPUS 'admin'
+
 const { protect } = require('../middleware/auth'); 
 
 const { createPO, getAllPOs, financeApprovePO, qcCheckPO, updateDelivery } = require('../controllers/poController');
@@ -9,7 +9,7 @@ const { createPO, getAllPOs, financeApprovePO, qcCheckPO, updateDelivery } = req
 // --- CUSTOM MIDDLEWARE: DINAMIS CEK ROLE ---
 const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
-    // Kalau role user yang login gak ada di dalam daftar yang diizinkan, tendang!
+
     if (!req.user || !allowedRoles.includes(req.user.role)) {
       return res.status(403).json({ 
         msg: `Akses ditolak! Fitur ini khusus divisi: ${allowedRoles.join(' / ')}.` 

@@ -6,7 +6,7 @@ const {
     updateStatus 
 } = require('../controllers/supplierInvoiceController');
 
-// Proteksi & Upload Middleware
+
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/uploadMiddleware');
 

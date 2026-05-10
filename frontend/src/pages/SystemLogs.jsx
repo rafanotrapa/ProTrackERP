@@ -8,7 +8,7 @@ const SystemLogs = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL'); 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // State buat Custom Dropdown
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); 
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 

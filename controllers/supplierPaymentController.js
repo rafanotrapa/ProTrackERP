@@ -1,6 +1,6 @@
 const SupplierInvoice = require('../models/SupplierInvoice');
 
-// Ambil semua data yang belum dibayar (Bukan Paid)
+
 exports.getSupplierPayments = async (req, res) => {
   try {
     const data = await SupplierInvoice.find({ status: { $ne: 'Paid' } }).sort({ createdAt: -1 });

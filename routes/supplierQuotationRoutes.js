@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-// Import controllernya
+
 const supplierQuotationController = require('../controllers/supplierQuotationController');
 
 // Konfigurasi Multer

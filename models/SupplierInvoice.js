@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const SupplierInvoiceSchema = new mongoose.Schema({
-  submissionId: { type: String }, // ID unik dari Frontend
+  submissionId: { type: String }, 
   invoiceNumber: { type: String, required: true, unique: true },
   
   // UBAH DARI QUOTATION JADI PO
@@ -10,17 +10,17 @@ const SupplierInvoiceSchema = new mongoose.Schema({
   projectId: { type: String },
   
   vendorName: { type: String, required: true },
-  amount: { type: Number, required: true }, // Ubah dari totalAmount jadi amount biar cocok sama Frontend
+  amount: { type: Number, required: true }, 
   
-  file: { type: String }, // Untuk simpan nama file scan
+  file: { type: String }, 
   remarks: { type: String },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Siapa yang upload
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
   
   invoiceDate: { type: Date, default: Date.now },
   dueDate: { type: Date },
   status: { type: String, default: 'Pending Verification' }, 
   paymentDate: { type: Date },
   bankInfo: { type: String }
-}, { timestamps: true, collection: 'supplier_invoice' }); // Set nama collection biar rapi
+}, { timestamps: true, collection: 'supplier_invoice' }); 
 
 module.exports = mongoose.model('SupplierInvoice', SupplierInvoiceSchema);

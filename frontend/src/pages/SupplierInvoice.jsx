@@ -98,8 +98,6 @@ const InvoiceSubmission = () => {
     try {
       const token = localStorage.getItem('token');
       
-      // PERBAIKAN: Hapus 'Content-Type': 'multipart/form-data'
-      // Biarkan Axios mengatur boundary unik untuk file secara otomatis
       await axios.post('http://localhost:5000/api/supplier_invoices', data, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -114,7 +112,6 @@ const InvoiceSubmission = () => {
     } catch (err) {
       console.error("FULL ERROR TRACE:", err);
       
-      // ERROR TRACER: Menangkap alasan asli gagalnya submit
       let errorMessage = "Error tidak diketahui.";
       if (err.response) {
           errorMessage = err.response.data?.msg || JSON.stringify(err.response.data);

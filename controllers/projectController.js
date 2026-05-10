@@ -4,7 +4,7 @@ const Log = require('../models/Log');
 // 1. ADD NEW PROJECT (Marketing Action)
 exports.addProject = async (req, res) => {
   try {
-    // Ambil data sesuai dengan formData di AddProject.jsx
+
     const { 
       projectId, 
       projectName, 

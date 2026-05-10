@@ -34,7 +34,6 @@ router.get('/:projectId', async (req, res) => {
     const itemList = supplierQuotes.map(sq => sq.selectedItems).filter(Boolean);
     const mergedItems = [...new Set(itemList)].join(', ');
 
-    // Step C: Kirim data gabungan
     res.json({
       ...project._doc,
       itemsFromSQ: mergedItems || "Belum ada item dari penawaran supplier"
@@ -49,7 +48,7 @@ router.get('/:projectId', async (req, res) => {
 // 3. POST: SIMPAN PROJECT BARU
 router.post('/', async (req, res) => {
   try {
-    // Validasi duplikat ID BJK
+
     const existingProject = await Project.findOne({ projectId: req.body.projectId });
     if (existingProject) {
       return res.status(400).json({ success: false, msg: "ID BJK sudah terdaftar!" });
@@ -70,12 +69,11 @@ router.post('/', async (req, res) => {
 });
 
 // 4. PATCH: UPDATE STATUS MILESTONE (FUNGSI TIMELINE)
-// Digunakan untuk: Update isDPPaid, isItemsReceived, dsb secara otomatis
+
 router.patch('/update-status/:projectId', async (req, res) => {
   try {
     const pId = req.params.projectId.trim();
-    
-    // Kita update field apapun yang dikirim di req.body (isDPPaid, dsb)
+
     const updatedProject = await Project.findOneAndUpdate(
       { projectId: pId },
       { $set: req.body },

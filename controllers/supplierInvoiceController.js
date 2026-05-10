@@ -1,6 +1,6 @@
 const SupplierInvoice = require('../models/SupplierInvoice');
 
-// @desc    1. Submit Tagihan (Procurement Side)
+// 1. Submit Tagihan (Procurement Side)
 exports.submitInvoice = async (req, res) => {
     try {
         console.log("=========================================");
@@ -8,7 +8,7 @@ exports.submitInvoice = async (req, res) => {
         console.log("📦 1. Data dari Frontend (req.body):", req.body);
         console.log("📁 2. File Upload (req.file):", req.file ? req.file.filename : "TIDAK ADA FILE");
 
-        // Antisipasi perbedaan struktur token JWT lu (kadang .id, kadang ._id)
+
         const userId = req.user ? (req.user._id || req.user.id) : null;
         console.log("👤 3. User ID yang Submit:", userId);
 
@@ -52,7 +52,7 @@ exports.submitInvoice = async (req, res) => {
     }
 };
 
-// @desc    2. List Antrean Pembayaran (Finance Side)
+//  2. List Antrean Pembayaran (Finance Side)
 exports.getAllInvoices = async (req, res) => {
     try {
         const invoices = await SupplierInvoice.find()
@@ -65,7 +65,7 @@ exports.getAllInvoices = async (req, res) => {
     }
 };
 
-// @desc    3. Update Status (Approve/Reject by Finance)
+// 3. Update Status (Approve/Reject by Finance)
 exports.updateStatus = async (req, res) => {
     try {
         const invoice = await SupplierInvoice.findByIdAndUpdate(

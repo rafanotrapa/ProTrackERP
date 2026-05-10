@@ -1,25 +1,25 @@
 const SupplierQuotation = require('../models/SupplierQuotation');
 
-// 1. Fungsi Create (Sudah diperbaiki dengan Parsing & Casting Ketat)
+// 1. Fungsi Create
 exports.createQuotation = async (req, res) => {
   try {
-    const { quotationId, projectId, vendorId, topOption, remarks } = req.body;
+    // Tangkap additionalFee dari body
+    const { quotationId, projectId, vendorId, topOption, remarks, additionalFee } = req.body;
     
     let parsedItems = [];
     if (req.body.items) {
-      // 1. Parse JSON string dari FormData React
       const rawItems = JSON.parse(req.body.items);
       
-      // 2. Mapping wajib: Pastikan tipe data dikonversi sesuai Mongoose Schema
       parsedItems = rawItems.map(item => ({
         itemName: String(item.itemName),
-        // Paksa jadi Number, kalau kosong default ke 1
         quantity: Number(item.quantity) || 1, 
         unit: String(item.unit),
-        // Bersihkan karakter aneh/titik rupiah (jika ada), lalu paksa jadi Number
         cogs: Number(String(item.cogs).replace(/[^0-9]/g, '')) || 0 
       }));
     }
+
+    // Sterilisasi additionalFee (hilangkan titik dan pastikan jadi Number)
+    const cleanAdditionalFee = Number(String(additionalFee || '0').replace(/[^0-9]/g, '')) || 0;
 
     const documentUrl = req.file ? `/uploads/documents/${req.file.filename}` : '';
 
@@ -27,7 +27,8 @@ exports.createQuotation = async (req, res) => {
       quotationId,
       projectId,
       vendorId,
-      items: parsedItems, // <-- Masukkan array yang sudah steril
+      items: parsedItems, 
+      additionalFee: cleanAdditionalFee, // <-- Masukkan ke DB
       topOption,
       remarks,
       documentUrl
@@ -52,7 +53,7 @@ exports.getAllQuotations = async (req, res) => {
   }
 };
 
-// 3. FUNGSI BARU: Get by Project ID (BIAR AUTO-FILL JALAN)
+// 3. FUNGSI BARU: Get by Project ID
 exports.getQuotationByProject = async (req, res) => {
   try {
     const { projectId } = req.params;

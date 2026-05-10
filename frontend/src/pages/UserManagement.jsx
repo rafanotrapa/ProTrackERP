@@ -26,7 +26,6 @@ const UserManagement = () => {
     fetchUsers(); 
   }, []);
 
-  // FUNGSI 1: RESET PASSWORD (UI POP-UP INPUT)
   const resetPasswordManual = async (id, username) => {
     const { value: newPass } = await Swal.fire({
       title: 'FORCE RESET PASSWORD',
@@ -74,7 +73,6 @@ const UserManagement = () => {
     }
   };
 
-  // FUNGSI 2: DELETE USER (UI POP-UP CONFIRMATION)
   const deleteUser = async (id, username) => {
     const result = await Swal.fire({
       title: 'REVOKE ACCESS?',
@@ -111,88 +109,104 @@ const UserManagement = () => {
     }
   };
 
-return (
-    <div className="min-h-screen bg-slate-50 p-8 font-sans">
-      <div className="max-w-6xl mx-auto">
-        <header className="flex justify-between items-end mb-10 px-2">
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col text-slate-900 pb-16">
+      
+      {/* HEADER: KONSISTEN DENGAN MODULE LAIN */}
+      <header className="w-full px-8 py-8 md:px-12 lg:px-16 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
+        <div className="flex items-center gap-6">
+          <button 
+            onClick={() => navigate('/dashboard')} 
+            className="flex justify-center items-center w-12 h-12 bg-white rounded-2xl border transition-all active:scale-90 shadow-sm group border-slate-200 hover:bg-slate-50 flex-shrink-0"
+          >
+            <span className="text-xl font-black italic transition-colors text-slate-400 group-hover:text-indigo-600">←</span>
+          </button>
           <div>
-            <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">User Management</h1>
-            <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2">Administrative Control & Password Override</p>
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
+              User <span className="text-indigo-600">Management</span>
+            </h1>
+            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2 italic">Administrative Control • Password Override</p>
           </div>
-          
-          <div className="flex gap-4">
-            {/* TOMBOL BACK KE DASHBOARD */}
-            <button 
-              onClick={() => navigate('/dashboard')} 
-              className="bg-white text-slate-400 border-2 border-slate-200 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 hover:text-slate-600 transition-all active:scale-95"
-            >
-              ← Back
-            </button>
-
-            {/* TOMBOL ADD EMPLOYEE */}
-            <button 
-              onClick={() => navigate('/register')} 
-              className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-95"
-            >
-              + Add New Employee
-            </button>
-          </div>
-        </header>
-
-        <div className="bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100">
-          <table className="w-full text-left">
-            <thead className="bg-slate-900 text-white uppercase text-[10px] font-black tracking-[0.2em]">
-              <tr>
-                <th className="px-10 py-6">Karyawan / Division</th>
-                <th className="px-10 py-6">Email Address</th>
-                <th className="px-10 py-6 text-center">Actions Control</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr>
-                  <td colSpan="3" className="py-20 text-center font-black text-slate-200 text-2xl animate-pulse italic uppercase">Syncing User Database...</td>
-                </tr>
-              ) : (
-                users.map((u) => (
-                  <tr key={u._id} className="hover:bg-indigo-50/30 transition-all group">
-                    <td className="px-10 py-6">
-                      <div className="flex flex-col">
-                        <span className="font-black text-slate-800 italic uppercase tracking-tight text-lg">{u.username}</span>
-                        <span className={`w-fit mt-1 px-3 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                          u.role === 'Admin' ? 'bg-red-500 text-white shadow-lg shadow-red-100' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
-                        }`}>
-                          {u.role}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-10 py-6 font-bold text-slate-500">{u.email}</td>
-                    <td className="px-10 py-6">
-                      <div className="flex justify-center gap-6">
-                        <button 
-                          onClick={() => resetPasswordManual(u._id, u.username)}
-                          className="flex flex-col items-center group/btn"
-                        >
-                          <span className="text-indigo-600 font-black text-[10px] uppercase tracking-tighter group-hover/btn:underline">Reset Pass</span>
-                          <span className="text-[9px] opacity-30 italic font-bold">Override</span>
-                        </button>
-                        <div className="w-px h-8 bg-slate-100"></div>
-                        <button 
-                          onClick={() => deleteUser(u._id, u.username)}
-                          className="flex flex-col items-center group/del"
-                        >
-                          <span className="text-red-400 font-black text-[10px] uppercase tracking-tighter group-hover/del:text-red-600 group-hover/del:underline">Remove</span>
-                          <span className="text-[9px] opacity-30 italic font-bold">Revoke</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
         </div>
-      </div>
+        
+        <div>
+          <button 
+            onClick={() => navigate('/register')} 
+            className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-95 whitespace-nowrap"
+          >
+            + Add New Employee
+          </button>
+        </div>
+      </header>
+
+      {/* MAIN CONTENT: FULL PAGE TABLE CARD */}
+      <main className="flex-1 w-full px-8 md:px-12 lg:px-16">
+        <div className="mx-auto w-full max-w-7xl bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
+          
+          {/* SUB-HEADER INSIDE CARD (MIMIC "READY FOR DISPATCH") */}
+          <div className="px-8 py-8 md:px-10">
+             <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic">Registered Personnel</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-slate-900 text-white uppercase text-[10px] font-black tracking-[0.2em] italic">
+                <tr>
+                  <th className="px-8 md:px-10 py-6 whitespace-nowrap">Karyawan / Division</th>
+                  <th className="px-8 md:px-10 py-6 whitespace-nowrap">Email Address</th>
+                  <th className="px-8 md:px-10 py-6 text-center whitespace-nowrap">Actions Control</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr>
+                    <td colSpan="3" className="py-24 text-center font-black text-slate-200 text-2xl animate-pulse italic uppercase">Syncing User Database...</td>
+                  </tr>
+                ) : users.length === 0 ? (
+                  <tr>
+                    <td colSpan="3" className="py-24 text-center font-black text-slate-300 text-xl italic uppercase">No users found.</td>
+                  </tr>
+                ) : (
+                  users.map((u) => (
+                    <tr key={u._id} className="hover:bg-indigo-50/30 transition-all group">
+                      <td className="px-8 md:px-10 py-6">
+                        <div className="flex flex-col">
+                          <span className="font-black text-slate-800 italic uppercase tracking-tight text-lg">{u.username}</span>
+                          <span className={`w-fit mt-1 px-3 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                            u.role === 'Admin' ? 'bg-red-500 text-white shadow-lg shadow-red-100' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
+                          }`}>
+                            {u.role}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-8 md:px-10 py-6 font-bold text-slate-500">{u.email}</td>
+                      <td className="px-8 md:px-10 py-6">
+                        <div className="flex justify-center gap-6">
+                          <button 
+                            onClick={() => resetPasswordManual(u._id, u.username)}
+                            className="flex flex-col items-center group/btn"
+                          >
+                            <span className="text-indigo-600 font-black text-[10px] uppercase tracking-tighter group-hover/btn:underline">Reset Pass</span>
+                            <span className="text-[9px] opacity-30 italic font-bold">Override</span>
+                          </button>
+                          <div className="w-px h-8 bg-slate-100"></div>
+                          <button 
+                            onClick={() => deleteUser(u._id, u.username)}
+                            className="flex flex-col items-center group/del"
+                          >
+                            <span className="text-red-400 font-black text-[10px] uppercase tracking-tighter group-hover/del:text-red-600 group-hover/del:underline">Remove</span>
+                            <span className="text-[9px] opacity-30 italic font-bold">Revoke</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

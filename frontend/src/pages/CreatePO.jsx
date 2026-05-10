@@ -22,7 +22,7 @@ const CreatePO = () => {
   const [formData, setFormData] = useState({
     poNumber: generatePONumber(),
     quotationId: '',
-    shippingAddress: '' // <-- EXPECTED DELIVERY UDAH GUE CABUT
+    shippingAddress: '' 
   });
 
   useEffect(() => {
@@ -111,7 +111,6 @@ const CreatePO = () => {
                 <label className="mb-1.5 ml-1 text-[10px] font-black italic leading-none tracking-widest uppercase text-slate-400">Shipping Address / Delivery Target</label>
                 <textarea name="shippingAddress" value={formData.shippingAddress} onChange={(e)=>setFormData({...formData, shippingAddress: e.target.value})} required placeholder="Alamat gudang / site proyek..." className="w-full h-32 p-4 font-medium outline-none transition-all bg-slate-50 border-slate-300 rounded-xl text-slate-700 focus:border-blue-600 focus:bg-white" />
               </div>
-              {/* KOLOM INPUT TANGGAL UDAH GUE HANGUSKAN DARI SINI */}
             </div>
 
             {/* RIGHT COL: ITEMS PREVIEW DARI QUOTATION */}
@@ -123,7 +122,8 @@ const CreatePO = () => {
                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Vendor ID / Supplier</p>
                        <p className="text-white font-bold">{selectedQuote.vendorId}</p>
                     </div>
-                    <div className="flex-1 space-y-3 overflow-y-auto max-h-[300px] pr-2 custom-scrollbar">
+                    
+                    <div className="flex-1 space-y-3 overflow-y-auto max-h-[220px] pr-2 custom-scrollbar">
                        {selectedQuote.items?.map((item, i) => (
                          <div key={i} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
                             <div className="flex items-center gap-3">
@@ -139,11 +139,28 @@ const CreatePO = () => {
                          </div>
                        ))}
                     </div>
-                    <div className="mt-6 pt-6 border-t border-slate-700 flex justify-between items-end">
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Purchase Value</p>
-                       <p className="text-2xl font-black text-white italic">
-                         {formatRupiah(selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0))}
-                       </p>
+
+                    {/* REKAP TOTAL BESERTA FEE */}
+                    <div className="mt-6 pt-4 border-t border-slate-700 space-y-2">
+                       <div className="flex justify-between items-center text-slate-400">
+                          <p className="text-[10px] font-black uppercase tracking-widest">Subtotal Barang</p>
+                          <p className="text-xs font-bold">{formatRupiah(selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0))}</p>
+                       </div>
+                       {selectedQuote.additionalFee > 0 && (
+                         <div className="flex justify-between items-center text-amber-500">
+                            <p className="text-[10px] font-black uppercase tracking-widest">Additional Fee</p>
+                            <p className="text-xs font-bold">+ {formatRupiah(selectedQuote.additionalFee)}</p>
+                         </div>
+                       )}
+                       <div className="flex justify-between items-end pt-2 border-t border-slate-700/50 mt-2">
+                          <p className="text-[10px] font-black text-white uppercase tracking-widest italic">Grand Total</p>
+                          <p className="text-2xl font-black text-white italic">
+                            {formatRupiah(
+                               (selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0) || 0) + 
+                               (selectedQuote.additionalFee || 0)
+                            )}
+                          </p>
+                       </div>
                     </div>
                  </div>
                ) : (

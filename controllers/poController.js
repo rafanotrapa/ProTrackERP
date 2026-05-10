@@ -19,18 +19,24 @@ exports.createPO = async (req, res) => {
         }
     }
 
-    let totalAmount = 0;
+    // HITUNG SUBTOTAL BARANG
+    let subTotal = 0;
     if (quote.items && quote.items.length > 0) {
-       totalAmount = quote.items.reduce((sum, item) => sum + (item.cogs * item.quantity), 0);
+       subTotal = quote.items.reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 1)), 0);
     }
+    
+    // AMBIL ADDITIONAL FEE DARI QUOTATION & HITUNG GRAND TOTAL
+    const addFee = quote.additionalFee || 0;
+    const grandTotal = subTotal + addFee;
 
     const newPO = new PurchaseOrder({
       poNumber,
       quotationId,
       projectId: quote.projectId,
       vendorId: realVendorObjectId, 
-      items: quote.items,       
-      totalAmount,
+      items: quote.items, 
+      additionalFee: addFee, // <-- Wariskan fee-nya      
+      totalAmount: grandTotal, // <-- Simpan hasil akhir
       shippingAddress
     });
 
@@ -73,21 +79,16 @@ exports.financeApprovePO = async (req, res) => {
 // 4. QC CHECK / RETURN GOODS (Procurement/Gudang)
 exports.qcCheckPO = async (req, res) => {
   try {
-    const { status, qcRemarks } = req.body; // status = 'Passed' atau 'Returned'
+    const { status, qcRemarks } = req.body; 
     const po = await PurchaseOrder.findById(req.params.id);
     if (!po) return res.status(404).json({ msg: 'PO tidak ditemukan' });
 
-    // HAPUS BLOK PENGECEKAN PAYMENT STATUS (Biar gak nunggu DP Finance lagi)
-    // if (po.paymentStatus !== 'Approved') { ... } <-- INI UDAH GUE BUANG
-
-    // Gembok Baru: Kalau udah 'Passed', gak boleh diubah lagi.
     if (po.qcStatus === 'Passed') {
         return res.status(400).json({ msg: 'Gagal! Barang ini sudah berstatus PASSED.' });
     }
 
     po.qcStatus = status;
     
-    // Kalau diretur lagi, catatannya ditambah, gak dioverwrite.
     if (qcRemarks) {
         po.qcRemarks = po.qcRemarks ? `${po.qcRemarks} | Update: ${qcRemarks}` : qcRemarks;
     }

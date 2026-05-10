@@ -33,18 +33,17 @@ const AddSupplierQuotation = () => {
     return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
-  // State Form Utama
+  // State Form Utama (Ditambah additionalFee)
   const [formData, setFormData] = useState({
     quotationId: generateSQID(),
     projectId: '',
     vendorId: '',
     topOption: 'Termin 30 Days',
+    additionalFee: '', // <-- State baru
     remarks: '',
     document: null 
   });
 
-  // State Khusus Multi-Item
-  // NOTE: 'cogs' di sini sekarang berperan sebagai Harga Per Unit
   const [quotationItems, setQuotationItems] = useState([
     { itemName: '', quantity: 1, unit: 'Pcs', cogs: '' }
   ]);
@@ -75,7 +74,6 @@ const AddSupplierQuotation = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // LOGIC FILTERING
   const filteredProjects = useMemo(() => 
     projects.filter(p => `${p.projectId || ''} ${p.projectName || ''}`.toLowerCase().includes((searchTerms.project || '').toLowerCase())),
   [projects, searchTerms.project]);
@@ -84,10 +82,15 @@ const AddSupplierQuotation = () => {
     vendors.filter(v => (v.vendorName || '').toLowerCase().includes((searchTerms.vendor || '').toLowerCase())),
   [vendors, searchTerms.vendor]);
 
-  // Handler Umum
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handler khusus untuk Additional Fee
+  const handleFeeChange = (e) => {
+    const rawValue = e.target.value.replace(/[^0-9]/g, '');
+    setFormData({ ...formData, additionalFee: rawValue });
   };
 
   const selectOption = (name, value) => {
@@ -96,17 +99,14 @@ const AddSupplierQuotation = () => {
     setSearchTerms({ project: '', vendor: '' });
   };
 
-  // --- HANDLER DYNAMIC ITEMS (MODIFIKASI UTAMA) ---
   const handleItemChange = (index, e) => {
     const { name, value } = e.target;
     const updatedItems = [...quotationItems];
 
     if (name === 'cogs') {
       const rawValue = value.replace(/\./g, '');
-      // DIPAKSA JADI NUMBER BIAR MONGOOSE GAK ERROR
       updatedItems[index][name] = rawValue ? Number(rawValue) : '';
     } else if (name === 'quantity') {
-      // DIPAKSA JADI NUMBER BIAR MONGOOSE GAK ERROR
       updatedItems[index][name] = value ? Number(value) : '';
     } else {
       updatedItems[index][name] = value;
@@ -127,6 +127,17 @@ const AddSupplierQuotation = () => {
 
   const handleFileChange = (e) => setFormData({ ...formData, document: e.target.files[0] });
 
+  // Kalkulasi Otomatis
+  const calculateSubTotal = () => {
+    return quotationItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.cogs || 0)), 0);
+  };
+
+  const calculateGrandTotal = () => {
+    const subTotal = calculateSubTotal();
+    const addFee = Number(formData.additionalFee) || 0;
+    return subTotal + addFee;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.projectId || !formData.vendorId) {
@@ -135,9 +146,12 @@ const AddSupplierQuotation = () => {
 
     setLoading(true);
     const data = new FormData();
-    Object.keys(formData).forEach(key => data.append(key, formData[key]));
+    Object.keys(formData).forEach(key => {
+        if(key !== 'additionalFee') data.append(key, formData[key]);
+    });
     
-    // Convert array of items to JSON string
+    // Append additionalFee yang sudah bersih
+    data.append('additionalFee', formData.additionalFee || 0);
     data.append('items', JSON.stringify(quotationItems));
 
     try {
@@ -218,7 +232,7 @@ const AddSupplierQuotation = () => {
             </div>
           </div>
 
-          {/* SECTION 2: ADD GOODS & COGS (DINAMIS & AUTO-CALCULATE) */}
+          {/* SECTION 2: ADD GOODS & COGS */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Goods & Commercials</h3>
             
@@ -226,53 +240,34 @@ const AddSupplierQuotation = () => {
               {quotationItems.map((item, index) => (
                 <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 bg-slate-50 border border-slate-200 rounded-2xl items-end relative transition-all hover:border-indigo-300">
                   
-                  {/* Select Item */}
                   <div className="md:col-span-3 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Item Name</label>
-                    <input 
-                      list={`item-list-${index}`} 
-                      name="itemName" 
-                      value={item.itemName} 
-                      onChange={(e) => handleItemChange(index, e)} 
-                      required 
-                      placeholder="Ketik nama barang..." 
-                      className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"
-                    />
+                    <input list={`item-list-${index}`} name="itemName" value={item.itemName} onChange={(e) => handleItemChange(index, e)} required placeholder="Ketik nama barang..." className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm" />
                     <datalist id={`item-list-${index}`}>
                       {items.map(i => <option key={i._id} value={i.itemName} />)}
                     </datalist>
                   </div>
                   
-                  {/* Quantity */}
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Qty</label>
                     <input type="number" name="quantity" value={item.quantity} onChange={(e) => handleItemChange(index, e)} min="1" required className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
 
-                  {/* UoM */}
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">UoM</label>
                     <input name="unit" value={item.unit} onChange={(e) => handleItemChange(index, e)} required placeholder="Pcs/Lot" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
 
-                  {/* HARGA PER UNIT */}
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Harga/Unit (Rp)</label>
                     <input type="text" name="cogs" value={formatRupiah(item.cogs)} onChange={(e) => handleItemChange(index, e)} required placeholder="0" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-sm font-black text-indigo-600 outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
 
-                  {/* TOTAL HARGA (AUTO CALCULATE) */}
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Total (Rp)</label>
-                    <input 
-                      type="text" 
-                      readOnly 
-                      value={formatRupiah((item.quantity || 0) * (item.cogs || 0))} 
-                      className="w-full p-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-black text-slate-500 outline-none cursor-not-allowed shadow-inner"
-                    />
+                    <input type="text" readOnly value={formatRupiah((item.quantity || 0) * (item.cogs || 0))} className="w-full p-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-black text-slate-500 outline-none cursor-not-allowed shadow-inner" />
                   </div>
 
-                  {/* Tombol Hapus */}
                   <div className="md:col-span-1 flex justify-center pb-1">
                     {quotationItems.length > 1 && (
                       <button type="button" onClick={() => removeItemRow(index)} className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200">
@@ -287,6 +282,33 @@ const AddSupplierQuotation = () => {
             <button type="button" onClick={addItemRow} className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:text-indigo-800 transition-colors mt-2 ml-1">
               <Plus size={14} strokeWidth={3} /> Add Another Item
             </button>
+
+            {/* BLOCK SUMMARY: SUBTOTAL & ADDITIONAL FEE */}
+            <div className="flex flex-col items-end mt-8 space-y-4 bg-white p-6 md:p-8 border border-slate-200 rounded-3xl shadow-sm">
+              <div className="flex justify-between items-center w-full md:w-1/2 lg:w-1/3">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Subtotal</span>
+                <span className="text-sm font-bold text-slate-600">Rp {formatRupiah(calculateSubTotal())}</span>
+              </div>
+              
+              <div className="flex justify-between items-center w-full md:w-1/2 lg:w-1/3">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Additional Fee <span className="text-slate-300 font-medium normal-case">(Opsional)</span></span>
+                <input 
+                  type="text" 
+                  value={formatRupiah(formData.additionalFee)} 
+                  onChange={handleFeeChange} 
+                  placeholder="0" 
+                  className="w-1/2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-indigo-600 outline-none focus:border-indigo-600 text-right shadow-inner transition-all"
+                />
+              </div>
+
+              <div className="w-full md:w-1/2 lg:w-1/3 h-px bg-slate-200 my-2"></div>
+
+              <div className="flex justify-between items-center w-full md:w-1/2 lg:w-1/3">
+                <span className="text-xs font-black text-slate-800 uppercase tracking-widest italic">Grand Total</span>
+                <span className="text-xl font-black text-indigo-600 tracking-tight">Rp {formatRupiah(calculateGrandTotal())}</span>
+              </div>
+            </div>
+            
           </div>
 
           {/* SECTION 3: DOCUMENTATION */}

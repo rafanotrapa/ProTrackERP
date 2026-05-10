@@ -12,13 +12,16 @@ const PurchaseOrderSchema = new mongoose.Schema({
     unit: String,
     cogs: Number
   }],
-  totalAmount: { type: Number, default: 0 },
+  
+  // --- WARISAN DARI QUOTATION ---
+  additionalFee: { type: Number, default: 0 },
+  totalAmount: { type: Number, default: 0 }, // Ini adalah Grand Total (Items + Fee)
   
   paymentStatus: { type: String, enum: ['Pending', 'Approved'], default: 'Pending' }, 
   qcStatus: { type: String, enum: ['Waiting Delivery', 'Passed', 'Returned'], default: 'Waiting Delivery' }, 
   qcRemarks: { type: String }, 
   
-  // --- NEW: LOGISTICS / DELIVERY FIELDS ---
+  // --- LOGISTICS / DELIVERY FIELDS ---
   deliveryStatus: { type: String, enum: ['Pending', 'Scheduled', 'In Transit', 'Delivered'], default: 'Pending' },
   deliveryDate: { type: Date },
   courierName: { type: String },

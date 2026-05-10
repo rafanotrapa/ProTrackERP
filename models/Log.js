@@ -1,29 +1,16 @@
 const mongoose = require('mongoose');
 
-const logSchema = new mongoose.Schema({
-  user: { 
-    type: String, 
-    required: true 
-  }, 
-  action: { 
-    type: String, 
-    required: true 
-  }, 
-  category: { 
-    type: String, 
-    required: true,
-    enum: ['ACCOUNT', 'MARKETING', 'PROCUREMENT', 'FINANCE', 'PROJECT'] 
-  },
-  type: { 
-    type: String, 
-    required: true,
-    enum: ['CREATE', 'UPDATE', 'DELETE', 'LOGIN', 'SECURITY', 'APPROVE'] 
-  },
+const LogSchema = new mongoose.Schema({
+  user: { type: String, required: true }, 
+  action: { type: String, required: true }, 
+  category: { type: String, default: 'SYSTEM' }, 
+  type: { type: String, default: 'INFO' }, 
+  
   timestamp: { 
     type: Date, 
-    default: Date.now 
+    default: Date.now,
+    expires: '7d' // <-- PELURU KENDALINYA DI SINI! (Otomatis hapus setelah 7 hari)
   }
 });
 
-// Kunci ke koleksi 'logs'
-module.exports = mongoose.model('Log', logSchema, 'logs');
+module.exports = mongoose.model('Log', LogSchema);

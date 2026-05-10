@@ -1,5 +1,5 @@
 const dotenv = require('dotenv');
-// 1. PINDAHIN DOTENV KE PALING ATAS BIAR DB BACA ENV DULUAN
+
 dotenv.config(); 
 
 const express = require('express');

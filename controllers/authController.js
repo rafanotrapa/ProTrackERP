@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const Log = require('../models/Log'); // <--- WAJIB IMPORT INI
+const Log = require('../models/Log');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -17,19 +17,24 @@ exports.register = async (req, res) => {
     await user.save();
 
     // ==========================================
-    // INSERT LOG: REGISTER
+    // INSERT LOG (NON-BLOCKING)
+    // Kalau log error, registrasi tetap sukses!
     // ==========================================
-    await Log.create({
-      user: req.user ? req.user.username : 'Admin', // Siapa yang daftarin
-      action: `REGISTERED NEW EMPLOYEE: ${username} (${role})`,
-      category: 'ACCOUNT',
-      type: 'CREATE'
-    });
+    try {
+        await Log.create({
+          user: req.user ? req.user.username : 'Admin', 
+          action: `REGISTERED NEW EMPLOYEE: ${username} (${role})`,
+          category: 'ACCOUNT',
+          type: 'CREATE'
+        });
+    } catch (logErr) {
+        console.error("⚠️ Gagal mencatat log registrasi:", logErr.message);
+    }
 
     res.status(201).json({ msg: 'Akun karyawan berhasil dibuat!' });
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server Error saat register');
+    console.error("❌ ERROR REGISTER:", err);
+    res.status(500).json({ msg: 'Server Error saat register' });
   }
 };
 
@@ -47,27 +52,28 @@ exports.login = async (req, res) => {
       expiresIn: '1d'
     });
 
-    // ==========================================
-    // INSERT LOG: LOGIN (Opsional tapi bagus buat audit)
-    // ==========================================
-    await Log.create({
-      user: user.username,
-      action: `USER LOGGED IN TO SYSTEM`,
-      category: 'ACCOUNT',
-      type: 'LOGIN'
-    });
+    try {
+        await Log.create({
+          user: user.username,
+          action: `USER LOGGED IN TO SYSTEM`,
+          category: 'ACCOUNT',
+          type: 'LOGIN'
+        });
+    } catch (logErr) {
+        console.error("⚠️ Gagal mencatat log login:", logErr.message);
+    }
 
     res.json({ token, user: { id: user._id, username: user.username, role: user.role } });
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server Error saat login');
+    console.error("❌ ERROR LOGIN:", err);
+    res.status(500).json({ msg: 'Server Error saat login' });
   }
 };
 
 // 3. GET ALL USERS
 exports.getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    const users = await User.find().select('-password').sort({ created_at: -1 });
     res.json(users);
   } catch (err) {
     console.error(err);
@@ -82,21 +88,22 @@ exports.deleteUser = async (req, res) => {
     if (!user) return res.status(404).json({ msg: 'User tidak ditemukan' });
 
     if (user._id.toString() === req.user.id) {
-      return res.status(400).json({ msg: 'Lo nggak bisa hapus akun lo sendiri, Fa!' });
+      return res.status(400).json({ msg: 'Lo nggak bisa hapus akun lo sendiri' });
     }
 
     const deletedUsername = user.username;
     await User.findByIdAndDelete(req.params.id);
 
-    // ==========================================
-    // INSERT LOG: DELETE USER
-    // ==========================================
-    await Log.create({
-      user: req.user.username, // Siapa admin yang hapus
-      action: `REVOKED ACCESS / DELETED ACCOUNT: ${deletedUsername}`,
-      category: 'ACCOUNT',
-      type: 'DELETE'
-    });
+    try {
+        await Log.create({
+          user: req.user.username, 
+          action: `REVOKED ACCESS / DELETED ACCOUNT: ${deletedUsername}`,
+          category: 'ACCOUNT',
+          type: 'DELETE'
+        });
+    } catch (logErr) {
+        console.error("⚠️ Gagal mencatat log delete user:", logErr.message);
+    }
 
     res.json({ msg: 'Akses user berhasil dicabut' });
   } catch (err) {
@@ -118,15 +125,16 @@ exports.adminResetPassword = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
-    // ==========================================
-    // INSERT LOG: RESET PASSWORD
-    // ==========================================
-    await Log.create({
-      user: req.user.username,
-      action: `FORCE RESET PASSWORD FOR: ${user.username}`,
-      category: 'ACCOUNT',
-      type: 'SECURITY'
-    });
+    try {
+        await Log.create({
+          user: req.user.username,
+          action: `FORCE RESET PASSWORD FOR: ${user.username}`,
+          category: 'ACCOUNT',
+          type: 'SECURITY'
+        });
+    } catch (logErr) {
+        console.error("⚠️ Gagal mencatat log reset password:", logErr.message);
+    }
 
     res.json({ msg: `Password untuk ${user.username} berhasil di-override!` });
   } catch (err) {

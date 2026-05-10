@@ -3,19 +3,52 @@ const SupplierInvoice = require('../models/SupplierInvoice');
 // @desc    1. Submit Tagihan (Procurement Side)
 exports.submitInvoice = async (req, res) => {
     try {
-        const submission = await SupplierInvoice.create({
-            ...req.body,
+        console.log("=========================================");
+        console.log("📥 API SUBMIT INVOICE TERPANGGIL!");
+        console.log("📦 1. Data dari Frontend (req.body):", req.body);
+        console.log("📁 2. File Upload (req.file):", req.file ? req.file.filename : "TIDAK ADA FILE");
+
+        // Antisipasi perbedaan struktur token JWT lu (kadang .id, kadang ._id)
+        const userId = req.user ? (req.user._id || req.user.id) : null;
+        console.log("👤 3. User ID yang Submit:", userId);
+
+        // CEK DUPLIKAT NOMOR INVOICE MANUAL BIAR ERRORNYA JELAS
+        const existingInvoice = await SupplierInvoice.findOne({ invoiceNumber: req.body.invoiceNumber });
+        if (existingInvoice) {
+            console.log("⚠️ 4. ERROR: Nomor Invoice sudah pernah diinput!");
+            return res.status(400).json({ msg: `Nomor Tagihan ${req.body.invoiceNumber} sudah ada di sistem. Gunakan nomor lain!` });
+        }
+
+        const newInvoice = new SupplierInvoice({
+            submissionId: req.body.submissionId,
+            poId: req.body.poId,
+            poNumber: req.body.poNumber,
+            projectId: req.body.projectId,
+            vendorName: req.body.vendorName,
+            invoiceNumber: req.body.invoiceNumber,
+            amount: Number(req.body.amount) || 0,
+            remarks: req.body.remarks,
             file: req.file ? req.file.filename : null,
-            user: req.user.id // Diambil dari middleware protect
+            user: userId,
+            status: req.body.status || 'Pending Verification'
         });
+
+        console.log("🛡️ 5. Data FINAL yang akan disuntik ke Mongoose:", newInvoice);
+
+        const submission = await newInvoice.save();
+        
+        console.log("🎉 6. SUKSES SAVE INVOICE KE DATABASE!");
+        console.log("=========================================");
+
         res.status(201).json({ 
             success: true, 
             msg: 'Tagihan berhasil di-submit ke Finance',
             data: submission 
         });
     } catch (error) {
-        console.error("Error Submit:", error);
-        res.status(400).json({ msg: 'Gagal simpan invoice ke database' });
+        console.error("❌ ERROR DARI MONGOOSE/SERVER:", error);
+        // Tembak pesan error asli Mongoose ke Frontend biar lu bisa baca
+        res.status(500).json({ msg: `Gagal simpan invoice: ${error.message}` });
     }
 };
 

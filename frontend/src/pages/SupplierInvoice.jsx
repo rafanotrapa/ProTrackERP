@@ -9,15 +9,15 @@ import Footer from '../components/Footer';
 const InvoiceSubmission = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [approvedPOs, setApprovedPOs] = useState([]); // Ubah state name biar relevan
+  const [availablePOs, setAvailablePOs] = useState([]); // Ganti nama state biar lebih pas
   const [openDropdown, setOpenDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef(null);
 
   const [formData, setFormData] = useState({
     submissionId: `SUB-${Date.now()}`,
-    poId: '',          // Tambah referensi PO
-    poNumber: '',      // Tambah referensi PO Number
+    poId: '',          
+    poNumber: '',      
     projectId: '',
     vendorName: '',
     invoiceNumber: '',
@@ -30,14 +30,12 @@ const InvoiceSubmission = () => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        // KITA NARIK DARI PO, BUKAN QUOTATION LAGI
         const res = await axios.get('http://localhost:5000/api/po', {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // FILTER: Hanya ambil PO yang barangnya udah nyampe dan lolos QC
-        const passedPOs = (res.data || []).filter(po => po.qcStatus === 'Passed');
-        setApprovedPOs(passedPOs);
+        // HAPUS FILTER QC! Semua PO sekarang bisa diinput tagihannya.
+        setAvailablePOs(res.data || []);
       } catch (err) {
         console.error("Gagal load data PO:", err);
       }
@@ -52,10 +50,10 @@ const InvoiceSubmission = () => {
   }, []);
 
   const filteredOptions = useMemo(() => {
-    return approvedPOs.filter(po => 
+    return availablePOs.filter(po => 
       `${po.poNumber || ''} ${po.projectId || ''} ${po.vendorId?.vendorName || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [approvedPOs, searchTerm]);
+  }, [availablePOs, searchTerm]);
 
   const handleSelect = (po) => {
     setFormData((prev) => ({
@@ -64,7 +62,7 @@ const InvoiceSubmission = () => {
       poNumber: po.poNumber || '',
       projectId: po.projectId || '',
       vendorName: po.vendorId?.vendorName || 'Unknown Vendor',
-      amount: po.totalAmount || '' // Auto-fill nominal dari PO
+      amount: po.totalAmount || '' 
     }));
     setOpenDropdown(false);
     setSearchTerm('');
@@ -99,7 +97,6 @@ const InvoiceSubmission = () => {
 
     try {
       const token = localStorage.getItem('token');
-      // Pastikan route/controller backend lu udah siap nerima data poNumber dan poId
       await axios.post('http://localhost:5000/api/supplier_invoices', data, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
@@ -111,7 +108,7 @@ const InvoiceSubmission = () => {
       });
       navigate('/dashboard');
     } catch (err) {
-      Swal.fire('ERROR', 'Gagal submit tagihan.', 'error');
+      Swal.fire('ERROR', err.response?.data?.msg || 'Gagal submit tagihan.', 'error');
     } finally { setLoading(false); }
   };
 
@@ -142,9 +139,9 @@ const InvoiceSubmission = () => {
                 <div className="grid grid-cols-1 gap-6">
                   {/* PO DROP (SEARCHABLE) */}
                   <div className="space-y-1 relative" ref={dropdownRef}>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Purchase Order Reference (QC Passed)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Purchase Order Reference</label>
                     <div onClick={() => setOpenDropdown(!openDropdown)} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm">
-                      <span className="truncate">{formData.poNumber ? `${formData.poNumber} - ${formData.vendorName}` : '-- Select Validated PO --'}</span>
+                      <span className="truncate">{formData.poNumber ? `${formData.poNumber} - ${formData.vendorName}` : '-- Select PO Target --'}</span>
                       <span className={`text-[8px] transition-transform ${openDropdown ? 'rotate-180' : ''}`}>▼</span>
                     </div>
                     {openDropdown && (
@@ -159,7 +156,7 @@ const InvoiceSubmission = () => {
                               <p className="text-[10px] font-black text-indigo-600 group-hover:text-white uppercase italic">{po.poNumber}</p>
                               <p className="text-xs font-black text-slate-800 group-hover:text-white uppercase truncate">{po.vendorId?.vendorName || 'Unknown'} (Proj: {po.projectId})</p>
                             </li>
-                          )) : <li className="px-5 py-6 text-center text-[10px] font-bold text-slate-400 uppercase">No QC Passed PO Found</li>}
+                          )) : <li className="px-5 py-6 text-center text-[10px] font-bold text-slate-400 uppercase">No PO Found</li>}
                         </ul>
                       </div>
                     )}
@@ -209,7 +206,7 @@ const InvoiceSubmission = () => {
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Internal Notes</label>
                   <textarea 
                     value={formData.remarks || ''} 
-                    placeholder="Catatan untuk Finance: misal barang sdh sampai gudang..." 
+                    placeholder="Catatan untuk Finance: misal tagihan termin 1..." 
                     onChange={(e) => setFormData({...formData, remarks: e.target.value})} 
                     className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl h-20 outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-sm" 
                   />

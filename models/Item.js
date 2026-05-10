@@ -6,10 +6,10 @@ const ItemSchema = new mongoose.Schema({
   unit: { type: String, default: 'Pcs' }, // Pcs, Box, Lot, Meter
   specifications: String,
   category: String,
-  vendorName: String, // Nanti bisa dikembangin pake ObjectId vendor
+  vendorName: String, 
   createdAt: { type: Date, default: Date.now }
 }, { 
-  collection: 'item' // Konsisten tanpa "s" sesuai request lo
+  collection: 'item' 
 });
 
 module.exports = mongoose.model('Item', ItemSchema);

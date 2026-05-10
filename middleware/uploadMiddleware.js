@@ -1,16 +1,26 @@
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
+// 1. GUNAKAN ABSOLUTE PATH BIAR GAK NYASAR
+// Ini bakal selalu ngarah ke folder D:\College Folder\Final Project_ProTrack\ProTrackERP\uploads\documents
+const uploadDir = path.join(__dirname, '../uploads/documents');
+
+// 2. AUTO-CREATE FOLDER (Safety Net)
+// Kalau foldernya belum ada atau kehapus, Node.js bakal otomatis bikinin
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Konfigurasi Penyimpanan (Disk Storage)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    // Pastikan folder 'uploads' sudah lo buat manual di root backend
-    cb(null, 'uploads/'); 
+    cb(null, uploadDir); // Arahkan ke absolute path yang udah dijamin aman
   },
   filename: (req, file, cb) => {
-    // Nama file: timestamp-namaasli (biar gak ada nama file yang bentrok)
+    // Tambahin prefix 'INV-' biar kelihatan rapi kalau file-nya invoice
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    cb(null, 'INV-' + uniqueSuffix + path.extname(file.originalname));
   }
 });
 

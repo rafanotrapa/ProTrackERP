@@ -1,15 +1,16 @@
-const express = require('express');
 const dotenv = require('dotenv');
+// 1. PINDAHIN DOTENV KE PALING ATAS BIAR DB BACA ENV DULUAN
+dotenv.config(); 
+
+const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
+
 const supplierInvoiceRoutes = require('./routes/supplierInvoiceRoutes');
 const supplierPaymentRoutes = require('./routes/supplierpaymentroutes');
 const createInvoiceRoutes = require('./routes/createInvoiceRoutes');
 const financialRoutes = require('./routes/financialRoutes');
-
-// Load environment variables
-dotenv.config();
 
 // Connect to Database
 connectDB();
@@ -20,14 +21,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Logger buat mantau request yang masuk ke terminal
 app.use((req, res, next) => {
   console.log(`${req.method} request ke: ${req.url}`);
   next();
 });
 
 // --- STATIC FOLDER ---
-// Supaya file PDF/Gambar invoice bisa diakses lewat browser (misal: localhost:5000/uploads/namafile.pdf)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- ROUTES ---
@@ -42,18 +41,15 @@ app.use('/api/po', require('./routes/poRoutes'));
 app.use('/api/client_invoice', createInvoiceRoutes);
 app.use('/api/financial', financialRoutes);
 
-// Route baru buat Invoice Submission (Procurement -> Finance)
-app.use('/api/invoice_submission', supplierInvoiceRoutes);
-
-
+// 2. RUTE INVOICE DISAMAKAN DENGAN FRONTEND
+app.use('/api/supplier_invoices', supplierInvoiceRoutes); 
 
 // --- BASE ENDPOINT ---
 app.get('/', (req, res) => {
-  res.send('Server ProTrack Rafa sudah Jalan bray!');
+  res.send('Server ProTrack Firman sudah Jalan bray!');
 });
 
 // --- GLOBAL ERROR HANDLER ---
-// Biar kalau ada error gak langsung mati, tapi ngirim pesan ke frontend
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ 

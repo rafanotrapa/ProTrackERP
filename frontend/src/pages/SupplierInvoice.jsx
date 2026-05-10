@@ -9,7 +9,7 @@ import Footer from '../components/Footer';
 const InvoiceSubmission = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [availablePOs, setAvailablePOs] = useState([]); // Ganti nama state biar lebih pas
+  const [availablePOs, setAvailablePOs] = useState([]); 
   const [openDropdown, setOpenDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const dropdownRef = useRef(null);
@@ -34,7 +34,7 @@ const InvoiceSubmission = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // HAPUS FILTER QC! Semua PO sekarang bisa diinput tagihannya.
+        // Semua PO sekarang bisa diinput tagihannya
         setAvailablePOs(res.data || []);
       } catch (err) {
         console.error("Gagal load data PO:", err);
@@ -97,9 +97,13 @@ const InvoiceSubmission = () => {
 
     try {
       const token = localStorage.getItem('token');
+      
+      // PERBAIKAN: Hapus 'Content-Type': 'multipart/form-data'
+      // Biarkan Axios mengatur boundary unik untuk file secara otomatis
       await axios.post('http://localhost:5000/api/supplier_invoices', data, {
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+        headers: { Authorization: `Bearer ${token}` }
       });
+      
       Swal.fire({ 
         icon: 'success', 
         title: 'SUBMITTED', 
@@ -108,7 +112,19 @@ const InvoiceSubmission = () => {
       });
       navigate('/dashboard');
     } catch (err) {
-      Swal.fire('ERROR', err.response?.data?.msg || 'Gagal submit tagihan.', 'error');
+      console.error("FULL ERROR TRACE:", err);
+      
+      // ERROR TRACER: Menangkap alasan asli gagalnya submit
+      let errorMessage = "Error tidak diketahui.";
+      if (err.response) {
+          errorMessage = err.response.data?.msg || JSON.stringify(err.response.data);
+      } else if (err.request) {
+          errorMessage = "Network Error: Tidak bisa terhubung ke server Backend. Cek terminal Backend lu!";
+      } else {
+          errorMessage = err.message;
+      }
+
+      Swal.fire('ERROR TRACER', `Detail: ${errorMessage}`, 'error');
     } finally { setLoading(false); }
   };
 

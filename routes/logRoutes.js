@@ -3,7 +3,6 @@ const router = express.Router();
 const Log = require('../models/Log');
 const { protect, admin } = require('../middleware/auth');
 
-// Path ini sebenernya udah jadi /api/logs karena di server.js udah di-prefix
 router.get('/', protect, admin, async (req, res) => {
   try {
     const logs = await Log.find().sort({ timestamp: -1 });

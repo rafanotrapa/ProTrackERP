@@ -28,20 +28,24 @@ const ExistingVendors = () => {
     fetchVendors();
   }, []);
 
-  // LOGIC SEARCH (Biar gampang nyari vendor di database gede)
   const filteredVendors = useMemo(() => {
     return vendors.filter((v) => 
       (v.vendorName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
       (v.vendorId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (v.category || '').toLowerCase().includes(searchTerm.toLowerCase())
+      (v.projectId || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, vendors]);
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
   return (
-    <div className="min-h-screen bg-white font-sans flex flex-col text-slate-900">
+    <div className="min-h-screen bg-white font-sans flex flex-col text-slate-900 pb-16">
       <Header />
 
-      {/* SUB-HEADER & ACTIONS (FULL WIDTH) */}
       <div className="w-full border-b border-slate-100 px-8 py-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-50/30">
         <div className="flex items-center gap-6">
           <button 
@@ -52,18 +56,17 @@ const ExistingVendors = () => {
           </button>
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
-              Vendor <span className="text-indigo-600">Database</span>
+              Vendor <span className="text-indigo-600">Track Record</span>
             </h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">Procurement Module • Master Supplier Records</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">Procurement Module • Project Attachment</p>
           </div>
         </div>
 
-        {/* SEARCH & ADD BUTTON */}
         <div className="flex gap-4 w-full md:w-auto">
           <div className="relative flex-1 md:w-80">
              <input 
                type="text" 
-               placeholder="Search Vendor Name, ID, or Category..." 
+               placeholder="Search Name, Vendor ID, Project ID..." 
                value={searchTerm}
                onChange={(e) => setSearchTerm(e.target.value)}
                className="w-full p-3 pl-10 bg-white border-2 border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-600 transition-all shadow-sm italic placeholder:text-slate-300"
@@ -76,101 +79,92 @@ const ExistingVendors = () => {
             onClick={() => navigate('/add-vendor')}
             className="bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-slate-200 transition-all active:scale-95 whitespace-nowrap"
           >
-            + Register Vendor
+            + New Linked Vendor
           </button>
         </div>
       </div>
 
-      <main className="flex-1 p-8 md:p-12 lg:p-16">
-        <div className="max-w-none w-full">
+      <main className="flex-1 w-full px-8 md:px-12 lg:px-16 mt-8">
+        <div className="mx-auto w-full max-w-7xl bg-white rounded-[3rem] border-2 border-slate-100 shadow-2xl shadow-slate-100/50 overflow-hidden">
           
-          <div className="flex justify-between items-end px-2 mb-4">
-            <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">Registered Partners</h2>
-            <p className="text-[10px] font-bold text-indigo-600 uppercase leading-none">
-              {filteredVendors.length} Verified Vendors
-            </p>
+          <div className="px-8 py-8 md:px-10 border-b border-slate-50 flex justify-between items-center">
+             <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic">Historical Partners Linked to Projects</span>
+             <span className="text-[10px] font-bold text-indigo-600 uppercase bg-indigo-50 px-3 py-1 rounded-full">{filteredVendors.length} Records</span>
           </div>
 
-          {/* TABLE SECTION (LEBAR MAKSIMAL) */}
-          <div className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-2xl shadow-slate-100/50 overflow-hidden">
-            {loading ? (
-              <div className="p-32 text-center">
-                <div className="inline-block w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p className="font-black text-slate-300 text-xl italic uppercase tracking-widest animate-pulse">Establishing Connection...</p>
-              </div>
-            ) : filteredVendors.length === 0 ? (
-              <div className="p-32 text-center">
-                <p className="text-2xl font-black italic uppercase tracking-tighter text-slate-300 italic">No Vendor Records Found.</p>
-                <button onClick={() => navigate('/add-vendor')} className="mt-4 text-indigo-600 font-black uppercase text-xs hover:underline italic">Register New Partner →</button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-900 text-white border-b border-slate-800">
-                      <th className="p-6 text-[10px] font-black uppercase tracking-widest italic">ID / Company Name</th>
-                      <th className="p-6 text-[10px] font-black uppercase tracking-widest italic text-center">Category</th>
-                      <th className="p-6 text-[10px] font-black uppercase tracking-widest italic">Communication Info</th>
-                      <th className="p-6 text-[10px] font-black uppercase tracking-widest italic text-center italic">Legal Status</th>
-                      <th className="p-6 text-[10px] font-black uppercase tracking-widest italic text-right italic">Action</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest italic">
+                <tr>
+                  <th className="p-6 md:px-10 whitespace-nowrap">ID / Company Name</th>
+                  <th className="p-6 text-center whitespace-nowrap">Linked Project</th>
+                  <th className="p-6 text-center whitespace-nowrap">Approval Status</th> 
+                  <th className="p-6 md:px-10 text-right whitespace-nowrap">Audit Timeline</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {loading ? (
+                  <tr>
+                    <td colSpan="4" className="py-24 text-center font-black text-slate-200 text-2xl animate-pulse italic uppercase">Syncing Vendor History...</td>
+                  </tr>
+                ) : filteredVendors.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="py-24 text-center font-black text-slate-300 text-xl italic uppercase">No Linked Vendors Found.</td>
+                  </tr>
+                ) : (
+                  filteredVendors.map((vendor) => {
+                    const currentStatus = vendor.approvalStatus || 'Pending';
+                    return(
+                    <tr key={vendor._id} className="hover:bg-slate-50/80 transition-all group">
+                      <td className="p-6 md:px-10">
+                        <div className="flex items-center gap-4">
+                          <div className="bg-slate-100 p-3 rounded-xl text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                            <Building2 size={20} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest italic leading-none mb-1">{vendor.vendorId}</p>
+                            <h3 className="text-base font-black text-slate-800 uppercase italic tracking-tight leading-none group-hover:text-indigo-600 transition-all">
+                              {vendor.companyType}. {vendor.vendorName}
+                            </h3>
+                            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{vendor.email} • {vendor.phone || 'N/A'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-6 text-center">
+                         <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest italic border border-indigo-100">
+                            {vendor.projectId || 'N/A'}
+                         </span>
+                      </td>
+                      
+                      <td className="p-6 text-center">
+                        <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest italic inline-flex items-center gap-1.5 ${
+                          currentStatus === 'Approved' ? 'bg-emerald-100 text-emerald-600' :
+                          currentStatus === 'Rejected' ? 'bg-red-100 text-red-600' :
+                          'bg-amber-100 text-amber-600'
+                        }`}>
+                          {currentStatus === 'Pending' && <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>}
+                          {currentStatus}
+                        </span>
+                      </td>
+
+                      <td className="p-6 md:px-10 text-right">
+                         <div className="flex flex-col items-end">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                              Submitted: <span className="text-slate-600">{formatDate(vendor.createdAt)}</span>
+                            </span>
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                              Decision: <span className={vendor.approvalDate ? "text-slate-600" : "text-amber-500"}>{formatDate(vendor.approvalDate)}</span>
+                            </span>
+                         </div>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {filteredVendors.map((vendor) => (
-                      <tr key={vendor._id} className="hover:bg-slate-50/80 transition-all group">
-                        <td className="p-6">
-                          <div className="flex items-center gap-4">
-                            <div className="bg-slate-100 p-3 rounded-xl text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                              <Building2 size={20} />
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-black text-indigo-500 uppercase tracking-widest italic leading-none mb-1">{vendor.vendorId}</p>
-                              <h3 className="text-base font-black text-slate-800 uppercase italic tracking-tight leading-none group-hover:text-indigo-600 transition-all">
-                                {vendor.companyType}. {vendor.vendorName}
-                              </h3>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-6 text-center">
-                           <span className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest italic">
-                              {vendor.category}
-                           </span>
-                        </td>
-                        <td className="p-6 space-y-2">
-                          <div className="flex items-center gap-3 text-[11px] font-bold text-slate-500">
-                            <div className="w-6 h-6 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-indigo-400 transition-colors">
-                              <Mail size={12} />
-                            </div>
-                            <span className="italic">{vendor.email}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-[11px] font-bold text-slate-500">
-                            <div className="w-6 h-6 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-indigo-400 transition-colors">
-                              <Phone size={12} />
-                            </div>
-                            <span className="italic">{vendor.phone || '-'}</span>
-                          </div>
-                        </td>
-                        <td className="p-6 text-center">
-                          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full">
-                            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
-                            <span className="text-[9px] font-black uppercase tracking-widest italic">Verified Partner</span>
-                          </div>
-                        </td>
-                        <td className="p-6 text-right">
-                           <button className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-600 transition-all shadow-sm">
-                              <Search size={14} />
-                           </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                  )})
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );

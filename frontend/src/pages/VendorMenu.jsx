@@ -10,15 +10,15 @@ const VendorMenu = () => {
   const menus = [
     {
       title: "Add New Supplier",
-      desc: "Registrasi mitra atau supplier baru ke sistem.",
+      desc: "Registrasi mitra & kaitkan ke ID Project baru.",
       icon: <UserPlus size={32} className="text-emerald-600" />,
       path: "/add-vendor",
       bg: "bg-emerald-50",
       accent: "bg-emerald-600"
     },
     {
-      title: "Existing Suppliers",
-      desc: "Database supplier terdaftar dan history performa.",
+      title: "Vendor Track Record",
+      desc: "Histori supplier yang terikat dengan project dan status approval.",
       icon: <LayoutList size={32} className="text-blue-600" />,
       path: "/existing-vendors",
       bg: "bg-blue-50",
@@ -52,7 +52,6 @@ const VendorMenu = () => {
             <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">Vendor Operations</h2>
           </div>
 
-          {/* GRID 2 CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {menus.map((menu, index) => (
               <div 

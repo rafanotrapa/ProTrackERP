@@ -10,14 +10,12 @@ const AddSupplierQuotation = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   
-  // Master Data States
   const [projects, setProjects] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [items, setItems] = useState([]);
 
-  // Dropdown UI States
   const [openDropdown, setOpenDropdown] = useState(null); 
-  const [searchTerms, setSearchTerms] = useState({ project: '', vendor: '' });
+  const [searchTerms, setSearchTerms] = useState({ project: '' });
   const dropdownRef = useRef(null);
 
   const generateSQID = () => {
@@ -33,13 +31,15 @@ const AddSupplierQuotation = () => {
     return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
-  // State Form Utama (Ditambah additionalFee)
   const [formData, setFormData] = useState({
     quotationId: generateSQID(),
     projectId: '',
-    vendorId: '',
+    vendorId: '', 
     topOption: 'Termin 30 Days',
-    additionalFee: '', // <-- State baru
+    additionalFee: '', 
+    additionalFeeRemarks: '', 
+    isTaxIncluded: false, 
+    taxPercentage: '', // <-- Diubah jadi Persentase
     remarks: '',
     document: null 
   });
@@ -78,25 +78,31 @@ const AddSupplierQuotation = () => {
     projects.filter(p => `${p.projectId || ''} ${p.projectName || ''}`.toLowerCase().includes((searchTerms.project || '').toLowerCase())),
   [projects, searchTerms.project]);
 
-  const filteredVendors = useMemo(() => 
-    vendors.filter(v => (v.vendorName || '').toLowerCase().includes((searchTerms.vendor || '').toLowerCase())),
-  [vendors, searchTerms.vendor]);
+  const handleProjectSelect = (pId) => {
+    const linkedVendor = vendors.find(v => v.projectId === pId && v.approvalStatus === 'Approved');
+
+    setFormData(prev => ({
+      ...prev,
+      projectId: pId,
+      vendorId: linkedVendor ? linkedVendor.vendorId : ''
+    }));
+
+    setOpenDropdown(null);
+    setSearchTerms({ project: '' });
+
+    if (!linkedVendor) {
+      Swal.fire({
+        icon: 'info',
+        title: 'NO VENDOR LINKED',
+        text: 'Project ini belum memiliki Supplier yang diverifikasi Management.',
+        confirmButtonColor: '#0f172a'
+      });
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Handler khusus untuk Additional Fee
-  const handleFeeChange = (e) => {
-    const rawValue = e.target.value.replace(/[^0-9]/g, '');
-    setFormData({ ...formData, additionalFee: rawValue });
-  };
-
-  const selectOption = (name, value) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setOpenDropdown(null);
-    setSearchTerms({ project: '', vendor: '' });
   };
 
   const handleItemChange = (index, e) => {
@@ -127,31 +133,41 @@ const AddSupplierQuotation = () => {
 
   const handleFileChange = (e) => setFormData({ ...formData, document: e.target.files[0] });
 
-  // Kalkulasi Otomatis
   const calculateSubTotal = () => {
     return quotationItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.cogs || 0)), 0);
+  };
+
+  // Kalkulasi nominal pajak untuk preview di UI
+  const calculateTaxNominal = () => {
+    const subTotal = calculateSubTotal();
+    const taxPerc = formData.isTaxIncluded ? (Number(formData.taxPercentage) || 0) : 0;
+    return subTotal * (taxPerc / 100);
   };
 
   const calculateGrandTotal = () => {
     const subTotal = calculateSubTotal();
     const addFee = Number(formData.additionalFee) || 0;
-    return subTotal + addFee;
+    const taxNominal = calculateTaxNominal();
+    return subTotal + addFee + taxNominal;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.projectId || !formData.vendorId) {
-       return Swal.fire('Warning', 'Project dan Vendor harus diisi!', 'warning');
+       return Swal.fire('Warning', 'Project dan Vendor harus lengkap!', 'warning');
     }
 
     setLoading(true);
     const data = new FormData();
     Object.keys(formData).forEach(key => {
-        if(key !== 'additionalFee') data.append(key, formData[key]);
+        if(key !== 'additionalFee' && key !== 'taxPercentage' && key !== 'isTaxIncluded') {
+            data.append(key, formData[key]);
+        }
     });
     
-    // Append additionalFee yang sudah bersih
     data.append('additionalFee', formData.additionalFee || 0);
+    data.append('taxPercentage', formData.taxPercentage || 0);
+    data.append('isTaxIncluded', formData.isTaxIncluded);
     data.append('items', JSON.stringify(quotationItems));
 
     try {
@@ -183,7 +199,6 @@ const AddSupplierQuotation = () => {
       <main className="flex-1 p-8 md:p-12 lg:p-16" ref={dropdownRef}>
         <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-12">
           
-          {/* SECTION 1: IDENTITY */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Source Identity</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -194,7 +209,7 @@ const AddSupplierQuotation = () => {
               </div>
 
               <div className="space-y-1 relative">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Project Target</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Linked Project</label>
                 <div onClick={() => setOpenDropdown(openDropdown === 'project' ? null : 'project')} className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm">
                   <span className="truncate">{projects.find(p => p.projectId === formData.projectId)?.projectName || '-- Select Project --'}</span>
                   <span className={`text-[8px] transition-transform ${openDropdown === 'project' ? 'rotate-180' : ''}`}>▼</span>
@@ -204,42 +219,33 @@ const AddSupplierQuotation = () => {
                     <input type="text" placeholder="Search Project..." className="w-full p-3 text-xs border-b outline-none font-bold" value={searchTerms.project} onChange={(e) => setSearchTerms({...searchTerms, project: e.target.value})} autoFocus />
                     <ul className="max-h-48 overflow-y-auto">
                       {filteredProjects.map(p => (
-                        <li key={p._id} onClick={() => selectOption('projectId', p.projectId)} className="px-4 py-3 text-[10px] font-black text-slate-600 hover:bg-indigo-600 hover:text-white cursor-pointer transition-all uppercase">{p.projectId} - {p.projectName}</li>
+                        <li key={p._id} onClick={() => handleProjectSelect(p.projectId)} className="px-4 py-3 text-[10px] font-black text-slate-600 hover:bg-indigo-600 hover:text-white cursor-pointer transition-all uppercase">{p.projectId} - {p.projectName}</li>
                       ))}
                     </ul>
                   </div>
                 )}
               </div>
 
-              <div className="space-y-1 relative">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Supplier / Vendor</label>
-                <div onClick={() => setOpenDropdown(openDropdown === 'vendor' ? null : 'vendor')} className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm">
-                  <span className="truncate">{vendors.find(v => v.vendorId === formData.vendorId)?.vendorName || '-- Select Supplier --'}</span>
-                  <span className={`text-[8px] transition-transform ${openDropdown === 'vendor' ? 'rotate-180' : ''}`}>▼</span>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Auto-Mapped Supplier</label>
+                <div className="w-full p-3.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-500 shadow-inner cursor-not-allowed flex items-center">
+                  <span className="truncate">
+                    {formData.vendorId 
+                      ? vendors.find(v => v.vendorId === formData.vendorId)?.vendorName || formData.vendorId 
+                      : '-- Auto Fill from Project --'}
+                  </span>
                 </div>
-                {openDropdown === 'vendor' && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden">
-                    <input type="text" placeholder="Search Vendor..." className="w-full p-3 text-xs border-b outline-none font-bold" value={searchTerms.vendor} onChange={(e) => setSearchTerms({...searchTerms, vendor: e.target.value})} autoFocus />
-                    <ul className="max-h-48 overflow-y-auto">
-                      {filteredVendors.map(v => (
-                        <li key={v._id} onClick={() => selectOption('vendorId', v.vendorId)} className="px-4 py-3 text-[10px] font-black text-slate-600 hover:bg-indigo-600 hover:text-white cursor-pointer transition-all uppercase">{v.vendorName}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
 
             </div>
           </div>
 
-          {/* SECTION 2: ADD GOODS & COGS */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Goods & Commercials</h3>
             
             <div className="space-y-4">
               {quotationItems.map((item, index) => (
                 <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 bg-slate-50 border border-slate-200 rounded-2xl items-end relative transition-all hover:border-indigo-300">
-                  
                   <div className="md:col-span-3 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Item Name</label>
                     <input list={`item-list-${index}`} name="itemName" value={item.itemName} onChange={(e) => handleItemChange(index, e)} required placeholder="Ketik nama barang..." className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm" />
@@ -247,27 +253,22 @@ const AddSupplierQuotation = () => {
                       {items.map(i => <option key={i._id} value={i.itemName} />)}
                     </datalist>
                   </div>
-                  
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Qty</label>
                     <input type="number" name="quantity" value={item.quantity} onChange={(e) => handleItemChange(index, e)} min="1" required className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
-
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">UoM</label>
                     <input name="unit" value={item.unit} onChange={(e) => handleItemChange(index, e)} required placeholder="Pcs/Lot" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
-
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Harga/Unit (Rp)</label>
                     <input type="text" name="cogs" value={formatRupiah(item.cogs)} onChange={(e) => handleItemChange(index, e)} required placeholder="0" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-sm font-black text-indigo-600 outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
-
                   <div className="md:col-span-2 space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Total (Rp)</label>
                     <input type="text" readOnly value={formatRupiah((item.quantity || 0) * (item.cogs || 0))} className="w-full p-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-black text-slate-500 outline-none cursor-not-allowed shadow-inner" />
                   </div>
-
                   <div className="md:col-span-1 flex justify-center pb-1">
                     {quotationItems.length > 1 && (
                       <button type="button" onClick={() => removeItemRow(index)} className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-transparent hover:border-red-200">
@@ -283,27 +284,71 @@ const AddSupplierQuotation = () => {
               <Plus size={14} strokeWidth={3} /> Add Another Item
             </button>
 
-            {/* BLOCK SUMMARY: SUBTOTAL & ADDITIONAL FEE */}
-            <div className="flex flex-col items-end mt-8 space-y-4 bg-white p-6 md:p-8 border border-slate-200 rounded-3xl shadow-sm">
-              <div className="flex justify-between items-center w-full md:w-1/2 lg:w-1/3">
+            {/* BLOCK SUMMARY: SUBTOTAL, PPN & ADDITIONAL FEE */}
+            <div className="flex flex-col items-end mt-8 space-y-5 bg-white p-6 md:p-8 border border-slate-200 rounded-3xl shadow-sm">
+              
+              <div className="flex justify-between items-center w-full md:w-2/3 lg:w-1/2">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Subtotal</span>
                 <span className="text-sm font-bold text-slate-600">Rp {formatRupiah(calculateSubTotal())}</span>
               </div>
               
-              <div className="flex justify-between items-center w-full md:w-1/2 lg:w-1/3">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Additional Fee <span className="text-slate-300 font-medium normal-case">(Opsional)</span></span>
+              <div className="flex flex-col md:flex-row justify-between items-end md:items-center w-full md:w-2/3 lg:w-1/2 gap-3">
+                <div className="flex items-center gap-3 w-full md:w-auto">
+                  <input 
+                    type="checkbox" 
+                    id="ppnCheckbox"
+                    checked={formData.isTaxIncluded} 
+                    onChange={(e) => setFormData({ ...formData, isTaxIncluded: e.target.checked, taxPercentage: e.target.checked ? formData.taxPercentage : '' })} 
+                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-600 cursor-pointer"
+                  />
+                  <label htmlFor="ppnCheckbox" className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic cursor-pointer">Include PPN / Pajak</label>
+                </div>
+                
+                <div className="flex items-center gap-3 w-full md:w-1/2 justify-end">
+                  {formData.isTaxIncluded && (
+                    <span className="text-[10px] font-black text-slate-400 italic">
+                      (+ Rp {formatRupiah(calculateTaxNominal())})
+                    </span>
+                  )}
+                  <div className="relative w-24">
+                    <input 
+                      type="number" 
+                      min="0"
+                      max="100"
+                      disabled={!formData.isTaxIncluded}
+                      value={formData.taxPercentage} 
+                      onChange={(e) => setFormData({...formData, taxPercentage: e.target.value})} 
+                      placeholder="%" 
+                      className="w-full p-2.5 pr-8 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-indigo-600 outline-none focus:border-indigo-600 text-right shadow-inner transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row justify-between items-end md:items-center w-full md:w-2/3 lg:w-1/2 gap-3">
+                <div className="flex flex-col w-full md:w-auto">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic mb-1">Additional Fee <span className="text-slate-300 font-medium normal-case">(Opsional)</span></span>
+                  <input 
+                    type="text" 
+                    value={formData.additionalFeeRemarks}
+                    onChange={(e) => setFormData({...formData, additionalFeeRemarks: e.target.value})}
+                    placeholder="Keterangan (ex: Ongkir)"
+                    className="p-2.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 outline-none focus:border-indigo-600 transition-all"
+                  />
+                </div>
                 <input 
                   type="text" 
                   value={formatRupiah(formData.additionalFee)} 
-                  onChange={handleFeeChange} 
-                  placeholder="0" 
-                  className="w-1/2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-indigo-600 outline-none focus:border-indigo-600 text-right shadow-inner transition-all"
+                  onChange={(e) => setFormData({...formData, additionalFee: e.target.value.replace(/[^0-9]/g, '')})} 
+                  placeholder="Nominal Fee" 
+                  className="w-full md:w-1/2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-indigo-600 outline-none focus:border-indigo-600 text-right shadow-inner transition-all"
                 />
               </div>
 
-              <div className="w-full md:w-1/2 lg:w-1/3 h-px bg-slate-200 my-2"></div>
+              <div className="w-full md:w-2/3 lg:w-1/2 h-px bg-slate-200 my-2"></div>
 
-              <div className="flex justify-between items-center w-full md:w-1/2 lg:w-1/3">
+              <div className="flex justify-between items-center w-full md:w-2/3 lg:w-1/2">
                 <span className="text-xs font-black text-slate-800 uppercase tracking-widest italic">Grand Total</span>
                 <span className="text-xl font-black text-indigo-600 tracking-tight">Rp {formatRupiah(calculateGrandTotal())}</span>
               </div>
@@ -339,7 +384,7 @@ const AddSupplierQuotation = () => {
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Remarks / Notes</label>
-                <textarea name="remarks" placeholder="Catatan tambahan (contoh: harga exclude PPN)..." className="w-full p-4 bg-white border border-slate-300 rounded-2xl h-full min-h-[120px] outline-none font-medium text-slate-700 focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} value={formData.remarks} />
+                <textarea name="remarks" placeholder="Catatan tambahan..." className="w-full p-4 bg-white border border-slate-300 rounded-2xl h-full min-h-[120px] outline-none font-medium text-slate-700 focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} value={formData.remarks} />
               </div>
 
             </div>

@@ -3,23 +3,39 @@ const SupplierQuotation = require('../models/SupplierQuotation');
 // 1. Fungsi Create
 exports.createQuotation = async (req, res) => {
   try {
-    // Tangkap additionalFee dari body
-    const { quotationId, projectId, vendorId, topOption, remarks, additionalFee } = req.body;
+    const { 
+      quotationId, projectId, vendorId, topOption, remarks, 
+      additionalFee, additionalFeeRemarks, isTaxIncluded, taxPercentage 
+    } = req.body;
     
     let parsedItems = [];
+    let subTotal = 0; // Buat ngitung pajak
+
     if (req.body.items) {
       const rawItems = JSON.parse(req.body.items);
-      
-      parsedItems = rawItems.map(item => ({
-        itemName: String(item.itemName),
-        quantity: Number(item.quantity) || 1, 
-        unit: String(item.unit),
-        cogs: Number(String(item.cogs).replace(/[^0-9]/g, '')) || 0 
-      }));
+      parsedItems = rawItems.map(item => {
+        const cogs = Number(String(item.cogs).replace(/[^0-9]/g, '')) || 0;
+        const qty = Number(item.quantity) || 1;
+        
+        subTotal += (cogs * qty); // Tambahin ke subtotal
+
+        return {
+          itemName: String(item.itemName),
+          quantity: qty, 
+          unit: String(item.unit),
+          cogs: cogs 
+        };
+      });
     }
 
-    // Sterilisasi additionalFee (hilangkan titik dan pastikan jadi Number)
     const cleanAdditionalFee = Number(String(additionalFee || '0').replace(/[^0-9]/g, '')) || 0;
+    
+    // Parsing Tax
+    const taxBool = isTaxIncluded === 'true' || isTaxIncluded === true;
+    const cleanTaxPerc = taxBool ? (Number(taxPercentage) || 0) : 0;
+    
+    // Kalkulasi Nominal Pajak di Backend
+    const calculatedTaxAmount = taxBool ? (subTotal * (cleanTaxPerc / 100)) : 0;
 
     const documentUrl = req.file ? `/uploads/documents/${req.file.filename}` : '';
 
@@ -28,7 +44,11 @@ exports.createQuotation = async (req, res) => {
       projectId,
       vendorId,
       items: parsedItems, 
-      additionalFee: cleanAdditionalFee, // <-- Masukkan ke DB
+      additionalFee: cleanAdditionalFee,
+      additionalFeeRemarks,
+      isTaxIncluded: taxBool,
+      taxPercentage: cleanTaxPerc,
+      taxAmount: calculatedTaxAmount, // Simpan nominal hasil hitungan
       topOption,
       remarks,
       documentUrl
@@ -53,7 +73,7 @@ exports.getAllQuotations = async (req, res) => {
   }
 };
 
-// 3. FUNGSI BARU: Get by Project ID
+// 3. Fungsi Get by Project ID
 exports.getQuotationByProject = async (req, res) => {
   try {
     const { projectId } = req.params;

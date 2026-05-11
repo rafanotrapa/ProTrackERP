@@ -140,23 +140,37 @@ const CreatePO = () => {
                        ))}
                     </div>
 
-                    {/* REKAP TOTAL BESERTA FEE */}
+                    {/* REKAP TOTAL BESERTA FEE & PPN */}
                     <div className="mt-6 pt-4 border-t border-slate-700 space-y-2">
                        <div className="flex justify-between items-center text-slate-400">
                           <p className="text-[10px] font-black uppercase tracking-widest">Subtotal Barang</p>
                           <p className="text-xs font-bold">{formatRupiah(selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0))}</p>
                        </div>
+                       
+                       {/* PPN REVIEW */}
+                       {selectedQuote.isTaxIncluded && (
+                         <div className="flex justify-between items-center text-slate-300">
+                            <p className="text-[10px] font-black uppercase tracking-widest">PPN ({selectedQuote.taxPercentage}%)</p>
+                            <p className="text-xs font-bold">+ {formatRupiah(selectedQuote.taxAmount)}</p>
+                         </div>
+                       )}
+
+                       {/* ADDITIONAL FEE REVIEW */}
                        {selectedQuote.additionalFee > 0 && (
                          <div className="flex justify-between items-center text-amber-500">
-                            <p className="text-[10px] font-black uppercase tracking-widest">Additional Fee</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest">
+                              {selectedQuote.additionalFeeRemarks || 'Additional Fee'}
+                            </p>
                             <p className="text-xs font-bold">+ {formatRupiah(selectedQuote.additionalFee)}</p>
                          </div>
                        )}
+
                        <div className="flex justify-between items-end pt-2 border-t border-slate-700/50 mt-2">
                           <p className="text-[10px] font-black text-white uppercase tracking-widest italic">Grand Total</p>
                           <p className="text-2xl font-black text-white italic">
                             {formatRupiah(
                                (selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0) || 0) + 
+                               (selectedQuote.taxAmount || 0) +
                                (selectedQuote.additionalFee || 0)
                             )}
                           </p>

@@ -34,6 +34,9 @@ import FinancialReport from './pages/financialReport';
 import ProjectList from './pages/ProjectList';
 import ProjectTimeline from './pages/ProjectTimeline';
 
+// --- MANAGEMENT MODULE (NEW) ---
+import SupplierApproval from './pages/SupplierApproval';
+
 function App() {
   return (
     <Router>
@@ -62,17 +65,17 @@ function App() {
           />
           <Route 
             path="/logs" 
-            element={<ProtectedRoute allowRoles={['Admin', 'Manager', 'Owner']}><SystemLogs /></ProtectedRoute>} 
+            element={<ProtectedRoute allowRoles={['Admin', 'Management', 'Owner']}><SystemLogs /></ProtectedRoute>} 
           />
 
           {/* 4. MARKETING & FINANCE MODULE (COMBINED ACCESS) */}
           <Route 
             path="/add-project" 
-            element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Manager', 'Owner']}><AddProject /></ProtectedRoute>} 
+            element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><AddProject /></ProtectedRoute>} 
           />
           <Route 
             path="/client-quote" 
-            element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Manager', 'Owner']}><AddClientQuotation /></ProtectedRoute>} 
+            element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><AddClientQuotation /></ProtectedRoute>} 
           />
           
           {/* FIX: GABUNGKAN ROLE DISINI BIAR FINANCE GAK MENTAL */}
@@ -81,7 +84,7 @@ function App() {
           {/* 5. PROCUREMENT & LOGISTICS MODULE */}
           <Route 
             path="/vendor" 
-            element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Manager', 'Owner']}><VendorMenu /></ProtectedRoute>} 
+            element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><VendorMenu /></ProtectedRoute>} 
           />
           <Route 
             path="/add-vendor" 
@@ -89,7 +92,7 @@ function App() {
           />
           <Route 
             path="/existing-vendors" 
-            element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Manager', 'Owner']}><ExistingVendors /></ProtectedRoute>} 
+            element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><ExistingVendors /></ProtectedRoute>} 
           />
           <Route 
             path="/add-supplier-quotation" 
@@ -116,11 +119,11 @@ function App() {
           {/* 6. MONITORING & TIMELINE */}
           <Route 
             path="/timeline" 
-            element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Manager', 'Owner']}><ProjectList /></ProtectedRoute>} 
+            element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Management', 'Owner']}><ProjectList /></ProtectedRoute>} 
           />
           <Route 
             path="/timeline/:projectId" 
-            element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Manager', 'Owner']}><ProjectTimeline /></ProtectedRoute>} 
+            element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Management', 'Owner']}><ProjectTimeline /></ProtectedRoute>} 
           />
 
           {/* 7. OWNER & FINANCE INSIGHT */}
@@ -136,7 +139,14 @@ function App() {
             path="/financial-report" 
             element={<ProtectedRoute allowRoles={['Finance', 'Owner', 'Admin']}><FinancialReport /></ProtectedRoute>} 
           />
-          {/* 8. CATCH-ALL */}
+
+          {/* 8. MANAGEMENT APPROVAL MODULE */}
+          <Route 
+            path="/approve-supplier" 
+            element={<ProtectedRoute allowRoles={['Management', 'Admin']}><SupplierApproval /></ProtectedRoute>} 
+          />
+
+          {/* 9. CATCH-ALL */}
           <Route path="*" element={<Login />} />
 
         </Routes>

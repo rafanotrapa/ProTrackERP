@@ -25,9 +25,10 @@ exports.createPO = async (req, res) => {
        subTotal = quote.items.reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 1)), 0);
     }
     
-    // AMBIL ADDITIONAL FEE DARI QUOTATION & HITUNG GRAND TOTAL
+    // AMBIL ADDITIONAL FEE & PAJAK DARI QUOTATION & HITUNG GRAND TOTAL
     const addFee = quote.additionalFee || 0;
-    const grandTotal = subTotal + addFee;
+    const taxAmt = quote.taxAmount || 0;
+    const grandTotal = subTotal + addFee + taxAmt;
 
     const newPO = new PurchaseOrder({
       poNumber,
@@ -35,8 +36,12 @@ exports.createPO = async (req, res) => {
       projectId: quote.projectId,
       vendorId: realVendorObjectId, 
       items: quote.items, 
-      additionalFee: addFee, // <-- Wariskan fee-nya      
-      totalAmount: grandTotal, // <-- Simpan hasil akhir
+      additionalFee: addFee,
+      additionalFeeRemarks: quote.additionalFeeRemarks, // <-- Warisan Keterangan Fee
+      isTaxIncluded: quote.isTaxIncluded,               // <-- Warisan PPN Status
+      taxPercentage: quote.taxPercentage,               // <-- Warisan Persentase PPN
+      taxAmount: taxAmt,                                // <-- Warisan Nominal PPN
+      totalAmount: grandTotal,                          // <-- Simpan hasil akhir
       shippingAddress
     });
 

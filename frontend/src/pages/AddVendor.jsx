@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -8,6 +8,23 @@ import Footer from '../components/Footer';
 const AddVendor = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [projects, setProjects] = useState([]); // State untuk nampung list project
+
+  useEffect(() => {
+    // Tarik data project buat dropdown
+    const fetchProjects = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/project', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setProjects(res.data);
+      } catch (err) {
+        console.error("Gagal load project", err);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   const generateVendorID = () => {
     const now = new Date();
@@ -18,6 +35,7 @@ const AddVendor = () => {
 
   const [formData, setFormData] = useState({
     vendorId: generateVendorID(),
+    projectId: '', // <-- Tambahan Field
     vendorName: '',
     companyType: 'PT',
     contactPerson: '',
@@ -33,6 +51,8 @@ const AddVendor = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.projectId) return Swal.fire('Warning', 'Pilih Project Target terlebih dahulu!', 'warning');
+
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -42,16 +62,12 @@ const AddVendor = () => {
       Swal.fire({
         icon: 'success',
         title: 'REGISTERED',
-        text: `Vendor ${formData.vendorName} successfully added to database.`,
-        confirmButtonColor: '#0f172a' // Warna gelap tombol Dashboard
+        text: `Vendor ${formData.vendorName} successfully added to queue.`,
+        confirmButtonColor: '#0f172a' 
       });
       navigate('/existing-vendors');
     } catch (err) {
-      Swal.fire({
-        icon: 'error',
-        title: 'FAILED',
-        text: err.response?.data?.msg || 'Gagal simpan vendor'
-      });
+      Swal.fire({ icon: 'error', title: 'FAILED', text: err.response?.data?.msg || 'Gagal simpan vendor' });
     } finally {
       setLoading(false);
     }
@@ -61,12 +77,8 @@ const AddVendor = () => {
     <div className="min-h-screen bg-white font-sans flex flex-col text-slate-900">
       <Header />
 
-      {/* SUB-HEADER & BACK ACTION - KONSISTEN BJK STYLE */}
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
-        <button 
-          onClick={() => navigate('/vendor')}
-          className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
-        >
+        <button onClick={() => navigate('/vendor')} className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group">
           <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
         </button>
         <div>
@@ -78,20 +90,32 @@ const AddVendor = () => {
       </div>
 
       <main className="flex-1 p-8 md:p-12 lg:p-16">
-        {/* max-w-none BIKIN FORM INI LEBAR MAKSIMAL KE KANAN */}
         <form onSubmit={handleSubmit} className="max-w-none w-full space-y-12">
           
           {/* SECTION 1: IDENTITY */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
-              <span className="w-8 h-1 bg-indigo-600"></span> 01. Company Profile
+              <span className="w-8 h-1 bg-indigo-600"></span> 01. Company Profile & Target
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Vendor ID</label>
                 <input type="text" readOnly value={formData.vendorId} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-indigo-600 font-bold outline-none shadow-sm" />
               </div>
-              <div className="space-y-1 relative">
+
+              {/* DROPDOWN PROJECT BARU */}
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Project Target</label>
+                <select name="projectId" required className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer" onChange={handleChange} value={formData.projectId}>
+                  <option value="">-- Select Linked Project --</option>
+                  {projects.map(p => (
+                    <option key={p._id} value={p.projectId}>{p.projectId} - {p.projectName}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Type</label>
                 <select name="companyType" className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer" onChange={handleChange} value={formData.companyType}>
                   <option value="PT">PT</option>
@@ -100,20 +124,23 @@ const AddVendor = () => {
                   <option value="Individual">Individual</option>
                 </select>
               </div>
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Category</label>
-                <select name="category" className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer" onChange={handleChange} value={formData.category}>
-                  <option value="IT Services">IT Services</option>
-                  <option value="Stationary">Stationary</option>
-                  <option value="Construction">Construction</option>
-                  <option value="Furniture">Furniture</option>
-                  <option value="Consultant">Consultant</option>
-                </select>
-              </div>
             </div>
-            <div className="space-y-1 w-full">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Legal Company Name</label>
-              <input name="vendorName" type="text" required placeholder="e.g. Batavia Jaya Teknologi" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+               <div className="space-y-1 md:col-span-2">
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Legal Company Name</label>
+                 <input name="vendorName" type="text" required placeholder="e.g. Batavia Jaya Teknologi" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} />
+               </div>
+               <div className="space-y-1">
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Category</label>
+                 <select name="category" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer" onChange={handleChange} value={formData.category}>
+                   <option value="IT Services">IT Services</option>
+                   <option value="Stationary">Stationary</option>
+                   <option value="Construction">Construction</option>
+                   <option value="Furniture">Furniture</option>
+                   <option value="Consultant">Consultant</option>
+                 </select>
+               </div>
             </div>
           </div>
 
@@ -150,7 +177,6 @@ const AddVendor = () => {
               {loading ? 'SYNCING...' : 'REGISTER VENDOR →'}
             </button>
           </div>
-
         </form>
       </main>
 

@@ -22,7 +22,7 @@ const Dashboard = () => {
       { title: 'Vendor Directory', icon: '📦', desc: 'Kelola Master Supplier / Vendor.', path: '/vendor', color: 'border-emerald-500' },
       { title: 'Supplier Quotation', icon: '📥', desc: 'Input COGS dan barang dari supplier.', path: '/add-supplier-quotation', color: 'border-teal-500' },
       { title: 'Purchase Order', icon: '📝', desc: 'Buat pesanan resmi ke supplier.', path: '/create-po', color: 'border-blue-600' },
-      { title: 'Receive & QC Goods', icon: '🔍', desc: 'Terima, cek barang & proses retur.', path: '/receive-qc', color: 'border-amber-500' }, // <-- SUDAH DISESUAIKAN
+      { title: 'Receive & QC Goods', icon: '🔍', desc: 'Terima, cek barang & proses retur.', path: '/receive-qc', color: 'border-amber-500' },
       { title: 'Invoice Submission', icon: '📤', desc: 'Kirim invoice supplier ke Finance.', path: '/upload-to-finance', color: 'border-slate-600' },
       { title: 'Delivery Management', icon: '🚚', desc: 'Jadwal & pantau pengiriman ke klien.', path: '/delivery-management', color: 'border-cyan-500' }
     ],
@@ -46,6 +46,32 @@ const Dashboard = () => {
         color: 'border-amber-600' 
       },
     ],
+    // =========================================================
+    // FITUR BARU: MENU KHUSUS ROLE MANAGEMENT SESUAI USE CASE
+    // =========================================================
+    Management: [
+      { 
+        title: 'Supplier Approval', 
+        icon: '✅', 
+        desc: 'Review dan setujui vendor baru dari Procurement.', 
+        path: '/approve-supplier', 
+        color: 'border-emerald-600' 
+      },
+      { 
+        title: 'Quotation Approval', 
+        icon: '📑', 
+        desc: 'Review & Sign Quotation sebelum eksekusi.', 
+        path: '/approve-quotation', 
+        color: 'border-blue-600' 
+      },
+      { 
+        title: 'Transaction Approval', 
+        icon: '🔐', 
+        desc: 'Verifikasi final transaksi keuangan.', 
+        path: '/approve-transaction', 
+        color: 'border-amber-600' 
+      }
+    ]
   };
 
   let userModules = [];
@@ -53,7 +79,9 @@ const Dashboard = () => {
   if (user.role === 'Admin') {
     userModules = [...allModules.Admin];
   } else if (user.role === 'Management') {
-    userModules = [...allModules.Marketing, ...allModules.Procurement, ...allModules.Finance];
+    // PERBAIKAN: Management sekarang hanya punya akses ke modul Approval,
+    // bukan numpuk modul operasional divisi lain.
+    userModules = [...allModules.Management];
   } else if (user.role === 'Owner') {
     userModules = [...allModules.Owner, ...allModules.Finance.filter(f => f.title === 'Financial Report')];
   } else {

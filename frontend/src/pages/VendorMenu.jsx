@@ -9,7 +9,7 @@ const VendorMenu = () => {
 
   const menus = [
     {
-      title: "Add New Vendor",
+      title: "Add New Supplier",
       desc: "Registrasi mitra atau supplier baru ke sistem.",
       icon: <UserPlus size={32} className="text-emerald-600" />,
       path: "/add-vendor",
@@ -17,7 +17,7 @@ const VendorMenu = () => {
       accent: "bg-emerald-600"
     },
     {
-      title: "Existing Vendors",
+      title: "Existing Suppliers",
       desc: "Database supplier terdaftar dan history performa.",
       icon: <LayoutList size={32} className="text-blue-600" />,
       path: "/existing-vendors",

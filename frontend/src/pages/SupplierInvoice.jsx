@@ -81,7 +81,7 @@ const InvoiceSubmission = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.file) return Swal.fire('MISSING FILE', 'Upload scan invoice supplier dulu Fa!', 'warning');
+    if (!formData.file) return Swal.fire('MISSING FILE', 'Upload scan invoice supplier dulu!', 'warning');
     if (!formData.poId) return Swal.fire('WARNING', 'Pilih referensi Purchase Order!', 'warning');
 
     setLoading(true);

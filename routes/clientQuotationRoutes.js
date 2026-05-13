@@ -1,31 +1,33 @@
 const express = require('express');
 const router = express.Router();
-const ClientQuotation = require('../models/ClientQuotation');
+const { protect } = require('../middleware/auth');
+const {
+  createQuotation,
+  getAllQuotations,
+  getQuotationById,
+  getQuotationByProject,
+  getPendingApprovals,
+  approveQuotation
+} = require('../controllers/clientQuotationController');
 
-// @route   POST api/client_quotation
-router.post('/', async (req, res) => {
-  try {
-    const newQuote = new ClientQuotation(req.body);
-    const savedQuote = await newQuote.save();
-    res.status(201).json({ 
-      success: true, 
-      msg: "Quotation Client Berhasil Disimpan!",
-      data: savedQuote 
-    });
-  } catch (err) {
-    console.error("Error Simpan Client Quote:", err.message);
-    res.status(500).json({ success: false, msg: err.message });
-  }
-});
+// --- ROUTES YANG SUDAH ADA (DIUPDATE) ---
+// 1. POST: Create Quotation (Marketing)
+router.post('/', protect, createQuotation);
 
-// @route   GET api/client_quotation
-router.get('/', async (req, res) => {
-  try {
-    const quotes = await ClientQuotation.find().sort({ timestamp: -1 });
-    res.json(quotes);
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
-  }
-});
+// 2. GET: List All Quotations (Untuk Management)
+router.get('/', protect, getAllQuotations);
+
+// --- ROUTES BARU UNTUK APPROVAL SYSTEM ---
+// 3. GET: Pending Approvals (Khusus Management)
+router.get('/pending', protect, getPendingApprovals);
+
+// 4. GET: Get by Project ID (Untuk Auto-fill di Create Invoice) - HANYA YANG APPROVED
+router.get('/project/:projectId', protect, getQuotationByProject);
+
+// 5. GET: Get by ID UNIK (Untuk Detail Review)
+router.get('/:id', protect, getQuotationById);
+
+// 6. PATCH: Approve/Reject Quotation (Management Action)
+router.patch('/:id/approve', protect, approveQuotation);
 
 module.exports = router;

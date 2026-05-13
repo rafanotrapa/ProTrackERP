@@ -77,13 +77,65 @@ exports.getAllQuotations = async (req, res) => {
 exports.getQuotationByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
-    const quotation = await SupplierQuotation.findOne({ projectId: projectId }).sort({ timestamp: -1 });
+    
+    // TAMBAHKAN FILTER approvalStatus: 'Approved'
+    const quotation = await SupplierQuotation.findOne({ 
+      projectId: projectId,
+      approvalStatus: 'Approved' // <--- KUNCINYA DI SINI
+    }).sort({ timestamp: -1 });
 
     if (!quotation) {
-      return res.status(404).json({ msg: 'Penawaran supplier tidak ditemukan untuk project ini' });
+      // Kasih pesan yang spesifik biar user tau kenapa gak ketarik
+      return res.status(404).json({ 
+        msg: 'Data Supplier belum di-approve oleh Management atau tidak ditemukan.' 
+      });
     }
+
     res.json(quotation);
   } catch (err) {
     res.status(500).json({ msg: err.message });
+  }
+};
+
+// Tambahin ini di controllers/supplierQuotationController.js
+exports.approveQuotation = async (req, res) => {
+  try {
+    const { status } = req.body; // Isinya 'Approved' atau 'Rejected'
+    const updatedQuo = await SupplierQuotation.findByIdAndUpdate(
+      req.params.id,
+      { 
+        approvalStatus: status,
+        approvalDate: new Date() 
+      },
+      { new: true }
+    );
+
+    if (!updatedQuo) return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
+
+    res.json({ 
+      success: true, 
+      msg: `Quotation berhasil di-${status}!`, 
+      data: updatedQuo 
+    });
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+exports.getQuotationById = async (req, res) => {
+  try {
+    const quotation = await SupplierQuotation.findById(req.params.id);
+    
+    if (!quotation) {
+      return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
+    }
+    
+    res.json(quotation);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Format ID salah' });
+    }
+    res.status(500).json({ msg: 'Server Error' });
   }
 };

@@ -89,7 +89,7 @@ const SupplierApproval = () => {
         <div className="flex items-center gap-6">
           <button 
             onClick={() => navigate('/dashboard')} 
-            className="flex justify-center items-center w-12 h-12 bg-white rounded-2xl border transition-all active:scale-90 shadow-sm group border-slate-200 hover:bg-slate-50 flex-shrink-0"
+            className="flex justify-center items-center w-12 h-12 bg-white rounded-2xl border transition-all active:scale-90 shadow-sm group border-slate-200 hover:bg-slate-50 shrink-0"
           >
             <span className="text-xl font-black italic transition-colors text-slate-400 group-hover:text-emerald-600">←</span>
           </button>
@@ -103,7 +103,7 @@ const SupplierApproval = () => {
       </header>
 
       <main className="flex-1 w-full px-8 md:px-12 lg:px-16">
-        <div className="mx-auto w-full max-w-7xl bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden min-h-[500px]">
+        <div className="mx-auto w-full max-w-7xl bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden min-h-125">
           
           <div className="px-8 py-8 md:px-10 border-b border-slate-50 flex justify-between items-center">
              <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic">Pending Verification Queue</span>

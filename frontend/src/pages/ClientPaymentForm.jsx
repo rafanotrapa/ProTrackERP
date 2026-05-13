@@ -143,7 +143,7 @@ const ClientPaymentForm = () => {
                             <div className="p-4 bg-slate-100 rounded-2xl text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                 {formData.file ? <FileText size={24} /> : <Upload size={24} />}
                             </div>
-                            <p className="text-[11px] font-black uppercase italic text-slate-900 truncate max-w-[200px]">{formData.file ? formData.file.name : 'Drop Slip Proof'}</p>
+                            <p className="text-[11px] font-black uppercase italic text-slate-900 truncate max-w-50">{formData.file ? formData.file.name : 'Drop Slip Proof'}</p>
                         </div>
                     </div>
                 </div>

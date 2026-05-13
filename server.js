@@ -1,5 +1,4 @@
 const dotenv = require('dotenv');
-
 dotenv.config(); 
 
 const express = require('express');
@@ -7,10 +6,12 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
 
+// Import semua route lo (Jangan ada yang ketinggalan)
 const supplierInvoiceRoutes = require('./routes/supplierInvoiceRoutes');
 const supplierPaymentRoutes = require('./routes/supplierpaymentroutes');
-const createInvoiceRoutes = require('./routes/createInvoiceRoutes');
+const createInvoiceRoutes = require('./routes/createInvoiceRoutes'); // Ini koleksi client_invoice lo
 const financialRoutes = require('./routes/financialRoutes');
+const paymentRoutes = require('./routes/paymentRoutes'); // Ini buat upload bukti bayar
 
 // Connect to Database
 connectDB();
@@ -21,15 +22,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Log request buat bantu debug kalau ada 404 lagi
 app.use((req, res, next) => {
   console.log(`${req.method} request ke: ${req.url}`);
   next();
 });
 
 // --- STATIC FOLDER ---
+// Pastiin folder 'uploads' beneran ada di root project lo bray
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// --- ROUTES ---
+// --- ROUTES (TOTAL & LENGKAP) ---
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/project', require('./routes/projectRoutes'));
 app.use('/api/vendor', require('./routes/vendorRoutes'));
@@ -38,11 +41,15 @@ app.use('/api/supplier_quotation', require('./routes/supplierQuotationRoutes'));
 app.use('/api/client_quotation', require('./routes/clientQuotationRoutes'));
 app.use('/api/logs', require('./routes/logRoutes'));
 app.use('/api/po', require('./routes/poRoutes'));
-app.use('/api/client_invoice', createInvoiceRoutes);
-app.use('/api/financial', financialRoutes);
 
-// 2. RUTE INVOICE DISAMAKAN DENGAN FRONTEND
+// KHUSUS CLIENT SIDE (Pemisahan Jalur)
+app.use('/api/client_invoice', createInvoiceRoutes); // Path buat Invoice
+app.use('/api/payments', paymentRoutes);            // Path buat Bukti Bayar
+
+// KHUSUS SUPPLIER & FINANCIAL
+app.use('/api/financial', financialRoutes);
 app.use('/api/supplier_invoices', supplierInvoiceRoutes); 
+app.use('/api/supplier_payments', supplierPaymentRoutes);
 
 // --- BASE ENDPOINT ---
 app.get('/', (req, res) => {

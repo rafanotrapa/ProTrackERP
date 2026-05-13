@@ -16,6 +16,7 @@ import SystemLogs from './pages/SystemLogs';
 import AddProject from './pages/AddProject';
 import AddClientQuotation from './pages/AddClientQuotation';
 import AddClientInvoice from './pages/AddClientInvoice';
+import InputPayment from './pages/InputPayment';
 
 // --- PROCUREMENT & LOGISTICS MODULE ---
 import VendorMenu from './pages/VendorMenu'; 
@@ -29,6 +30,8 @@ import DeliveryManagement from './pages/DeliveryManagement';
 
 import SupplierPayment from './pages/SupplierPayment';
 import FinancialReport from './pages/financialReport';
+import PaymentVerification from './pages/PaymentVerification';
+import PaymentVerifyDetail from './pages/PaymentVerifyDetail';
 
 // --- MONITORING & TIMELINE MODULE ---
 import ProjectList from './pages/ProjectList';
@@ -36,6 +39,10 @@ import ProjectTimeline from './pages/ProjectTimeline';
 
 // --- MANAGEMENT MODULE (NEW) ---
 import SupplierApproval from './pages/SupplierApproval';
+import QuotationApproval from './pages/QuotationApproval';
+import QuotationDetailReview from './pages/QuotationDetailReview';
+import ClientQuotationApproval from './pages/ClientQuotationApproval';
+import ClientQuotationDetailReview from './pages/ClientQuotationDetailReview';
 
 function App() {
   return (
@@ -80,6 +87,13 @@ function App() {
           
           {/* FIX: GABUNGKAN ROLE DISINI BIAR FINANCE GAK MENTAL */}
           <Route path="/create-invoice" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><AddClientInvoice /></ProtectedRoute>} />
+          
+          <Route 
+            path="/input-payment" 
+            element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><InputPayment /></ProtectedRoute>} 
+          />
+
+
 
           {/* 5. PROCUREMENT & LOGISTICS MODULE */}
           <Route 
@@ -140,10 +154,38 @@ function App() {
             element={<ProtectedRoute allowRoles={['Finance', 'Owner', 'Admin']}><FinancialReport /></ProtectedRoute>} 
           />
 
+          <Route 
+            path="/verify-payment" 
+            element={<ProtectedRoute allowRoles={['Finance', 'Admin',]}><PaymentVerification /></ProtectedRoute>} 
+          />
+
+          <Route 
+            path="/verify-payment/:id" 
+            element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><PaymentVerifyDetail /></ProtectedRoute>} 
+          />
+
           {/* 8. MANAGEMENT APPROVAL MODULE */}
           <Route 
             path="/approve-supplier" 
             element={<ProtectedRoute allowRoles={['Management', 'Admin']}><SupplierApproval /></ProtectedRoute>} 
+          />
+
+          <Route 
+            path="/quotation-approval" 
+            element={<ProtectedRoute allowRoles={['Management', 'Admin']}><QuotationApproval /></ProtectedRoute>} 
+          />
+
+          <Route 
+            path="/quotation-approval/:id" 
+            element={<ProtectedRoute allowRoles={['Management', 'Admin']}><QuotationDetailReview /></ProtectedRoute>} 
+          />
+
+          
+          <Route path="/client-quotation-approval" element={<ProtectedRoute allowRoles={['Management', 'Admin']}><ClientQuotationApproval /></ProtectedRoute>} />
+          
+          <Route 
+            path="/client-quotation-approval/:id" 
+            element={<ProtectedRoute allowRoles={['Management', 'Admin']}><ClientQuotationDetailReview /></ProtectedRoute>} 
           />
 
           {/* 9. CATCH-ALL */}

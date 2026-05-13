@@ -9,7 +9,10 @@ const CreateInvoiceSchema = new mongoose.Schema({
   items: { type: Array }, // Simpan detail barang dari quotation
   status: { type: String, default: 'Paid' }, // Set default Paid biar langsung masuk profit dashboard
   dueDate: { type: Date }, // Samain sama frontend
-  remarks: { type: String }
+  remarks: { type: String },
+  totalContractValue: { type: Number },
+  billingPhase: { type: String },
+  topOption: { type: String }
 }, { 
   timestamps: true,
   collection: 'client_invoice' // Tetap sesuai permintaan lo

@@ -16,7 +16,7 @@ const Dashboard = () => {
       { title: 'Add Project', icon: '📁', desc: 'Input data project baru.', path: '/add-project', color: 'border-blue-500' },
       { title: 'Create Quotation', icon: '📝', desc: 'Buat penawaran harga detail.', path: '/client-quote', color: 'border-green-500' },
       { title: 'Create Invoice', icon: '🧾', desc: 'Buat invoice untuk customer.', path: '/create-invoice', color: 'border-orange-500' },
-      { title: 'Timeline Monitoring', icon: '📊', desc: 'Pantau progress fisik & payment.', path: '/timeline', color: 'border-orange-500' }
+      { title: 'Input Payment', icon: '💸', desc: 'Upload bukti transfer dari client.', path: '/input-payment', color: 'border-emerald-500' },
     ],
     Procurement: [
       { title: 'Vendor Directory', icon: '📦', desc: 'Kelola Master Supplier / Vendor.', path: '/vendor', color: 'border-emerald-500' },
@@ -46,32 +46,37 @@ const Dashboard = () => {
         color: 'border-amber-600' 
       },
     ],
-    // =========================================================
-    // FITUR BARU: MENU KHUSUS ROLE MANAGEMENT SESUAI USE CASE
-    // =========================================================
+
     Management: [
-      { 
-        title: 'Supplier Approval', 
-        icon: '✅', 
-        desc: 'Review dan setujui vendor baru dari Procurement.', 
-        path: '/approve-supplier', 
-        color: 'border-emerald-600' 
-      },
-      { 
-        title: 'Quotation Approval', 
-        icon: '📑', 
-        desc: 'Review & Sign Quotation sebelum eksekusi.', 
-        path: '/approve-quotation', 
-        color: 'border-blue-600' 
-      },
-      { 
-        title: 'Transaction Approval', 
-        icon: '🔐', 
-        desc: 'Verifikasi final transaksi keuangan.', 
-        path: '/approve-transaction', 
-        color: 'border-amber-600' 
-      }
-    ]
+  { 
+    title: 'Supplier Approval', 
+    icon: '✅', 
+    desc: 'Review dan setujui vendor baru dari Procurement.', 
+    path: '/approve-supplier', 
+    color: 'border-emerald-600' 
+  },
+  { 
+    title: 'Supplier Quotation Approval', 
+    icon: '📑', 
+    desc: 'Review & Approve penawaran dari Supplier.', 
+    path: '/quotation-approval', 
+    color: 'border-blue-600' 
+  },
+  { 
+    title: 'Client Quotation Approval', 
+    icon: '📄', 
+    desc: 'Review & Approve quotation untuk Client sebelum invoicing.', 
+    path: '/client-quotation-approval', 
+    color: 'border-indigo-600' 
+  },
+  { 
+    title: 'Transaction Approval', 
+    icon: '🔐', 
+    desc: 'Verifikasi final transaksi keuangan.', 
+    path: '/approve-transaction', 
+    color: 'border-amber-600' 
+  }
+]
   };
 
   let userModules = [];

@@ -29,6 +29,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage, fileFilter });
 
 // --- MAPPING ROUTE KE CONTROLLER ---
+// ⚠️ PENTING: ROUTE STATIS HARUS DI ATAS ROUTE DINAMIS (:id)
 
 // 1. POST: Create Quotation
 router.post('/', upload.single('document'), supplierQuotationController.createQuotation);
@@ -36,14 +37,16 @@ router.post('/', upload.single('document'), supplierQuotationController.createQu
 // 2. GET: List All Quotations
 router.get('/', supplierQuotationController.getAllQuotations);
 
-// 3. GET: Get by Project ID (Untuk Auto-fill)
-router.get('/project/:projectId', supplierQuotationController.getQuotationByProject);
+// 3. GET: Pending Approvals (STATIS - harus di atas /:id)
+router.get('/pending', protect, supplierQuotationController.getPendingApprovals);
 
-// 4. GET: Get by ID UNIK (INI YANG BIKIN ERROR 404 TADI KALAU GAK ADA)
-// Penting: Ditaruh di bawah agar tidak mendahului rute statis jika ada
-router.get('/:id', supplierQuotationController.getQuotationById);
+// 4. GET: Get by Project ID (STATIS - harus di atas /:id)
+router.get('/project/:projectId', protect, supplierQuotationController.getQuotationByProject);
 
-// 5. PATCH: Approve/Reject Quotation
-router.patch('/:id/approve', supplierQuotationController.approveQuotation);
+// 5. GET: Get by ID UNIK (DINAMIS - ditaruh paling bawah)
+router.get('/:id', protect, supplierQuotationController.getQuotationById);
+
+// 6. PATCH: Approve/Reject Quotation (DINAMIS)
+router.patch('/:id/approve', protect, supplierQuotationController.approveQuotation);
 
 module.exports = router;

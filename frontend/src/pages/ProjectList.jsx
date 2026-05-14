@@ -1,20 +1,16 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Search, Building2, Calendar, DollarSign, ChevronRight, TrendingUp, Clock } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const ProjectList = () => {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // CUSTOM DROPDOWN STATES
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  
-  const navigate = useNavigate();
+  const [statusFilter, setStatusFilter] = useState('all');
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -23,147 +19,218 @@ const ProjectList = () => {
         const res = await axios.get('http://localhost:5000/api/project', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setProjects(res.data);
+        
+        // Enrich dengan data billing (progress)
+        try {
+          const billingRes = await axios.get('http://localhost:5000/api/project-billing', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const billingMap = new Map();
+          billingRes.data.forEach(b => {
+            billingMap.set(b.projectId, b);
+          });
+          
+          const enriched = res.data.map(p => {
+            const billing = billingMap.get(p.projectId) || {};
+            return {
+              ...p,
+              progressPercent: billing.progressPercent || 0,
+              totalContract: billing.totalContractValue || p.amount || 0,
+              totalPaid: billing.totalPaid || 0,
+              isComplete: billing.isComplete || false,
+              stagesCount: billing.stagesCount || 1,
+              paidCount: billing.paidCount || 0
+            };
+          });
+          setProjects(enriched);
+        } catch {
+          setProjects(res.data);
+        }
       } catch (err) {
-        console.error("Gagal load project list");
+        console.error("Gagal load projects:", err);
       } finally {
         setLoading(false);
       }
     };
     fetchProjects();
-
-    // Close dropdown click outside
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsFilterOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const filteredProjects = useMemo(() => {
-    return projects.filter((p) => {
+    return projects.filter(p => {
       const matchesSearch = 
         (p.projectId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (p.projectName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.institutionName || p.clientName || '').toLowerCase().includes(searchTerm.toLowerCase());
-
-      const matchesStatus = 
-        statusFilter === 'All' ? true : 
-        statusFilter === 'Paid' ? p.isFinalPaid === true : 
-        p.isFinalPaid === false;
-
+        (p.clientName || p.institutionName || '').toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' ? true : 
+        statusFilter === 'active' ? !p.isComplete : p.isComplete;
+      
       return matchesSearch && matchesStatus;
     });
   }, [searchTerm, statusFilter, projects]);
 
-  return (
-    <div className="min-h-screen bg-white font-sans flex flex-col text-slate-900">
-      <Header />
+  const formatCurrency = (value) => {
+    if (!value) return '0';
+    return value.toLocaleString();
+  };
 
-      {/* SUB-HEADER & ACTIONS */}
-      <div className="w-full border-b border-slate-100 px-8 py-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-50/40">
-        <div className="flex items-center gap-5">
-          <button onClick={() => navigate('/dashboard')} className="bg-white hover:bg-slate-50 border border-slate-200 h-11 w-11 rounded-xl flex items-center justify-center transition-all shadow-sm active:scale-90 group">
-            <span className="text-slate-400 group-hover:text-indigo-600 text-lg font-black italic">←</span>
-          </button>
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">Timeline <span className="text-indigo-600">Monitoring</span></h1>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">Project Tracking Hub • Real-time Status</p>
-          </div>
+  const getProgressColor = (percent) => {
+    if (percent === 100) return 'bg-emerald-500';
+    if (percent >= 50) return 'bg-indigo-500';
+    return 'bg-amber-500';
+  };
+
+  const statusCounts = {
+    all: projects.length,
+    active: projects.filter(p => !p.isComplete).length,
+    completed: projects.filter(p => p.isComplete).length
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="font-black text-slate-400 text-[10px] uppercase tracking-widest">LOADING PROJECTS...</p>
         </div>
+      </div>
+    );
+  }
 
-        {/* SEARCH & CUSTOM DROPDOWN FILTER */}
-        <div className="flex gap-3 w-full md:w-auto">
-          <div className="relative flex-1 md:w-72">
-             <input 
-               type="text" 
-               placeholder="Search..." 
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-               className="w-full p-2.5 pl-9 bg-white border-2 border-slate-200 rounded-xl text-xs font-bold outline-none focus:border-indigo-600 transition-all shadow-sm italic"
-             />
-             <span className="absolute left-3 top-2.5 text-slate-300 text-xs">🔍</span>
-          </div>
-          
-          {/* CUSTOM UI DROPDOWN FILTER */}
-          <div className="relative md:w-40" ref={dropdownRef}>
-            <div 
-              onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="bg-white border-2 border-slate-200 px-4 py-2.5 rounded-xl flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm"
-            >
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-700">
-                {statusFilter === 'All' ? 'All Status' : statusFilter === 'Paid' ? 'Paid' : 'Pending'}
-              </span>
-              <span className={`text-[8px] transition-transform duration-300 ${isFilterOpen ? 'rotate-180' : ''}`}>▼</span>
-            </div>
-
-            {isFilterOpen && (
-              <div className="absolute z-50 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-2xl overflow-hidden py-1 backdrop-blur-xl">
-                {['All', 'Paid', 'Pending'].map((opt) => (
-                  <div 
-                    key={opt}
-                    onClick={() => { setStatusFilter(opt); setIsFilterOpen(false); }}
-                    className={`px-4 py-3 text-[9px] font-black uppercase tracking-widest cursor-pointer transition-colors ${
-                      statusFilter === opt ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-50 hover:text-indigo-600'
-                    }`}
-                  >
-                    {opt === 'All' ? 'Show All' : opt === 'Paid' ? 'Paid / Cleared' : 'Pending / Active'}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
+      <Header />
+      
+      {/* HEADER */}
+      <div className="w-full border-b border-slate-100 px-6 md:px-10 py-6 bg-white flex items-center gap-4 sticky top-0 z-10">
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="bg-white hover:bg-slate-50 border border-slate-200 h-10 w-10 rounded-xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
+        >
+          <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
+        </button>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter italic uppercase">
+            Project <span className="text-indigo-600">List</span>
+          </h1>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5 italic">All Active Projects • Real-time Status</p>
         </div>
       </div>
 
-      <main className="flex-1 p-6 md:p-8 md:pt-4"> 
-        <div className="max-w-7xl mx-auto space-y-3">
-          <div className="flex justify-between items-end px-1 mb-1">
-            <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">Active Pipeline</h2>
-            <p className="text-[9px] font-bold text-indigo-600 uppercase leading-none">Displaying {filteredProjects.length} Records</p>
+      <main className="flex-1 p-6 md:p-10">
+        
+        {/* FILTER & SEARCH BAR */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                statusFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              All ({statusCounts.all})
+            </button>
+            <button
+              onClick={() => setStatusFilter('active')}
+              className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                statusFilter === 'active' ? 'bg-amber-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              Active ({statusCounts.active})
+            </button>
+            <button
+              onClick={() => setStatusFilter('completed')}
+              className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                statusFilter === 'completed' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              Completed ({statusCounts.completed})
+            </button>
           </div>
+          
+          <div className="relative w-full md:w-72">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search by ID, Name, Client..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-600 transition-all"
+            />
+          </div>
+        </div>
 
-          {loading ? (
-            <div className="p-20 text-center"><div className="inline-block w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div></div>
-          ) : (
-            <div className="grid grid-cols-1 gap-2.5">
-              {filteredProjects.map((p) => (
-                <div key={p._id} onClick={() => navigate(`/timeline/${p.projectId}`)} className="bg-white p-4 rounded-[1.2rem] border-2 border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-center hover:shadow-lg hover:border-indigo-200 transition-all cursor-pointer group active:scale-[0.99]">
-                  <div className="flex items-center gap-4 flex-1 w-full md:w-auto">
-                    <div className="bg-slate-900 h-10 w-10 flex flex-col items-center justify-center rounded-lg text-white font-black group-hover:bg-indigo-600 transition-colors shadow-md">
-                       <span className="text-[6px] opacity-40 leading-none mb-0.5">ID</span><span className="text-[8px] uppercase">BJK</span>
+        {/* PROJECT CARDS */}
+        {filteredProjects.length === 0 ? (
+          <div className="py-32 text-center bg-white rounded-2xl border border-slate-100">
+            <p className="text-slate-400 font-black text-lg uppercase tracking-tighter italic">No projects found</p>
+            <p className="text-[10px] text-slate-400 mt-2">Try adjusting your search or filter</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredProjects.map((project) => (
+              <div
+                key={project._id}
+                onClick={() => navigate(`/timeline/${project.projectId}`)}
+                className="group bg-white rounded-2xl border border-slate-100 p-5 hover:border-indigo-300 hover:shadow-xl transition-all cursor-pointer"
+              >
+                {/* Project ID & Status */}
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-slate-100 p-2 rounded-xl text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                      <Building2 size={16} />
                     </div>
-                    <div>
-                      <p className="text-[8px] font-black text-indigo-500 uppercase italic mb-1">{(p.projectId || 'N/A')}</p>
-                      <h3 className="text-base font-black text-slate-800 uppercase italic leading-tight group-hover:text-indigo-600 tracking-tight">{(p.projectName || 'Untitled')}</h3>
-                    </div>
+                    <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">{project.projectId}</p>
                   </div>
-                  <div className="flex-1 text-center py-2 md:py-0 border-y md:border-y-0 border-slate-50 my-2 md:my-0 w-full">
-                    <p className="text-[8px] font-black text-slate-300 uppercase italic">Institution</p>
-                    <p className="text-[11px] font-black text-slate-600 uppercase italic">{(p.institutionName || p.clientName || 'N/A')}</p>
+                  <span className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase ${project.isComplete ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                    {project.isComplete ? 'COMPLETED' : 'ACTIVE'}
+                  </span>
+                </div>
+                
+                {/* Project Name */}
+                <h3 className="text-base font-black text-slate-800 uppercase italic tracking-tighter mb-2 line-clamp-2">
+                  {project.projectName || 'Untitled'}
+                </h3>
+                
+                {/* Client Name */}
+                <p className="text-[9px] font-bold text-slate-500 mb-3">
+                  {project.clientName || project.institutionName || 'N/A'}
+                </p>
+                
+                {/* Progress Bar */}
+                <div className="mb-3">
+                  <div className="flex justify-between text-[7px] font-black text-slate-400 mb-1">
+                    <span>Progress</span>
+                    <span>{project.progressPercent || 0}%</span>
                   </div>
-                  <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-                     <div className="text-right">
-                        <p className="text-[8px] font-black text-slate-400 uppercase leading-none mb-1">Finance</p>
-                        <div className="flex items-center gap-2 justify-end">
-                           <span className={`w-1.5 h-1.5 rounded-full ${p.isFinalPaid ? 'bg-green-500 animate-pulse' : 'bg-orange-400'}`}></span>
-                           <p className={`text-[9px] font-black italic uppercase ${p.isFinalPaid ? 'text-green-600' : 'text-orange-500'}`}>{p.isFinalPaid ? 'Cleared' : 'On-Going'}</p>
-                        </div>
-                     </div>
-                     <button className="bg-slate-900 group-hover:bg-indigo-600 text-white px-5 py-2.5 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-md transition-all group-hover:translate-x-1">Timeline →</button>
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${getProgressColor(project.progressPercent || 0)}`}
+                      style={{ width: `${project.progressPercent || 0}%` }}
+                    />
                   </div>
                 </div>
-              ))}
-              {filteredProjects.length === 0 && !loading && (
-                <div className="p-12 text-center bg-slate-50 border-2 border-dashed border-slate-100 rounded-3xl"><p className="text-lg font-black italic uppercase text-slate-300 tracking-tighter">No Records Match.</p></div>
-              )}
-            </div>
-          )}
-        </div>
+                
+                {/* Stats */}
+                <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+                  <div className="flex gap-3">
+                    <div>
+                      <p className="text-[6px] font-black text-slate-400 uppercase">Stages</p>
+                      <p className="text-[10px] font-black">{project.paidCount || 0}/{project.stagesCount || 1}</p>
+                    </div>
+                    <div>
+                      <p className="text-[6px] font-black text-slate-400 uppercase">Contract</p>
+                      <p className="text-[9px] font-black text-emerald-600">Rp {formatCurrency(project.totalContract)}</p>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </main>
-
+      
       <Footer />
     </div>
   );

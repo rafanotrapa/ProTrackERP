@@ -61,7 +61,7 @@ const VendorMenu = () => {
               >
                 <div className={`absolute top-0 left-0 w-full h-2 ${menu.accent} opacity-20 group-hover:opacity-100 transition-opacity`}></div>
 
-                <div className={`${menu.bg} w-20 h-20 rounded-[2rem] flex items-center justify-center mb-10 group-hover:rotate-6 group-hover:scale-110 transition-all duration-500`}>
+                <div className={`${menu.bg} w-20 h-20 rounded-4xl flex items-center justify-center mb-10 group-hover:rotate-6 group-hover:scale-110 transition-all duration-500`}>
                   {menu.icon}
                 </div>
                 

@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
+import { 
+  ArrowLeft, Calendar, Clock, CheckCircle, Truck, Package, 
+  DollarSign, FileText, Download, TrendingUp, AlertCircle,
+  Building2, User, MapPin, Phone, Mail, Printer
+} from 'lucide-react';
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import autoTable from 'jspdf-autotable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -8,172 +16,347 @@ const ProjectTimeline = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState(null);
+  const [billing, setBilling] = useState(null);
+  const [invoices, setInvoices] = useState([]);
+  const [poData, setPoData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeMilestone, setActiveMilestone] = useState(null);
 
   useEffect(() => {
-    const fetchProjectDetail = async () => {
+    const fetchAllData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`http://localhost:5000/api/project/${projectId}`, {
+        
+        // 1. Project Data
+        const projectRes = await axios.get(`http://localhost:5000/api/project/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setProject(res.data);
+        setProject(projectRes.data);
+        
+        // 2. Billing Data (stages, progress)
+        const billingRes = await axios.get(`http://localhost:5000/api/project-billing/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setBilling(billingRes.data);
+        
+        // 3. Invoices
+        const invoicesRes = await axios.get(`http://localhost:5000/api/client_invoice/project/${projectId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setInvoices(invoicesRes.data.invoices || []);
+        
+        // 4. Purchase Order (opsional)
+        try {
+          const poRes = await axios.get(`http://localhost:5000/api/purchase_orders/project/${projectId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setPoData(poRes.data);
+        } catch {
+          setPoData(null);
+        }
+        
       } catch (err) {
-        console.error("Gagal tarik detail project");
+        console.error("Error fetching timeline data:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProjectDetail();
+    fetchAllData();
   }, [projectId]);
 
-  const calculateProgress = (p) => {
-    if (!p) return 0;
-    let score = 0;
-    if (p.isDPPaid) score += 25;
-    if (p.isItemsReceived) score += 25;
-    if (p.isItemsDelivered) score += 25;
-    if (p.isFinalPaid) score += 25;
-    return score;
+  const formatCurrency = (value) => {
+    if (!value) return '0';
+    return value.toLocaleString();
   };
 
-  const getStatusText = (p) => {
-    if (p.isFinalPaid) return "PROJECT CLOSED / COMPLETED";
-    if (p.isItemsDelivered) return "DELIVERED - AWAITING FINAL PAYMENT";
-    if (p.isItemsReceived) return "IN WAREHOUSE - READY TO SHIP";
-    if (p.isDPPaid) return "DP PAID - PROCUREMENT STAGE";
-    return "INITIALIZING PROJECT";
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('id-ID', { 
+      day: 'numeric', 
+      month: 'short', 
+      year: 'numeric' 
+    });
   };
 
-  if (loading) return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center">
-      <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p className="font-black text-slate-300 text-xl italic uppercase tracking-widest animate-pulse">Synchronizing Data...</p>
-    </div>
-  );
+  const getStatusIcon = (status) => {
+    switch(status) {
+      case 'Paid': return <CheckCircle size={14} className="text-emerald-500" />;
+      case 'Unpaid': return <Clock size={14} className="text-amber-500" />;
+      default: return <AlertCircle size={14} className="text-slate-400" />;
+    }
+  };
 
-  if (!project) return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-10">
-      <h1 className="text-4xl font-black text-red-500 italic mb-4">404 NOT FOUND</h1>
-      <button onClick={() => navigate('/timeline')} className="bg-slate-900 text-white px-8 py-3 rounded-xl font-black uppercase text-xs tracking-widest">Back to List</button>
-    </div>
-  );
+  const generateReportPDF = () => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(20);
+    doc.text(`Project Report: ${project?.projectId}`, 105, 20, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 105, 30, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text("Project Information", 14, 45);
+    doc.setFontSize(10);
+    doc.text(`Name: ${project?.projectName || '-'}`, 14, 55);
+    doc.text(`Client: ${project?.clientName || '-'}`, 14, 62);
+    doc.text(`Contract Value: Rp ${formatCurrency(billing?.totalContractValue)}`, 14, 69);
+    doc.text(`Progress: ${billing?.summary?.progressPercent?.toFixed(0) || 0}%`, 14, 76);
+    
+    if (billing?.stages) {
+      const stageRows = billing.stages.map(s => [
+        s.stageNumber,
+        s.name,
+        `Rp ${formatCurrency(s.expectedAmount)}`,
+        s.status
+      ]);
+      autoTable(doc, {
+        startY: 90,
+        head: [['Stage', 'Description', 'Amount', 'Status']],
+        body: stageRows,
+        theme: 'striped',
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255] }
+      });
+    }
+    
+    doc.save(`Project_${projectId}_Report.pdf`);
+  };
 
-  const progress = calculateProgress(project);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="font-black text-slate-400 text-[10px] uppercase tracking-widest">LOADING TIMELINE...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="font-black text-slate-600 text-lg">Project not found</p>
+          <button onClick={() => navigate('/timeline')} className="mt-4 text-indigo-600 underline">Back to List</button>
+        </div>
+      </div>
+    );
+  }
+
+  const summary = billing?.summary || {};
+  const stages = billing?.stages || [];
+  const progress = summary.progressPercent || 0;
+  const isComplete = summary.isComplete || false;
 
   return (
-    <div className="min-h-screen bg-white font-sans flex flex-col">
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
       <Header />
-
-      {/* SUB-HEADER */}
-      <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
-        <button 
-          onClick={() => navigate('/timeline')}
-          className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
-        >
-          <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
-        </button>
-        <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
-            Project <span className="text-indigo-600">Timeline</span>
-          </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">BJK Tracker • ID: {project.projectId}</p>
+      
+      {/* HEADER */}
+      <div className="sticky top-0 z-20 bg-white border-b border-slate-100 px-6 md:px-10 py-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <button 
+            onClick={() => navigate('/timeline')}
+            className="bg-white hover:bg-slate-50 border border-slate-200 h-10 w-10 rounded-xl flex items-center justify-center transition-all shadow-sm"
+          >
+            <ArrowLeft size={18} className="text-slate-500" />
+          </button>
+          <div>
+            <h1 className="text-xl font-black text-slate-900 uppercase tracking-tighter">{project.projectId}</h1>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Project Timeline</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button 
+            onClick={generateReportPDF}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-indigo-700 text-white rounded-xl font-black text-[9px] uppercase tracking-widest transition-all"
+          >
+            <Download size={14} /> Export Report
+          </button>
         </div>
       </div>
 
-      <main className="flex-1 p-8 md:p-12">
-        <div className="max-w-7xl mx-auto">
-          
-          {/* MAIN INFO CARD */}
-          <div className="bg-white border-2 border-slate-100 rounded-[2.5rem] p-10 shadow-2xl shadow-slate-100/50 mb-10 relative overflow-hidden">
-            <div className={`absolute top-0 right-0 px-8 py-4 font-black italic text-[10px] uppercase tracking-[0.3em] ${progress === 100 ? 'bg-green-500 text-white' : 'bg-indigo-600 text-white'}`}>
-              Current Phase: {getStatusText(project)}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-end">
-              <div className="space-y-2">
-                <p className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] italic">Official Title</p>
-                <h2 className="text-5xl font-black text-slate-900 tracking-tighter italic uppercase leading-tight">
-                  {project.projectName}
-                </h2>
-                <div className="flex items-center gap-4 pt-2">
-                   <div className="px-3 py-1 bg-slate-100 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-widest">{project.clientName}</div>
-                   <div className="px-3 py-1 bg-indigo-50 rounded-lg text-[10px] font-black text-indigo-600 uppercase tracking-widest italic">{project.topOption || 'N/A'}</div>
-                </div>
-              </div>
-
-              {/* PROGRESS CIRCLE / PERCENTAGE */}
-              <div className="flex flex-col items-end">
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Overall Progress</p>
-                <div className="flex items-baseline gap-1">
-                   <span className="text-8xl font-black text-slate-900 tracking-tighter italic leading-none">{progress}</span>
-                   <span className="text-2xl font-black text-indigo-600 italic">%</span>
-                </div>
+      <main className="flex-1 p-6 md:p-10 max-w-7xl mx-auto w-full">
+        
+        {/* PROJECT HEADER CARD */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6 shadow-sm">
+          <div className="flex flex-wrap justify-between items-start gap-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 uppercase italic tracking-tighter">
+                {project.projectName}
+              </h2>
+              <div className="flex flex-wrap gap-4 mt-3 text-[10px] text-slate-500">
+                <span className="flex items-center gap-1"><User size={12} /> {project.clientName || 'N/A'}</span>
+                <span className="flex items-center gap-1"><Calendar size={12} /> Start: {formatDate(project.createdAt)}</span>
+                <span className="flex items-center gap-1"><DollarSign size={12} /> Rp {formatCurrency(billing?.totalContractValue)}</span>
               </div>
             </div>
-
-            {/* CUSTOM PROGRESS BAR */}
-            <div className="mt-12 h-6 bg-slate-100 rounded-full overflow-hidden shadow-inner p-1">
-              <div 
-                style={{ width: `${progress}%` }}
-                className={`h-full rounded-full transition-all duration-1000 ease-out shadow-lg ${
-                  progress === 100 
-                    ? 'bg-gradient-to-r from-green-400 to-green-600' 
-                    : 'bg-gradient-to-r from-indigo-500 via-blue-500 to-indigo-600'
-                }`}
-              ></div>
+            <div className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider ${isComplete ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+              {isComplete ? '✓ PROJECT COMPLETED' : '● IN PROGRESS'}
             </div>
           </div>
-
-          {/* MILESTONE STEP CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            <StepCard active={project.isDPPaid} label="Down Payment" step="01" icon="💳" />
-            <StepCard active={project.isItemsReceived} label="In Warehouse" step="02" icon="📦" />
-            <StepCard active={project.isItemsDelivered} label="Delivered / BAST" step="03" icon="🚚" />
-            <StepCard active={project.isFinalPaid} label="Final Payment" step="04" success icon="💰" />
-          </div>
-
-          {/* LOG AREA */}
-          <div className="mt-12 p-8 bg-slate-900 rounded-[2rem] flex items-center justify-between shadow-xl">
-             <div className="flex items-center gap-4">
-                <div className="h-2 w-2 bg-indigo-500 rounded-full animate-ping"></div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] italic">System Monitoring Active</p>
-             </div>
-             <p className="text-xs font-bold text-slate-500 italic opacity-80">
-                "BJK real-time synchronization with Finance & Warehouse modules."
-             </p>
-          </div>
-
         </div>
-      </main>
 
+        {/* PROGRESS OVERVIEW */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6 shadow-sm">
+          <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Overall Progress</h3>
+          <div className="mb-3">
+            <div className="flex justify-between text-[10px] font-black mb-1">
+              <span>{progress}% Complete</span>
+              <span>{summary.totalPaid ? `Rp ${formatCurrency(summary.totalPaid)} / Rp ${formatCurrency(billing?.totalContractValue)}` : ''}</span>
+            </div>
+            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className={`h-full rounded-full transition-all duration-700 ${isComplete ? 'bg-emerald-500' : 'bg-linear-to-r from-indigo-500 to-indigo-600'}`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+          
+          {/* STAGES GRID */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+            {stages.map((stage) => (
+              <div 
+                key={stage.stageNumber}
+                className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${stage.status === 'Paid' ? 'bg-emerald-50 border-emerald-200' : stage.status === 'Unpaid' ? 'bg-amber-50 border-amber-200' : 'bg-slate-50 border-slate-200'}`}
+                onClick={() => setActiveMilestone(activeMilestone === stage.stageNumber ? null : stage.stageNumber)}
+              >
+                <p className="text-[8px] font-black text-slate-400 uppercase">Stage {stage.stageNumber}</p>
+                <p className="text-[10px] font-black mt-1">{stage.name}</p>
+                <p className="text-[11px] font-black text-indigo-600 mt-1">Rp {formatCurrency(stage.expectedAmount)}</p>
+                <div className="flex items-center gap-1 mt-2">
+                  {getStatusIcon(stage.status)}
+                  <span className={`text-[8px] font-black ${stage.status === 'Paid' ? 'text-emerald-600' : stage.status === 'Unpaid' ? 'text-amber-600' : 'text-slate-400'}`}>
+                    {stage.status || 'Pending'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* TIMELINE MILESTONES */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6 shadow-sm">
+          <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Milestone Timeline</h3>
+          <div className="relative">
+            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-slate-200"></div>
+            <div className="space-y-6">
+              {stages.map((stage, idx) => (
+                <div key={stage.stageNumber} className="relative pl-10">
+                  <div className={`absolute left-0 w-8 h-8 rounded-full flex items-center justify-center ${stage.status === 'Paid' ? 'bg-emerald-500 text-white' : stage.status === 'Unpaid' ? 'bg-amber-500 text-white' : 'bg-slate-300 text-white'}`}>
+                    {stage.status === 'Paid' ? <CheckCircle size={16} /> : stage.stageNumber}
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-800">{stage.name}</p>
+                    <p className="text-[10px] text-slate-500 mt-1">Amount: Rp {formatCurrency(stage.expectedAmount)}</p>
+                    {stage.invoice && (
+                      <p className="text-[9px] text-indigo-600 mt-1">Invoice: {stage.invoice.invoiceNumber}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* FINANCIAL & INVOICE SECTION */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          {/* Financial Summary */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <DollarSign size={14} /> Financial Summary
+            </h3>
+            <div className="space-y-3">
+              <div className="flex justify-between py-2 border-b border-slate-100">
+                <span className="text-[10px] font-bold text-slate-500">Total Contract</span>
+                <span className="font-black text-slate-800">Rp {formatCurrency(billing?.totalContractValue)}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-slate-100">
+                <span className="text-[10px] font-bold text-slate-500">Total Paid</span>
+                <span className="font-black text-emerald-600">Rp {formatCurrency(summary.totalPaid)}</span>
+              </div>
+              <div className="flex justify-between py-2 border-b border-slate-100">
+                <span className="text-[10px] font-bold text-slate-500">Remaining</span>
+                <span className="font-black text-amber-600">Rp {formatCurrency(summary.remainingAmount)}</span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-[10px] font-bold text-slate-500">Collection Rate</span>
+                <span className="font-black text-indigo-600">{summary.progressPercent?.toFixed(0) || 0}%</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Invoice History */}
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <FileText size={14} /> Invoice History
+            </h3>
+            {invoices.length === 0 ? (
+              <p className="text-[10px] text-slate-400 italic text-center py-8">No invoices yet</p>
+            ) : (
+              <div className="space-y-3">
+                {invoices.map((inv) => (
+                  <div key={inv._id} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
+                    <div>
+                      <p className="font-black text-sm">{inv.invoiceNumber}</p>
+                      <p className="text-[8px] text-slate-500">{inv.billingPhase || 'Term'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-black text-emerald-600">Rp {formatCurrency(inv.amount)}</p>
+                      <p className={`text-[8px] font-black ${inv.status === 'Paid' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                        {inv.status || 'Unpaid'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* LOGISTICS & PO SECTION (Opsional) */}
+        {poData && (
+          <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Truck size={14} /> Purchase Order & Logistics
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <p className="text-[9px] font-black text-slate-500 uppercase">PO Number</p>
+                <p className="font-black text-indigo-600">{poData.poNumber || 'N/A'}</p>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-xl">
+                <p className="text-[9px] font-black text-slate-500 uppercase">Delivery Status</p>
+                <p className="font-black">{poData.deliveryStatus || 'Pending'}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* INFO BANNER */}
+        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mt-6">
+          <div className="flex items-start gap-3">
+            <TrendingUp size={18} className="text-indigo-600 mt-0.5" />
+            <div>
+              <p className="font-black text-indigo-800 text-xs uppercase tracking-tighter">Project Health</p>
+              <p className="text-[9px] text-indigo-600 mt-1">
+                {isComplete 
+                  ? 'Project completed successfully. All payments settled.'
+                  : progress >= 75 
+                    ? 'Project near completion. Final stages in progress.'
+                    : progress >= 40
+                      ? 'Project on track. Continue monitoring milestones.'
+                      : 'Project in early stages. Key milestones ahead.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </main>
+      
       <Footer />
     </div>
   );
 };
-
-// SUB-KOMPONEN STEP CARD (Luxury Version)
-const StepCard = ({ active, label, step, success, icon }) => (
-  <div className={`relative p-8 rounded-[2rem] border-2 flex flex-col items-center justify-center transition-all duration-700 overflow-hidden ${
-    active 
-      ? (success ? 'bg-white border-green-500 shadow-2xl shadow-green-100 scale-[1.02]' : 'bg-white border-indigo-600 shadow-2xl shadow-indigo-100 scale-[1.02]') 
-      : 'bg-slate-50 border-slate-100 opacity-40 grayscale'
-  }`}>
-    {/* Step Number Background */}
-    <span className="absolute -top-4 -right-2 text-6xl font-black italic text-slate-100 select-none group-hover:text-indigo-50 transition-colors">{step}</span>
-    
-    <span className="text-3xl mb-4 relative z-10">{icon}</span>
-    <span className={`text-[9px] font-black mb-1 relative z-10 uppercase tracking-widest ${active ? (success ? 'text-green-500' : 'text-indigo-500') : 'text-slate-400'}`}>
-      Phase {step}
-    </span>
-    <p className={`font-black text-xs uppercase tracking-tight text-center leading-tight relative z-10 ${active ? 'text-slate-800' : 'text-slate-400'}`}>
-      {label}
-    </p>
-    
-    {active && (
-      <div className={`mt-4 h-1 w-12 rounded-full ${success ? 'bg-green-500' : 'bg-indigo-600'}`}></div>
-    )}
-  </div>
-);
 
 export default ProjectTimeline;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { ArrowLeft } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -61,31 +62,38 @@ const PaymentVerification = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-slate-900">
       <Header />
-      <main className="flex-1 p-8 md:p-12 max-w-7xl mx-auto w-full space-y-10">
-        
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl font-black uppercase italic tracking-tighter">
-            Finance Verification <span className="text-indigo-600">.</span>
+      
+      {/* HEADER WITH BACK BUTTON */}
+      <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
+        <button 
+          onClick={() => navigate('/dashboard')} 
+          className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
+        >
+          <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
+        </button>
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
+            Finance <span className="text-indigo-600">Verification</span>
           </h1>
-          <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] italic font-bold">
-            Client Payment Validation Queue
-          </p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Client Payment Validation Queue</p>
         </div>
+      </div>
 
+      <main className="flex-1 px-8 py-10 max-w-7xl mx-auto w-full">
         {loading ? (
           <div className="py-20 text-center font-black uppercase tracking-widest text-slate-300">Loading Queue...</div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {payments.length === 0 ? (
-              <div className="p-20 border-2 border-dashed border-slate-100 rounded-[2rem] text-center text-slate-400 font-bold uppercase italic">
+              <div className="p-20 border-2 border-dashed border-slate-100 rounded-4xl text-center text-slate-400 font-bold uppercase italic">
                 No pending payments found
               </div>
             ) : (
               payments.map((pay) => (
                 <div 
                   key={pay._id} 
-                  onClick={() => navigate(`/verify-payment/${pay._id}`)} // ← SEMUA BISA DI KLIK
-                  className={`group relative p-8 bg-slate-50 border-2 rounded-[2rem] flex flex-col md:flex-row items-start md:items-center justify-between transition-all overflow-hidden cursor-pointer ${
+                  onClick={() => navigate(`/verify-payment/${pay._id}`)}
+                  className={`group relative p-8 bg-slate-50 border-2 rounded-4xl flex flex-col md:flex-row items-start md:items-center justify-between transition-all overflow-hidden cursor-pointer ${
                     pay.status === 'Pending' 
                       ? 'hover:bg-white hover:border-slate-900 hover:shadow-2xl' 
                       : 'hover:bg-white hover:border-slate-300 hover:shadow-lg opacity-70'
@@ -119,11 +127,9 @@ const PaymentVerification = () => {
                       </p>
                     </div>
                     
-                    {/* Status Badge */}
                     {getStatusBadge(pay.status)}
                   </div>
 
-                  {/* Hover Decoration - tetap ada tapi beda warna untuk yang sudah diproses */}
                   <div className={`absolute right-0 top-0 h-full w-2 transition-transform ${
                     pay.status === 'Pending' ? 'bg-indigo-600 group-hover:translate-x-0 translate-x-full' : 'bg-slate-400 group-hover:translate-x-0 translate-x-full'
                   }`} />

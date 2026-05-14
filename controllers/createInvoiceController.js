@@ -1,13 +1,20 @@
-const ClientInvoice = require('../models/CreateInvoice');
+const CreateInvoice = require('../models/CreateInvoice');
 const ClientQuotation = require('../models/ClientQuotation');
 
-// 1. Fungsi Create Invoice
+// Helper: Get payment status for an invoice
+const getInvoicePaymentStatus = async (invoiceId) => {
+  const Payment = require('../models/Payment');
+  const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
+  return payment ? 'Paid' : 'Unpaid';
+};
+
+// 1. CREATE INVOICE
 exports.createNewInvoice = async (req, res) => {
   try {
     const { projectId, amount, isProgressInvoice } = req.body;
     
     if (isProgressInvoice) {
-      const existingInvoices = await ClientInvoice.find({ 
+      const existingInvoices = await CreateInvoice.find({ 
         projectId: projectId,
         amount: amount,
         status: 'Paid'
@@ -20,7 +27,7 @@ exports.createNewInvoice = async (req, res) => {
       }
     }
     
-    const newInvoice = new ClientInvoice({
+    const newInvoice = new CreateInvoice({
       ...req.body,
       status: 'Unpaid'
     });
@@ -33,7 +40,7 @@ exports.createNewInvoice = async (req, res) => {
   }
 };
 
-// 2. Fungsi Get Quotation untuk Invoice (Progress Invoice)
+// 2. GET QUOTATION FOR INVOICE (available quotes)
 exports.getQuotationForInvoice = async (req, res) => {
   try {
     const quotations = await ClientQuotation.find();
@@ -41,16 +48,12 @@ exports.getQuotationForInvoice = async (req, res) => {
     
     for (const quote of quotations) {
       const projectId = quote.projectId;
+      const invoices = await CreateInvoice.find({ projectId: projectId });
       
-      // Cari semua invoice untuk project ini
-      const invoices = await ClientInvoice.find({ projectId: projectId });
-      
-      // Hitung total yang sudah dibayar
       const totalPaid = invoices
         .filter(inv => inv.status === 'Paid')
         .reduce((sum, inv) => sum + (inv.amount || 0), 0);
       
-      // Hitung total yang pending
       const totalPending = invoices
         .filter(inv => inv.status === 'Unpaid')
         .reduce((sum, inv) => sum + (inv.amount || 0), 0);
@@ -58,22 +61,16 @@ exports.getQuotationForInvoice = async (req, res) => {
       const totalContract = Number(quote.clientPrice || 0);
       const remainingAmount = totalContract - totalPaid - totalPending;
       
-      // TAMPILKAN SEMUA PROJECT yang masih punya sisa tagihan (remainingAmount > 0)
       if (remainingAmount > 0) {
-        // Parse TOP
         const topText = (quote.topOption || 'COD').toUpperCase();
         const percentageMatch = topText.match(/(\d+)%/);
         let terminPercentage = percentageMatch ? parseInt(percentageMatch[1]) : 100;
         const terminAmount = (totalContract * terminPercentage) / 100;
         
-        // Ambil nama project dari invoice yang sudah ada (jika ada), atau dari quotation
-        let projectDisplayName = projectId; // default pake kode project
-        
-        // Coba ambil nama dari invoice yang sudah ada
+        let projectDisplayName = projectId;
         if (invoices.length > 0 && invoices[0].projectName) {
           projectDisplayName = invoices[0].projectName;
         } else {
-          // Coba ambil dari item pertama (jika ada)
           const firstItem = quote.items?.[0];
           if (firstItem && firstItem.itemName) {
             projectDisplayName = firstItem.itemName;
@@ -83,7 +80,7 @@ exports.getQuotationForInvoice = async (req, res) => {
         availableQuotes.push({
           _id: quote._id,
           projectId: projectId,
-          projectName: projectDisplayName, // ← sekarang pake nama bener
+          projectName: projectDisplayName,
           clientName: quote.clientName || 'N/A',
           clientPrice: totalContract,
           items: quote.items || [],
@@ -105,10 +102,10 @@ exports.getQuotationForInvoice = async (req, res) => {
   }
 };
 
-// 3. Get All Invoices
+// 3. GET ALL INVOICES
 exports.getAllInvoices = async (req, res) => {
   try {
-    const invoices = await ClientInvoice.find().sort({ createdAt: -1 });
+    const invoices = await CreateInvoice.find().sort({ createdAt: -1 });
     res.json(invoices);
   } catch (err) {
     console.error("Error getAllInvoices:", err);
@@ -116,10 +113,10 @@ exports.getAllInvoices = async (req, res) => {
   }
 };
 
-// 4. Get Single Invoice by ID
+// 4. GET INVOICE BY ID (SINGLE)
 exports.getInvoiceById = async (req, res) => {
   try {
-    const invoice = await ClientInvoice.findById(req.params.id);
+    const invoice = await CreateInvoice.findById(req.params.id);
     if (!invoice) {
       return res.status(404).json({ msg: "Invoice tidak ditemukan" });
     }
@@ -130,11 +127,11 @@ exports.getInvoiceById = async (req, res) => {
   }
 };
 
-// 5. Update Invoice Status
+// 5. UPDATE INVOICE STATUS
 exports.updateInvoiceStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const invoice = await ClientInvoice.findByIdAndUpdate(
+    const invoice = await CreateInvoice.findByIdAndUpdate(
       req.params.id,
       { status: status },
       { new: true }
@@ -151,11 +148,11 @@ exports.updateInvoiceStatus = async (req, res) => {
   }
 };
 
-// 6. Get Invoice by Project ID
+// 6. GET INVOICES BY PROJECT ID
 exports.getInvoicesByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
-    const invoices = await ClientInvoice.find({ projectId: projectId })
+    const invoices = await CreateInvoice.find({ projectId: projectId })
       .sort({ createdAt: -1 });
     
     const totalPaid = invoices

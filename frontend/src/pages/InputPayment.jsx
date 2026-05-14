@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { ArrowLeft } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -24,18 +25,17 @@ const InputPayment = () => {
   });
 
   useEffect(() => {
-const fetchInvoices = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    // Nembak ke rute payment yang baru kita buat (GET /api/payments/invoices)
-    const res = await axios.get('http://localhost:5000/api/payments/invoices', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    setInvoices(res.data);
-  } catch (err) {
-    console.error("Gagal load data invoice:", err);
-  }
-};
+    const fetchInvoices = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/payments/invoices', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setInvoices(res.data);
+      } catch (err) {
+        console.error("Gagal load data invoice:", err);
+      }
+    };
     fetchInvoices();
   }, []);
 
@@ -97,19 +97,25 @@ const fetchInvoices = async () => {
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-slate-900">
       <Header />
+      
+      <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
+        <button 
+          onClick={() => navigate('/dashboard')}
+          className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
+        >
+          <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
+        </button>
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
+            Payment <span className="text-indigo-600">Submission</span>
+          </h1>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Verification Routing System</p>
+        </div>
+      </div>
+
       <main className="flex-1 p-8 md:p-12">
         <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-12">
           
-          {/* Header Section */}
-          <div className="flex flex-col gap-2">
-            <h1 className="text-4xl font-black uppercase italic tracking-tighter text-slate-900">
-              Payment Submission <span className="text-indigo-600">.</span>
-            </h1>
-            <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] italic">
-              Verification Routing System
-            </p>
-          </div>
-
           {/* Form Inputs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-3">
@@ -137,7 +143,7 @@ const fetchInvoices = async () => {
             </div>
           </div>
 
-          {/* Detailed Info Card (Slate 900) */}
+          {/* Detailed Info Card */}
           <div className="p-12 bg-slate-900 rounded-[2.5rem] shadow-2xl relative overflow-hidden text-white border-b-8 border-indigo-600">
             <div className="relative z-10 flex flex-col gap-8">
               <div>

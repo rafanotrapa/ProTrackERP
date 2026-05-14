@@ -22,7 +22,7 @@ const SupplierQuotationSchema = new mongoose.Schema({
     itemName: { type: String, required: true },
     quantity: { type: Number, required: true, default: 1 },
     unit: { type: String, required: true },
-    cogs: { type: Number, required: true } // Harga modal dari supplier
+    cogs: { type: Number, required: true }
   }],
   
   // --- BIAYA LAIN-LAIN ---
@@ -42,22 +42,22 @@ const SupplierQuotationSchema = new mongoose.Schema({
   taxPercentage: { 
     type: Number, 
     default: 0 
-  }, // Inputan user (contoh: 11 untuk 11%)
+  },
   taxAmount: { 
     type: Number, 
     default: 0 
-  }, // Hasil hitungan backend/frontend (Subtotal * taxPercentage / 100)
+  },
   
   // --- KOMERSIAL & DOKUMEN ---
   topOption: { 
     type: String 
-  }, // Term of Payment
+  },
   remarks: { 
     type: String 
   },
   documentUrl: { 
     type: String 
-  }, // Path file PDF/Gambar penawaran asli
+  },
   
   // --- SISTEM APPROVAL (FOR MANAGEMENT) ---
   approvalStatus: { 
@@ -68,6 +68,13 @@ const SupplierQuotationSchema = new mongoose.Schema({
   approvalDate: { 
     type: Date 
   },
+  approvedBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User' 
+  },
+  rejectionReason: { 
+    type: String 
+  },
   
   // --- LOG WAKTU ---
   timestamp: { 
@@ -76,7 +83,7 @@ const SupplierQuotationSchema = new mongoose.Schema({
   }
 }, { 
   collection: 'supplier_quotation',
-  timestamps: true // Otomatis nambahin createdAt & updatedAt
+  timestamps: true
 });
 
 module.exports = mongoose.model('SupplierQuotation', SupplierQuotationSchema);

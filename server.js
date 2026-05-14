@@ -12,6 +12,7 @@ const supplierPaymentRoutes = require('./routes/supplierpaymentroutes');
 const createInvoiceRoutes = require('./routes/createInvoiceRoutes'); // Ini koleksi client_invoice lo
 const financialRoutes = require('./routes/financialRoutes');
 const paymentRoutes = require('./routes/paymentRoutes'); // Ini buat upload bukti bayar
+const projectBillingRoutes = require('./routes/projectBillingRoutes');
 
 // Connect to Database
 connectDB();
@@ -50,6 +51,7 @@ app.use('/api/payments', paymentRoutes);            // Path buat Bukti Bayar
 app.use('/api/financial', financialRoutes);
 app.use('/api/supplier_invoices', supplierInvoiceRoutes); 
 app.use('/api/supplier_payments', supplierPaymentRoutes);
+app.use('/api/project-billing', projectBillingRoutes);
 
 // --- BASE ENDPOINT ---
 app.get('/', (req, res) => {

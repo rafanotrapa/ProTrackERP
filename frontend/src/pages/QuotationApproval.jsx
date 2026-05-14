@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FileText, ChevronRight, Clock } from 'lucide-react';
+import { FileText, ChevronRight, Clock, ArrowLeft } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -13,7 +13,7 @@ const QuotationApproval = () => {
   const fetchQuotations = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/supplier_quotation', {
+      const res = await axios.get('http://localhost:5000/api/supplier_quotation/pending', { 
         headers: { Authorization: `Bearer ${token}` }
       });
       setQuotations(res.data);
@@ -29,17 +29,32 @@ const QuotationApproval = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
-      <header className="px-12 py-10">
-        <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
-          Verification <span className="text-indigo-600">Queue</span>
-        </h1>
-        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2 italic">Procurement • Cost Center Verification</p>
-      </header>
+      
+      {/* HEADER WITH BACK BUTTON */}
+      <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
+        <button 
+          onClick={() => navigate('/dashboard')} 
+          className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
+        >
+          <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
+        </button>
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
+            Verification <span className="text-indigo-600">Queue</span>
+          </h1>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Procurement • Cost Center Verification</p>
+        </div>
+      </div>
 
-      <main className="px-12 flex-1 pb-20">
+      <main className="px-12 flex-1 pb-20 pt-8">
         <div className="grid gap-4">
           {loading ? (
             <div className="py-20 text-center font-black text-slate-200 text-3xl animate-pulse italic">SYNCING DATABASE...</div>
+          ) : quotations.length === 0 ? (
+            <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-[3rem]">
+              <p className="text-slate-300 font-black italic uppercase text-lg tracking-tighter">No Pending Approvals</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-2">All supplier quotations have been processed</p>
+            </div>
           ) : (
             quotations.map((quo) => (
               <div 

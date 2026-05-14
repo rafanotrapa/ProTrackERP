@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Info, Truck, Receipt } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -39,7 +39,7 @@ const AddSupplierQuotation = () => {
     additionalFee: '', 
     additionalFeeRemarks: '', 
     isTaxIncluded: false, 
-    taxPercentage: '', // <-- Diubah jadi Persentase
+    taxPercentage: '',
     remarks: '',
     document: null 
   });
@@ -47,6 +47,28 @@ const AddSupplierQuotation = () => {
   const [quotationItems, setQuotationItems] = useState([
     { itemName: '', quantity: 1, unit: 'Pcs', cogs: '' }
   ]);
+
+  // 🆕 Hitung effective COGS per item setelah distribusi (preview)
+  const calculateEffectiveCogsPreview = () => {
+    const subTotal = calculateSubTotal();
+    const addFee = Number(formData.additionalFee) || 0;
+    const taxNominal = calculateTaxNominal();
+    const grandTotal = subTotal + addFee + taxNominal;
+    
+    if (subTotal === 0 || quotationItems.length === 0) return [];
+    
+    return quotationItems.map(item => {
+      const itemSubtotal = (item.cogs || 0) * (item.quantity || 1);
+      const proportion = itemSubtotal / subTotal;
+      const allocatedCost = grandTotal * proportion;
+      const newCogsPerUnit = allocatedCost / (item.quantity || 1);
+      return {
+        ...item,
+        effectiveCogs: Math.round(newCogsPerUnit),
+        originalCogs: item.cogs || 0
+      };
+    });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -137,7 +159,6 @@ const AddSupplierQuotation = () => {
     return quotationItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.cogs || 0)), 0);
   };
 
-  // Kalkulasi nominal pajak untuk preview di UI
   const calculateTaxNominal = () => {
     const subTotal = calculateSubTotal();
     const taxPerc = formData.isTaxIncluded ? (Number(formData.taxPercentage) || 0) : 0;
@@ -150,6 +171,8 @@ const AddSupplierQuotation = () => {
     const taxNominal = calculateTaxNominal();
     return subTotal + addFee + taxNominal;
   };
+
+  const effectiveItems = calculateEffectiveCogsPreview();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -175,12 +198,15 @@ const AddSupplierQuotation = () => {
       await axios.post('http://localhost:5000/api/supplier_quotation', data, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
-      Swal.fire({ icon: 'success', title: 'SAVED', text: 'Quotation recorded.', confirmButtonColor: '#0f172a' });
+      Swal.fire({ icon: 'success', title: 'SAVED', text: 'Quotation recorded. COGS sudah termasuk ongkir & pajak.', confirmButtonColor: '#0f172a' });
       navigate('/dashboard'); 
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || "Gagal simpan quotation!" });
     } finally { setLoading(false); }
   };
+
+  const hasAdditionalFee = Number(formData.additionalFee) > 0;
+  const hasTax = formData.isTaxIncluded && Number(formData.taxPercentage) > 0;
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col text-slate-900">
@@ -199,6 +225,14 @@ const AddSupplierQuotation = () => {
       <main className="flex-1 p-8 md:p-12 lg:p-16" ref={dropdownRef}>
         <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-12">
           
+          {/* 🆕 INFO BANNER */}
+          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+            <p className="text-[9px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-2">
+              <Info size={12}/>
+              COGS akan otomatis termasuk Additional Fee (Ongkir) dan Pajak setelah submit. Marketing akan melihat harga all-in.
+            </p>
+          </div>
+
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Source Identity</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -262,11 +296,11 @@ const AddSupplierQuotation = () => {
                     <input name="unit" value={item.unit} onChange={(e) => handleItemChange(index, e)} required placeholder="Pcs/Lot" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Harga/Unit (Rp)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">COGS/Unit (Rp)</label>
                     <input type="text" name="cogs" value={formatRupiah(item.cogs)} onChange={(e) => handleItemChange(index, e)} required placeholder="0" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-sm font-black text-indigo-600 outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Total (Rp)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Subtotal</label>
                     <input type="text" readOnly value={formatRupiah((item.quantity || 0) * (item.cogs || 0))} className="w-full p-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-black text-slate-500 outline-none cursor-not-allowed shadow-inner" />
                   </div>
                   <div className="md:col-span-1 flex justify-center pb-1">
@@ -284,11 +318,11 @@ const AddSupplierQuotation = () => {
               <Plus size={14} strokeWidth={3} /> Add Another Item
             </button>
 
-            {/* BLOCK SUMMARY: SUBTOTAL, PPN & ADDITIONAL FEE */}
+            {/* BLOCK SUMMARY */}
             <div className="flex flex-col items-end mt-8 space-y-5 bg-white p-6 md:p-8 border border-slate-200 rounded-3xl shadow-sm">
               
               <div className="flex justify-between items-center w-full md:w-2/3 lg:w-1/2">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Subtotal</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Subtotal (Item)</span>
                 <span className="text-sm font-bold text-slate-600">Rp {formatRupiah(calculateSubTotal())}</span>
               </div>
               
@@ -301,7 +335,9 @@ const AddSupplierQuotation = () => {
                     onChange={(e) => setFormData({ ...formData, isTaxIncluded: e.target.checked, taxPercentage: e.target.checked ? formData.taxPercentage : '' })} 
                     className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-600 cursor-pointer"
                   />
-                  <label htmlFor="ppnCheckbox" className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic cursor-pointer">Include PPN / Pajak</label>
+                  <label htmlFor="ppnCheckbox" className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic cursor-pointer flex items-center gap-1">
+                    <Receipt size={12}/> Include PPN / Pajak
+                  </label>
                 </div>
                 
                 <div className="flex items-center gap-3 w-full md:w-1/2 justify-end">
@@ -328,7 +364,9 @@ const AddSupplierQuotation = () => {
 
               <div className="flex flex-col md:flex-row justify-between items-end md:items-center w-full md:w-2/3 lg:w-1/2 gap-3">
                 <div className="flex flex-col w-full md:w-auto">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic mb-1">Additional Fee <span className="text-slate-300 font-medium normal-case">(Opsional)</span></span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic mb-1 flex items-center gap-1">
+                    <Truck size={12}/> Additional Fee <span className="text-slate-300 font-medium normal-case">(Opsional)</span>
+                  </span>
                   <input 
                     type="text" 
                     value={formData.additionalFeeRemarks}
@@ -353,6 +391,30 @@ const AddSupplierQuotation = () => {
                 <span className="text-xl font-black text-indigo-600 tracking-tight">Rp {formatRupiah(calculateGrandTotal())}</span>
               </div>
             </div>
+
+            {/* 🆕 EFFECTIVE COGS PREVIEW */}
+            {(hasAdditionalFee || hasTax) && calculateSubTotal() > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mt-4">
+                <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Info size={12}/>
+                  Preview COGS Setelah Distribusi (yang akan dilihat Marketing)
+                </p>
+                <div className="space-y-2">
+                  {effectiveItems.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-slate-700">{item.itemName || `Item ${idx + 1}`}</span>
+                      <div className="flex gap-4">
+                        <span className="text-slate-400 line-through">Rp {formatRupiah(item.originalCogs)}/unit</span>
+                        <span className="font-black text-emerald-600">→ Rp {formatRupiah(item.effectiveCogs)}/unit (all-in)</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[8px] text-slate-500 mt-3 italic">
+                  *Additional Fee (Ongkir) dan Pajak akan didistribusikan secara proporsional ke setiap item.
+                </p>
+              </div>
+            )}
             
           </div>
 
@@ -384,7 +446,7 @@ const AddSupplierQuotation = () => {
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Remarks / Notes</label>
-                <textarea name="remarks" placeholder="Catatan tambahan..." className="w-full p-4 bg-white border border-slate-300 rounded-2xl h-full min-h-[120px] outline-none font-medium text-slate-700 focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} value={formData.remarks} />
+                <textarea name="remarks" placeholder="Catatan tambahan..." className="w-full p-4 bg-white border border-slate-300 rounded-2xl h-full min-h-30 outline-none font-medium text-slate-700 focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} value={formData.remarks} />
               </div>
 
             </div>

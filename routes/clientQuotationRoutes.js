@@ -7,27 +7,31 @@ const {
   getQuotationById,
   getQuotationByProject,
   getPendingApprovals,
-  approveQuotation
+  approveQuotation,
+  updateQuotationItems,
+  getDraftByProject,
+  submitQuotation,
+  updateApprovedQuotation  // 🆕 untuk revisi harga setelah approved
 } = require('../controllers/clientQuotationController');
 
-// --- ROUTES YANG SUDAH ADA (DIUPDATE) ---
-// 1. POST: Create Quotation (Marketing)
-router.post('/', protect, createQuotation);
+// --- CREATE & UPDATE DRAFT ---
+router.post('/', protect, createQuotation);  // Create draft (status: Draft)
+router.patch('/:id/items', protect, updateQuotationItems);  // Update draft items
 
-// 2. GET: List All Quotations (Untuk Management)
+// --- GET ROUTES ---
 router.get('/', protect, getAllQuotations);
-
-// --- ROUTES BARU UNTUK APPROVAL SYSTEM ---
-// 3. GET: Pending Approvals (Khusus Management)
 router.get('/pending', protect, getPendingApprovals);
-
-// 4. GET: Get by Project ID (Untuk Auto-fill di Create Invoice) - HANYA YANG APPROVED
-router.get('/project/:projectId', protect, getQuotationByProject);
-
-// 5. GET: Get by ID UNIK (Untuk Detail Review)
+router.get('/project/:projectId', protect, getQuotationByProject);  // Hanya Approved
 router.get('/:id', protect, getQuotationById);
 
-// 6. PATCH: Approve/Reject Quotation (Management Action)
+// --- APPROVAL ---
 router.patch('/:id/approve', protect, approveQuotation);
+
+// --- DRAFT & SUBMIT ---
+router.get('/draft/:projectId', protect, getDraftByProject);  // Load draft by project
+router.put('/:id/submit', protect, submitQuotation);  // Draft -> Pending
+
+// --- REVISION AFTER APPROVED ---
+router.patch('/:id/revision', protect, updateApprovedQuotation);  // Edit setelah approved
 
 module.exports = router;

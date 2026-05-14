@@ -37,8 +37,22 @@ const AddProject = () => {
     clientAddress: '',
     amount: '',
     currency: 'IDR',
-    description: ''
+    description: '',
+    quotationMode: 'auto'  // 🆕 TAMBAHAN: auto = beli barang jadi, manual = rakit sendiri
   });
+
+  // Validasi form - cek semua field wajib terisi
+  const isFormValid = () => {
+    return (
+      formData.projectName.trim() !== '' &&
+      formData.institutionName.trim() !== '' &&
+      formData.clientName.trim() !== '' &&
+      formData.clientContact.trim() !== '' &&
+      formData.clientAddress.trim() !== '' &&
+      formData.amount !== '' && 
+      Number(formData.amount) > 0
+    );
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -52,6 +66,17 @@ const AddProject = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Khusus untuk clientContact (nomor telepon) - hanya angka dan + (plus)
+    if (name === 'clientContact') {
+      const phoneRegex = /^[0-9+\s]*$/;
+      if (phoneRegex.test(value)) {
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
+      return;
+    }
+    
+    // Khusus untuk amount (hanya angka)
     if (name === 'amount') {
       const rawValue = value.replace(/\./g, '');
       setFormData((prev) => ({ ...prev, [name]: rawValue }));
@@ -73,6 +98,17 @@ const AddProject = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!isFormValid()) {
+      Swal.fire({ 
+        icon: 'warning', 
+        title: 'INCOMPLETE DATA', 
+        text: 'Please fill in all required fields (Project Name, Institution, Client Name, Contact, Address, and Amount)!',
+        confirmButtonColor: '#0f172a' 
+      });
+      return;
+    }
+    
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -94,10 +130,9 @@ const AddProject = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       
-      {/* HEADER KOMPONEN (KONSISTEN DASHBOARD) */}
       <Header />
 
-      {/* SUB-HEADER (ADD PROJECT WITH BACK BUTTON ON LEFT) */}
+      {/* SUB-HEADER */}
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6">
         <button 
           onClick={() => navigate('/dashboard')}
@@ -127,7 +162,9 @@ const AddProject = () => {
                 <input type="text" readOnly value={formData.projectId} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-indigo-600 font-bold outline-none shadow-sm" />
               </div>
               <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Project Name</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  Project Name <span className="text-red-500">*</span>
+                </label>
                 <input name="projectName" type="text" required placeholder="Enter project name..." 
                   className="w-full p-3 bg-white border border-slate-300 rounded-xl focus:border-indigo-600 focus:ring-4 focus:ring-indigo-500/5 outline-none transition-all font-bold text-slate-800" 
                   value={formData.projectName} onChange={handleChange} />
@@ -141,20 +178,94 @@ const AddProject = () => {
               <span className="w-8 h-1 bg-indigo-600"></span> 02. Client
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {['institutionName', 'clientName', 'clientContact'].map((field, idx) => (
-                <div key={idx} className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.replace(/([A-Z])/g, ' $1')}</label>
-                  <input name={field} type="text" placeholder="..."
-                    className="w-full p-3 bg-white border border-slate-300 rounded-xl focus:border-indigo-600 outline-none font-bold text-slate-700 transition-all shadow-sm" 
-                    value={formData[field]} onChange={handleChange} />
-                </div>
-              ))}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  Institution Name <span className="text-red-500">*</span>
+                </label>
+                <input name="institutionName" type="text" required placeholder="BIN / TNI / Polri..."
+                  className="w-full p-3 bg-white border border-slate-300 rounded-xl focus:border-indigo-600 outline-none font-bold text-slate-700 transition-all shadow-sm" 
+                  value={formData.institutionName} onChange={handleChange} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  PIC Name <span className="text-red-500">*</span>
+                </label>
+                <input name="clientName" type="text" required placeholder="Contact person name..."
+                  className="w-full p-3 bg-white border border-slate-300 rounded-xl focus:border-indigo-600 outline-none font-bold text-slate-700 transition-all shadow-sm" 
+                  value={formData.clientName} onChange={handleChange} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  name="clientContact" 
+                  type="tel" 
+                  required 
+                  placeholder="+62 812 3456 7890"
+                  className="w-full p-3 bg-white border border-slate-300 rounded-xl focus:border-indigo-600 outline-none font-bold text-slate-700 transition-all shadow-sm" 
+                  value={formData.clientContact} 
+                  onChange={handleChange}
+                />
+                <p className="text-[8px] text-slate-400 mt-1">Only numbers, spaces, and + symbol allowed</p>
+              </div>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Address</label>
-              <input name="clientAddress" type="text" placeholder="Full logistics address..." 
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                Address <span className="text-red-500">*</span>
+              </label>
+              <input name="clientAddress" type="text" required placeholder="Full logistics address..." 
                 className="w-full p-3 bg-white border border-slate-300 rounded-xl outline-none font-bold text-slate-700 shadow-sm focus:border-indigo-600 transition-all" 
                 value={formData.clientAddress} onChange={handleChange} />
+            </div>
+          </div>
+
+          {/* 🆕 SECTION 2.5: QUOTATION MODE */}
+          <div className="space-y-6">
+            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+              <span className="w-8 h-1 bg-indigo-600"></span> 02.5. Quotation Mode
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  Project Type <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-4 mt-2">
+                  <label className="flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all has-checked:border-indigo-600 has-checked:bg-indigo-50">
+                    <input 
+                      type="radio" 
+                      name="quotationMode" 
+                      value="auto" 
+                      checked={formData.quotationMode === 'auto'}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-indigo-600"
+                    />
+                    <div>
+                      <p className="font-black text-sm uppercase">Auto Mode</p>
+                      <p className="text-[9px] text-slate-500">Beli barang jadi dari 1 supplier</p>
+                    </div>
+                  </label>
+                  <label className="flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all has-checked:border-indigo-600 has-checked:bg-indigo-50">
+                    <input 
+                      type="radio" 
+                      name="quotationMode" 
+                      value="manual" 
+                      checked={formData.quotationMode === 'manual'}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-indigo-600"
+                    />
+                    <div>
+                      <p className="font-black text-sm uppercase">Manual Mode</p>
+                      <p className="text-[9px] text-slate-500">Rakit sendiri / multi vendor</p>
+                    </div>
+                  </label>
+                </div>
+                <p className="text-[8px] text-slate-400 mt-2 ml-1">
+                  {formData.quotationMode === 'auto' 
+                    ? '✓ Client Quotation akan otomatis mengambil items dari Supplier Quotation yang sudah di-approve'
+                    : '✓ Client Quotation akan menggunakan form manual input items (tanpa tergantung supplier)'}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -204,7 +315,9 @@ const AddProject = () => {
               </div>
 
               <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  Contract Amount <span className="text-red-500">*</span>
+                </label>
                 <input 
                   name="amount" 
                   type="text" 
@@ -214,11 +327,12 @@ const AddProject = () => {
                   value={formatRupiah(formData.amount)} 
                   onChange={handleChange} 
                 />
+                <p className="text-[8px] text-slate-400 mt-1">Numeric characters only (minimum &gt; 0)</p>
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>
-              <textarea name="description" placeholder="Requirements..." 
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description / Requirements</label>
+              <textarea name="description" placeholder="Project scope, delivery notes, etc..." 
                 className="w-full p-4 bg-white border border-slate-300 rounded-2xl h-24 outline-none text-sm font-medium text-slate-700 focus:border-indigo-600 transition-all shadow-sm" 
                 value={formData.description} onChange={handleChange} />
             </div>
@@ -227,18 +341,26 @@ const AddProject = () => {
           <div className="flex justify-end pt-8 border-t border-slate-100">
             <button 
               type="submit" 
-              disabled={loading}
+              disabled={loading || !isFormValid()}
               className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
-                loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
+                loading || !isFormValid() ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
               }`}
             >
-              {loading ? 'Wait...' : 'Save Project'}
+              {loading ? 'SAVING...' : 'Save Project →'}
             </button>
           </div>
+
+          {/* INFO BANNER */}
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
+              <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
+              All fields marked with <span className="text-red-500">*</span> are required before submission.
+            </p>
+          </div>
+
         </form>
       </main>
 
-      {/* FOOTER KOMPONEN (LUXURY VERSION) */}
       <Footer />
     </div>
   );

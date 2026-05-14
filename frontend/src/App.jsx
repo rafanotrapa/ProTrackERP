@@ -18,6 +18,7 @@ import AddClientQuotation from './pages/AddClientQuotation';
 import AddClientInvoice from './pages/AddClientInvoice';
 import InputPayment from './pages/InputPayment';
 
+
 // --- PROCUREMENT & LOGISTICS MODULE ---
 import VendorMenu from './pages/VendorMenu'; 
 import AddVendor from './pages/AddVendor';
@@ -32,6 +33,9 @@ import SupplierPayment from './pages/SupplierPayment';
 import FinancialReport from './pages/financialReport';
 import PaymentVerification from './pages/PaymentVerification';
 import PaymentVerifyDetail from './pages/PaymentVerifyDetail';
+import ProjectBilling from './pages/ProjectBilling';
+import ProjectBillingDetail from './pages/ProjectBillingDetail';
+import FinanceInputPayment from './pages/FinanceInputPayment';
 
 // --- MONITORING & TIMELINE MODULE ---
 import ProjectList from './pages/ProjectList';
@@ -95,6 +99,8 @@ function App() {
 
 
 
+
+
           {/* 5. PROCUREMENT & LOGISTICS MODULE */}
           <Route 
             path="/vendor" 
@@ -131,14 +137,8 @@ function App() {
           />
 
           {/* 6. MONITORING & TIMELINE */}
-          <Route 
-            path="/timeline" 
-            element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Management', 'Owner']}><ProjectList /></ProtectedRoute>} 
-          />
-          <Route 
-            path="/timeline/:projectId" 
-            element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Management', 'Owner']}><ProjectTimeline /></ProtectedRoute>} 
-          />
+          <Route path="/timeline" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']}><ProjectList /></ProtectedRoute>} />
+<Route path="/timeline/:projectId" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']}><ProjectTimeline /></ProtectedRoute>} />
 
           {/* 7. OWNER & FINANCE INSIGHT */}
           <Route 
@@ -187,6 +187,13 @@ function App() {
             path="/client-quotation-approval/:id" 
             element={<ProtectedRoute allowRoles={['Management', 'Admin']}><ClientQuotationDetailReview /></ProtectedRoute>} 
           />
+
+<Route path="/project-billing" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><ProjectBilling /></ProtectedRoute>} />
+<Route path="/project-billing/:projectId" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><ProjectBillingDetail /></ProtectedRoute>} />
+
+<Route 
+  path="/finance-input-payment" 
+  element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><FinanceInputPayment /></ProtectedRoute>} />
 
           {/* 9. CATCH-ALL */}
           <Route path="*" element={<Login />} />

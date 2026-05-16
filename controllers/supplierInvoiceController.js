@@ -1,22 +1,14 @@
 const SupplierInvoice = require('../models/SupplierInvoice');
+const PurchaseOrder = require('../models/PurchaseOrder');
 
 // 1. Submit Tagihan (Procurement Side)
 exports.submitInvoice = async (req, res) => {
     try {
-        console.log("=========================================");
-        console.log("📥 API SUBMIT INVOICE TERPANGGIL!");
-        console.log("📦 1. Data dari Frontend (req.body):", req.body);
-        console.log("📁 2. File Upload (req.file):", req.file ? req.file.filename : "TIDAK ADA FILE");
-
-
         const userId = req.user ? (req.user._id || req.user.id) : null;
-        console.log("👤 3. User ID yang Submit:", userId);
 
-        // CEK DUPLIKAT NOMOR INVOICE MANUAL BIAR ERRORNYA JELAS
         const existingInvoice = await SupplierInvoice.findOne({ invoiceNumber: req.body.invoiceNumber });
         if (existingInvoice) {
-            console.log("⚠️ 4. ERROR: Nomor Invoice sudah pernah diinput!");
-            return res.status(400).json({ msg: `Nomor Tagihan ${req.body.invoiceNumber} sudah ada di sistem. Gunakan nomor lain!` });
+            return res.status(400).json({ msg: `Nomor Tagihan ${req.body.invoiceNumber} sudah ada di sistem!` });
         }
 
         const newInvoice = new SupplierInvoice({
@@ -25,20 +17,30 @@ exports.submitInvoice = async (req, res) => {
             poNumber: req.body.poNumber,
             projectId: req.body.projectId,
             vendorName: req.body.vendorName,
-            invoiceNumber: req.body.invoiceNumber,
+            
+            // --- INI DIA YANG KETINGGALAN! ---
+            invoiceNumber: req.body.invoiceNumber, 
+            
+            // --- DATA BARU DARI FRONTEND ---
+            currency: req.body.currency || 'IDR',
+            terminName: req.body.terminName || 'Full Payment',
+            
             amount: Number(req.body.amount) || 0,
             remarks: req.body.remarks,
             file: req.file ? req.file.filename : null,
             user: userId,
-            status: req.body.status || 'Pending Verification'
+            status: 'Pending Verification'
         });
-
-        console.log("🛡️ 5. Data FINAL yang akan disuntik ke Mongoose:", newInvoice);
 
         const submission = await newInvoice.save();
         
-        console.log("🎉 6. SUKSES SAVE INVOICE KE DATABASE!");
-        console.log("=========================================");
+        // --- UPDATE STATUS TERMIN DI TABEL PO JIKA INI PEMBAYARAN TERMIN ---
+        if (req.body.terminName && req.body.terminName !== 'Full Payment') {
+            await PurchaseOrder.findOneAndUpdate(
+                { _id: req.body.poId, "paymentTerms.description": req.body.terminName },
+                { $set: { "paymentTerms.$.status": "Invoiced" } } 
+            );
+        }
 
         res.status(201).json({ 
             success: true, 
@@ -46,8 +48,6 @@ exports.submitInvoice = async (req, res) => {
             data: submission 
         });
     } catch (error) {
-        console.error("❌ ERROR DARI MONGOOSE/SERVER:", error);
-        // Tembak pesan error asli Mongoose ke Frontend biar lu bisa baca
         res.status(500).json({ msg: `Gagal simpan invoice: ${error.message}` });
     }
 };
@@ -56,7 +56,7 @@ exports.submitInvoice = async (req, res) => {
 exports.getAllInvoices = async (req, res) => {
     try {
         const invoices = await SupplierInvoice.find()
-            .populate('user', 'name role') // Munculin siapa yang input
+            .populate('user', 'name role')
             .sort({ createdAt: -1 });
         res.status(200).json(invoices);
     } catch (error) {
@@ -74,9 +74,7 @@ exports.updateStatus = async (req, res) => {
             { new: true }
         );
         
-        if (!invoice) {
-            return res.status(404).json({ msg: 'Data tagihan tidak ditemukan' });
-        }
+        if (!invoice) return res.status(404).json({ msg: 'Data tagihan tidak ditemukan' });
 
         res.status(200).json({ 
             success: true, 

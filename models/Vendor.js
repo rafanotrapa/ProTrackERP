@@ -18,9 +18,8 @@ const VendorSchema = new mongoose.Schema({
     default: 'Pending' 
   },
   
-  // --- FITUR BARU: AUDIT TRAIL ---
-  approvalDate: { type: Date }, // Kapan diapprove/direject management
-  createdAt: { type: Date, default: Date.now } // Kapan diajukan procurement
+  approvalDate: { type: Date },
+  createdAt: { type: Date, default: Date.now } 
 }, { 
   collection: 'vendor' 
 });

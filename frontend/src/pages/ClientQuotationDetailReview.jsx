@@ -93,18 +93,30 @@ const ClientQuotationDetailReview = () => {
     </div>
   );
 
-  const totalCOGS = (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
+  // --- LOGIKA KALKULASI YANG BENAR & STERIL DARI BUG ---
   const totalSales = quo.clientPrice || 0;
   const shippingFee = quo.shippingFee || 0;
-  const taxPercentage = quo.taxPercentage || 0;
-  const taxAmount = quo.taxAmount || (totalSales * taxPercentage / 100);
-  const grandTotal = totalSales + shippingFee + taxAmount;
-  const margin = (totalSales + shippingFee + taxAmount) - totalCOGS;
-  const marginPercent = grandTotal > 0 ? ((margin / grandTotal) * 100).toFixed(1) : 0;
+  const taxAmount = quo.taxAmount || 0;
+  const taxPercentage = quo.taxPercentage || 0; // <-- INI YANG BIKIN WHITE SCREEN TADI!
+
+  // 1. REVENUE KLIEN MURNI (Harga Jual Barang + Ongkir, Tanpa Pajak)
+  const netRevenue = totalSales + shippingFee;
+
+  // 2. MODAL MURNI (Didapat dari Backend, sudah All-in barang & ongkir supplier tanpa PPN supplier)
+  const totalModal = quo.totalModal || (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
+
+  // 3. GROSS PROFIT & MARGIN ASLI
+  const grossProfit = netRevenue - totalModal;
+  const marginPercent = netRevenue > 0 ? ((grossProfit / netRevenue) * 100).toFixed(1) : 0;
+
+  // 4. GRAND TOTAL TAGIHAN KE KLIEN (Termasuk Pajak)
+  const grandTotal = netRevenue + taxAmount;
+
+  // Subtotal COGS Items murni (untuk tabel breakdown)
+  const totalItemsCOGS = (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
 
   const isPending = quo.approvalStatus === 'Pending';
   const isApproved = quo.approvalStatus === 'Approved';
-  const isRejected = quo.approvalStatus === 'Rejected';
   const isManualMode = quo.quotationMode === 'manual';
 
   return (
@@ -155,7 +167,6 @@ const ClientQuotationDetailReview = () => {
                 <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-full">
                   {quo.quotationId}
                 </span>
-                {/* 🆕 MODE BADGE */}
                 <span className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider ${
                   isManualMode ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                 }`}>
@@ -175,7 +186,7 @@ const ClientQuotationDetailReview = () => {
             </div>
             <div className="text-right">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Grand Total</p>
-              <p className="text-3xl font-black text-emerald-600 tracking-tighter">Rp {grandTotal.toLocaleString()}</p>
+              <p className="text-3xl font-black text-emerald-600 tracking-tighter">Rp {grandTotal.toLocaleString('id-ID')}</p>
             </div>
           </div>
 
@@ -234,8 +245,8 @@ const ClientQuotationDetailReview = () => {
                             <td className="py-4 px-3 font-bold text-slate-800 text-sm uppercase">{item.itemName}</td>
                             <td className="py-4 px-3 text-center font-bold text-slate-600">{item.quantity}</td>
                             <td className="py-4 px-3 text-center font-bold text-slate-600">{item.unit}</td>
-                            <td className="py-4 px-3 text-right font-bold text-slate-400">Rp {itemCOGS.toLocaleString()}</td>
-                            <td className="py-4 px-3 text-right font-black text-emerald-600">Rp {itemSales.toLocaleString()}</td>
+                            <td className="py-4 px-3 text-right font-bold text-slate-400">Rp {itemCOGS.toLocaleString('id-ID')}</td>
+                            <td className="py-4 px-3 text-right font-black text-emerald-600">Rp {itemSales.toLocaleString('id-ID')}</td>
                             <td className="py-4 px-3 text-right">
                               <span className={`text-[9px] font-black px-2 py-1 rounded-full ${itemMargin >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
                                 {itemMarginPercent}%
@@ -248,8 +259,8 @@ const ClientQuotationDetailReview = () => {
                     <tfoot className="bg-slate-100">
                       <tr className="border-t-2 border-slate-200">
                         <td colSpan="3" className="py-4 px-3 text-right font-black text-slate-800 uppercase tracking-wider">SUBTOTAL</td>
-                        <td className="py-4 px-3 text-right font-bold text-slate-600">Rp {totalCOGS.toLocaleString()}</td>
-                        <td className="py-4 px-3 text-right font-black text-emerald-600">Rp {totalSales.toLocaleString()}</td>
+                        <td className="py-4 px-3 text-right font-bold text-slate-600">Rp {totalItemsCOGS.toLocaleString('id-ID')}</td>
+                        <td className="py-4 px-3 text-right font-black text-emerald-600">Rp {totalSales.toLocaleString('id-ID')}</td>
                         <td className="py-4 px-3 text-right"></td>
                       </tr>
                       {(shippingFee > 0 || taxAmount > 0) && (
@@ -259,7 +270,7 @@ const ClientQuotationDetailReview = () => {
                               <td colSpan="4" className="py-3 px-3 text-right font-bold text-slate-600 flex items-center justify-end gap-2">
                                 <Truck size={12}/> Shipping Fee
                               </td>
-                              <td className="py-3 px-3 text-right font-bold text-slate-700">Rp {shippingFee.toLocaleString()}</td>
+                              <td className="py-3 px-3 text-right font-bold text-slate-700">Rp {shippingFee.toLocaleString('id-ID')}</td>
                               <td className="py-3 px-3"></td>
                             </tr>
                           )}
@@ -268,13 +279,13 @@ const ClientQuotationDetailReview = () => {
                               <td colSpan="4" className="py-3 px-3 text-right font-bold text-slate-600 flex items-center justify-end gap-2">
                                 <Receipt size={12}/> PPN {taxPercentage}%
                               </td>
-                              <td className="py-3 px-3 text-right font-bold text-slate-700">Rp {taxAmount.toLocaleString()}</td>
+                              <td className="py-3 px-3 text-right font-bold text-slate-700">Rp {taxAmount.toLocaleString('id-ID')}</td>
                               <td className="py-3 px-3"></td>
                             </tr>
                           )}
                           <tr className="bg-indigo-50">
                             <td colSpan="4" className="py-4 px-3 text-right font-black text-indigo-800 uppercase tracking-wider">GRAND TOTAL</td>
-                            <td className="py-4 px-3 text-right font-black text-indigo-700 text-lg">Rp {grandTotal.toLocaleString()}</td>
+                            <td className="py-4 px-3 text-right font-black text-indigo-700 text-lg">Rp {grandTotal.toLocaleString('id-ID')}</td>
                             <td className="py-4 px-3 text-right"></td>
                           </tr>
                         </>
@@ -297,7 +308,7 @@ const ClientQuotationDetailReview = () => {
 
             {/* RIGHT COLUMN - SUMMARY & ACTION */}
             <div className="space-y-6">
-              {/* FINANCIAL SUMMARY CARD - UPDATED WITH SHIPPING & TAX */}
+              {/* FINANCIAL SUMMARY CARD - UPDATED WITH EXACT MARGIN LOGIC */}
               <div className="bg-linear-to-r from-slate-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                   <DollarSign size={14}/> Financial Summary
@@ -305,35 +316,35 @@ const ClientQuotationDetailReview = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b border-white/10">
                     <span className="text-xs text-slate-300">Total COGS (Modal)</span>
-                    <span className="font-bold text-white">Rp {totalCOGS.toLocaleString()}</span>
+                    <span className="font-bold text-white">Rp {totalModal.toLocaleString('id-ID')}</span>
                   </div>
                   <div className="flex justify-between items-center pb-2 border-b border-white/10">
                     <span className="text-xs text-slate-300">Subtotal (Sales Price)</span>
-                    <span className="font-bold text-emerald-300">Rp {totalSales.toLocaleString()}</span>
+                    <span className="font-bold text-emerald-300">Rp {totalSales.toLocaleString('id-ID')}</span>
                   </div>
                   {shippingFee > 0 && (
                     <div className="flex justify-between items-center pb-2 border-b border-white/10">
                       <span className="text-xs text-slate-300 flex items-center gap-1"><Truck size={10}/> Shipping Fee</span>
-                      <span className="font-bold text-white">Rp {shippingFee.toLocaleString()}</span>
+                      <span className="font-bold text-white">Rp {shippingFee.toLocaleString('id-ID')}</span>
                     </div>
                   )}
                   {taxAmount > 0 && (
                     <div className="flex justify-between items-center pb-2 border-b border-white/10">
                       <span className="text-xs text-slate-300 flex items-center gap-1"><Receipt size={10}/> PPN {taxPercentage}%</span>
-                      <span className="font-bold text-white">Rp {taxAmount.toLocaleString()}</span>
+                      <span className="font-bold text-white">Rp {taxAmount.toLocaleString('id-ID')}</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center pt-2 border-t border-white/20">
                     <span className="text-xs font-black text-slate-300 uppercase tracking-wider">Grand Total</span>
-                    <span className="text-xl font-black text-emerald-400">Rp {grandTotal.toLocaleString()}</span>
+                    <span className="text-xl font-black text-emerald-400">Rp {grandTotal.toLocaleString('id-ID')}</span>
                   </div>
                   <div className="flex justify-between items-center pt-2">
                     <span className="text-xs font-black text-slate-300 uppercase tracking-wider">Gross Margin</span>
                     <div className="text-right">
-                      <span className={`text-xl font-black ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        Rp {margin.toLocaleString()}
+                      <span className={`text-xl font-black ${grossProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        Rp {grossProfit.toLocaleString('id-ID')}
                       </span>
-                      <span className={`text-[10px] font-black ml-2 px-2 py-0.5 rounded-full ${margin >= 0 ? 'bg-emerald-500/30 text-emerald-300' : 'bg-red-500/30 text-red-300'}`}>
+                      <span className={`text-[10px] font-black ml-2 px-2 py-0.5 rounded-full ${grossProfit >= 0 ? 'bg-emerald-500/30 text-emerald-300' : 'bg-red-500/30 text-red-300'}`}>
                         {marginPercent}%
                       </span>
                     </div>
@@ -383,10 +394,10 @@ const ClientQuotationDetailReview = () => {
                     <div className="flex justify-between">
                       <span className="text-slate-500">Approval Date</span>
                       <span className="font-bold text-slate-700">
-                        {quo.approvalDate ? new Date(quo.approvalDate).toLocaleString() : '-'}
+                        {quo.approvalDate ? new Date(quo.approvalDate).toLocaleString('id-ID') : '-'}
                       </span>
                     </div>
-                    {isRejected && quo.rejectionReason && (
+                    {quo.approvalStatus === 'Rejected' && quo.rejectionReason && (
                       <div className="mt-3 pt-3 border-t border-slate-200">
                         <span className="text-slate-500 block mb-1 text-[9px] font-black uppercase tracking-widest">Rejection Reason</span>
                         <p className="text-slate-700 italic text-xs bg-white p-2 rounded-lg">{quo.rejectionReason}</p>

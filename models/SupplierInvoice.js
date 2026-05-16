@@ -4,12 +4,14 @@ const SupplierInvoiceSchema = new mongoose.Schema({
   submissionId: { type: String }, 
   invoiceNumber: { type: String, required: true, unique: true },
   
-  // UBAH DARI QUOTATION JADI PO
   poId: { type: mongoose.Schema.Types.ObjectId, ref: 'PurchaseOrder' },
   poNumber: { type: String },
   projectId: { type: String },
-  
   vendorName: { type: String, required: true },
+  
+  // --- FITUR BARU: CURRENCY & TERMIN ---
+  currency: { type: String, default: 'IDR' },
+  terminName: { type: String, default: 'Full Payment' }, // ex: "DP 30%" atau "Pelunasan"
   amount: { type: Number, required: true }, 
   
   file: { type: String }, 

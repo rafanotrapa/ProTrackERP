@@ -26,7 +26,7 @@ const AddSupplierQuotation = () => {
   };
 
   const formatRupiah = (value) => {
-    if (!value) return '';
+    if (!value && value !== 0) return '';
     let numberString = value.toString().replace(/[^0-9]/g, '');
     return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
@@ -35,7 +35,9 @@ const AddSupplierQuotation = () => {
     quotationId: generateSQID(),
     projectId: '',
     vendorId: '', 
+    currency: 'IDR',
     topOption: 'Termin 30 Days',
+    customTop: '',
     additionalFee: '', 
     additionalFeeRemarks: '', 
     isTaxIncluded: false, 
@@ -48,7 +50,6 @@ const AddSupplierQuotation = () => {
     { itemName: '', quantity: 1, unit: 'Pcs', cogs: '' }
   ]);
 
-  // 🆕 Hitung effective COGS per item setelah distribusi (preview)
   const calculateEffectiveCogsPreview = () => {
     const subTotal = calculateSubTotal();
     const addFee = Number(formData.additionalFee) || 0;
@@ -176,14 +177,23 @@ const AddSupplierQuotation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!formData.projectId || !formData.vendorId) {
        return Swal.fire('Warning', 'Project dan Vendor harus lengkap!', 'warning');
+    }
+
+    if (formData.isTaxIncluded && (!formData.taxPercentage || Number(formData.taxPercentage) <= 0)) {
+       return Swal.fire('Data Incomplete', 'Persentase Pajak wajib diisi jika opsi PPN diaktifkan!', 'warning');
+    }
+
+    if (formData.topOption === 'Termin' && !formData.customTop) {
+       return Swal.fire('Data Incomplete', 'Harap isi detail termin pembayaran!', 'warning');
     }
 
     setLoading(true);
     const data = new FormData();
     Object.keys(formData).forEach(key => {
-        if(key !== 'additionalFee' && key !== 'taxPercentage' && key !== 'isTaxIncluded') {
+        if(key !== 'additionalFee' && key !== 'taxPercentage' && key !== 'isTaxIncluded' && key !== 'document') {
             data.append(key, formData[key]);
         }
     });
@@ -192,13 +202,16 @@ const AddSupplierQuotation = () => {
     data.append('taxPercentage', formData.taxPercentage || 0);
     data.append('isTaxIncluded', formData.isTaxIncluded);
     data.append('items', JSON.stringify(quotationItems));
+    if (formData.document) {
+        data.append('document', formData.document);
+    }
 
     try {
       const token = localStorage.getItem('token');
       await axios.post('http://localhost:5000/api/supplier_quotation', data, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
-      Swal.fire({ icon: 'success', title: 'SAVED', text: 'Quotation recorded. COGS sudah termasuk ongkir & pajak.', confirmButtonColor: '#0f172a' });
+      Swal.fire({ icon: 'success', title: 'SAVED', text: 'Quotation recorded. Database updated.', confirmButtonColor: '#0f172a' });
       navigate('/dashboard'); 
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || "Gagal simpan quotation!" });
@@ -225,17 +238,16 @@ const AddSupplierQuotation = () => {
       <main className="flex-1 p-8 md:p-12 lg:p-16" ref={dropdownRef}>
         <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-12">
           
-          {/* 🆕 INFO BANNER */}
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
             <p className="text-[9px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-2">
               <Info size={12}/>
-              COGS akan otomatis termasuk Additional Fee (Ongkir) dan Pajak setelah submit. Marketing akan melihat harga all-in.
+              COGS akan otomatis terdistribusi dengan Additional Fee dan Pajak di sistem Marketing.
             </p>
           </div>
 
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Source Identity</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">SQ ID</label>
@@ -258,6 +270,21 @@ const AddSupplierQuotation = () => {
                     </ul>
                   </div>
                 )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Currency</label>
+                <select 
+                  name="currency" 
+                  className="w-full p-3.5 border border-indigo-200 rounded-xl bg-indigo-50 font-black text-indigo-600 outline-none cursor-pointer" 
+                  value={formData.currency} 
+                  onChange={handleChange}
+                >
+                  <option value="IDR">IDR (Rp)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="SGD">SGD (S$)</option>
+                  <option value="EUR">EUR (€)</option>
+                </select>
               </div>
 
               <div className="space-y-1">
@@ -296,11 +323,11 @@ const AddSupplierQuotation = () => {
                     <input name="unit" value={item.unit} onChange={(e) => handleItemChange(index, e)} required placeholder="Pcs/Lot" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">COGS/Unit (Rp)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Harga/Unit ({formData.currency})</label>
                     <input type="text" name="cogs" value={formatRupiah(item.cogs)} onChange={(e) => handleItemChange(index, e)} required placeholder="0" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-sm font-black text-indigo-600 outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Subtotal</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Total ({formData.currency})</label>
                     <input type="text" readOnly value={formatRupiah((item.quantity || 0) * (item.cogs || 0))} className="w-full p-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-black text-slate-500 outline-none cursor-not-allowed shadow-inner" />
                   </div>
                   <div className="md:col-span-1 flex justify-center pb-1">
@@ -318,12 +345,10 @@ const AddSupplierQuotation = () => {
               <Plus size={14} strokeWidth={3} /> Add Another Item
             </button>
 
-            {/* BLOCK SUMMARY */}
             <div className="flex flex-col items-end mt-8 space-y-5 bg-white p-6 md:p-8 border border-slate-200 rounded-3xl shadow-sm">
-              
               <div className="flex justify-between items-center w-full md:w-2/3 lg:w-1/2">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Subtotal (Item)</span>
-                <span className="text-sm font-bold text-slate-600">Rp {formatRupiah(calculateSubTotal())}</span>
+                <span className="text-sm font-bold text-slate-600">{formData.currency} {formatRupiah(calculateSubTotal())}</span>
               </div>
               
               <div className="flex flex-col md:flex-row justify-between items-end md:items-center w-full md:w-2/3 lg:w-1/2 gap-3">
@@ -343,7 +368,7 @@ const AddSupplierQuotation = () => {
                 <div className="flex items-center gap-3 w-full md:w-1/2 justify-end">
                   {formData.isTaxIncluded && (
                     <span className="text-[10px] font-black text-slate-400 italic">
-                      (+ Rp {formatRupiah(calculateTaxNominal())})
+                      (+ {formData.currency} {formatRupiah(calculateTaxNominal())})
                     </span>
                   )}
                   <div className="relative w-24">
@@ -388,11 +413,10 @@ const AddSupplierQuotation = () => {
 
               <div className="flex justify-between items-center w-full md:w-2/3 lg:w-1/2">
                 <span className="text-xs font-black text-slate-800 uppercase tracking-widest italic">Grand Total</span>
-                <span className="text-xl font-black text-indigo-600 tracking-tight">Rp {formatRupiah(calculateGrandTotal())}</span>
+                <span className="text-xl font-black text-indigo-600 tracking-tight">{formData.currency} {formatRupiah(calculateGrandTotal())}</span>
               </div>
             </div>
 
-            {/* 🆕 EFFECTIVE COGS PREVIEW */}
             {(hasAdditionalFee || hasTax) && calculateSubTotal() > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mt-4">
                 <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest mb-3 flex items-center gap-2">
@@ -404,35 +428,43 @@ const AddSupplierQuotation = () => {
                     <div key={idx} className="flex justify-between items-center text-xs">
                       <span className="font-bold text-slate-700">{item.itemName || `Item ${idx + 1}`}</span>
                       <div className="flex gap-4">
-                        <span className="text-slate-400 line-through">Rp {formatRupiah(item.originalCogs)}/unit</span>
-                        <span className="font-black text-emerald-600">→ Rp {formatRupiah(item.effectiveCogs)}/unit (all-in)</span>
+                        <span className="text-slate-400 line-through">{formData.currency} {formatRupiah(item.originalCogs)}/unit</span>
+                        <span className="font-black text-emerald-600">→ {formData.currency} {formatRupiah(item.effectiveCogs)}/unit (all-in)</span>
                       </div>
                     </div>
                   ))}
                 </div>
                 <p className="text-[8px] text-slate-500 mt-3 italic">
-                  *Additional Fee (Ongkir) dan Pajak akan didistribusikan secara proporsional ke setiap item.
+                  *Additional Fee dan Pajak akan didistribusikan secara proporsional ke setiap item.
                 </p>
               </div>
             )}
             
           </div>
 
-          {/* SECTION 3: DOCUMENTATION */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 03. Documentation & Terms</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Term of Payment (TOP)</label>
-                  <select name="topOption" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 cursor-pointer shadow-sm" onChange={handleChange} value={formData.topOption}>
-                    <option value="Termin 30 Days">30 Days</option>
-                    <option value="Termin 60 Days">60 Days</option>
-                    <option value="DP 30%">DP 30%</option>
-                    <option value="DP 50%">DP 50%</option>
-                    <option value="Cash Before Delivery">CBD (Cash Before Delivery)</option>
-                  </select>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Term of Payment (TOP) <span className="text-red-500">*</span></label>
+                  <div className="flex gap-2">
+                    <select name="topOption" className="flex-1 p-3 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-amber-500 shadow-sm cursor-pointer" onChange={handleChange} value={formData.topOption}>
+                      <option value="COD">Cash on Delivery (COD)</option>
+                      <option value="CBD">Cash Before Delivery (CBD)</option>
+                      <option value="CIA">Cash in Advance (CIA)</option>
+                      <option value="Net 30">Net 30 Days</option>
+                      <option value="Net 60">Net 60 Days</option>
+                      <option value="Net 90">Net 90 Days</option>
+                      <option value="Net EOM">Net End of Month (EOM)</option>
+                      <option value="2/10 Net 30">2/10 Net 30 (2% Disc/10 Days)</option>
+                      <option value="Termin">Custom Cicilan / Termin (Manual)</option>
+                    </select>
+                    {formData.topOption === 'Termin' && (
+                      <input type="text" placeholder="Ex: DP 30%" name="customTop" className="w-1/3 p-3 border-2 border-amber-400 rounded-xl outline-none font-black text-amber-600" onChange={handleChange} value={formData.customTop} required />
+                    )}
+                  </div>
                 </div>
                 
                 <div className="space-y-1">
@@ -446,7 +478,7 @@ const AddSupplierQuotation = () => {
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Remarks / Notes</label>
-                <textarea name="remarks" placeholder="Catatan tambahan..." className="w-full p-4 bg-white border border-slate-300 rounded-2xl h-full min-h-30 outline-none font-medium text-slate-700 focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} value={formData.remarks} />
+                <textarea name="remarks" placeholder="Catatan tambahan untuk management..." className="w-full p-4 bg-white border border-slate-300 rounded-2xl h-full min-h-[120px] outline-none font-medium text-slate-700 focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} value={formData.remarks} />
               </div>
 
             </div>

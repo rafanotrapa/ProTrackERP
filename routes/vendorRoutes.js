@@ -35,7 +35,7 @@ router.patch('/:id/approve', async (req, res) => {
       req.params.id,
       { 
         approvalStatus: status,
-        approvalDate: new Date() // <-- OTOMATIS CATAT WAKTU APPROVAL
+        approvalDate: new Date()
       },
       { new: true }
     );

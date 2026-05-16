@@ -49,7 +49,14 @@ const SupplierQuotationSchema = new mongoose.Schema({
   },
   
   // --- KOMERSIAL & DOKUMEN ---
+  currency: { 
+    type: String, 
+    default: 'IDR' 
+  },
   topOption: { 
+    type: String 
+  },
+  customTop: { 
     type: String 
   },
   remarks: { 
@@ -62,7 +69,7 @@ const SupplierQuotationSchema = new mongoose.Schema({
   // --- SISTEM APPROVAL (FOR MANAGEMENT) ---
   approvalStatus: { 
     type: String, 
-    enum: ['Pending', 'Approved', 'Rejected'], 
+    enum: ['Pending', 'Approved', 'Rejected', 'Draft'], 
     default: 'Pending' 
   },
   approvalDate: { 

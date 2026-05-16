@@ -1,38 +1,11 @@
 const SupplierQuotation = require('../models/SupplierQuotation');
 
-// Helper function to calculate totals
-const calculateTotals = (items, additionalFee, isTaxIncluded, taxPercentage) => {
-  const subTotal = items.reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
-  const taxAmount = isTaxIncluded ? (subTotal * (taxPercentage / 100)) : 0;
-  const grandTotal = subTotal + (additionalFee || 0) + taxAmount;
-  return { subTotal, taxAmount, grandTotal };
-};
-
-// Helper function to distribute ongkir & tax to each item (COGS all-in)
-const distributeCostToItems = (items, subTotal, additionalFee, taxAmount) => {
-  const grandTotal = subTotal + additionalFee + taxAmount;
-  
-  if (subTotal === 0) return items;
-  
-  return items.map(item => {
-    const itemSubtotal = item.cogs * item.quantity;
-    const proportion = itemSubtotal / subTotal;
-    const allocatedCost = grandTotal * proportion;
-    const newCogsPerUnit = allocatedCost / item.quantity;
-    
-    return {
-      ...item,
-      cogs: Math.round(newCogsPerUnit)
-    };
-  });
-};
-
 // 1. Fungsi Create
 exports.createQuotation = async (req, res) => {
   try {
     const { 
-      quotationId, projectId, vendorId, topOption, remarks, 
-      additionalFee, additionalFeeRemarks, isTaxIncluded, taxPercentage 
+      quotationId, projectId, vendorId, topOption, customTop, remarks, 
+      additionalFee, additionalFeeRemarks, isTaxIncluded, taxPercentage, currency 
     } = req.body;
     
     let parsedItems = [];
@@ -50,7 +23,7 @@ exports.createQuotation = async (req, res) => {
           itemName: String(item.itemName),
           quantity: qty, 
           unit: String(item.unit),
-          cogs: cogs 
+          cogs: cogs // <-- SIMPAN HARGA ASLI, JANGAN DIUBAH!
         };
       });
     }
@@ -59,15 +32,9 @@ exports.createQuotation = async (req, res) => {
     
     const taxBool = isTaxIncluded === 'true' || isTaxIncluded === true;
     const cleanTaxPerc = taxBool ? (Number(taxPercentage) || 0) : 0;
+    
+    // Pajak dihitung dari Subtotal murni
     const calculatedTaxAmount = taxBool ? (subTotal * (cleanTaxPerc / 100)) : 0;
-
-    // Distribusi COGS all-in
-    const finalItems = distributeCostToItems(
-      parsedItems, 
-      subTotal, 
-      cleanAdditionalFee, 
-      calculatedTaxAmount
-    );
 
     const documentUrl = req.file ? `/uploads/documents/${req.file.filename}` : '';
 
@@ -75,13 +42,15 @@ exports.createQuotation = async (req, res) => {
       quotationId,
       projectId,
       vendorId,
-      items: finalItems,
+      items: parsedItems, // <-- Langsung pakai item murni
       additionalFee: cleanAdditionalFee,
       additionalFeeRemarks,
       isTaxIncluded: taxBool,
       taxPercentage: cleanTaxPerc,
       taxAmount: calculatedTaxAmount,
+      currency: currency || 'IDR',
       topOption,
+      customTop: topOption === 'Termin' ? customTop : '',
       remarks,
       documentUrl,
       approvalStatus: 'Pending'

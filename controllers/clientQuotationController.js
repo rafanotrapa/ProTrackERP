@@ -1,12 +1,44 @@
 const ClientQuotation = require('../models/ClientQuotation');
+const SupplierQuotation = require('../models/SupplierQuotation'); 
 
-// Helper function to calculate total clientPrice from items salesPrice
+// Helper function to calculate total clientPrice (Sales Price / Harga Jual)
 const calculateTotalClientPrice = (items) => {
   return items.reduce((total, item) => {
     const qty = item.quantity || 0;
     const salesPrice = item.salesPrice || 0;
     return total + (qty * salesPrice);
   }, 0);
+};
+
+// HELPER: Menyuntikkan Total Modal Asli dari Supplier (MURNI TANPA PAJAK SUPPLIER)
+const injectSupplierModal = async (quo) => {
+  const quoObj = typeof quo.toObject === 'function' ? quo.toObject() : quo;
+  let sqSubtotal = 0;
+  let sqFee = 0;
+  let sqTax = 0;
+  let sqModalMurni = 0;
+
+  if (quoObj.quotationMode === 'auto') {
+    const sq = await SupplierQuotation.findOne({ projectId: quoObj.projectId, approvalStatus: 'Approved' });
+    if (sq) {
+      sqSubtotal = sq.items.reduce((s, i) => s + ((i.cogs || 0) * (i.quantity || 1)), 0);
+      sqFee = sq.additionalFee || 0;
+      sqTax = sq.taxAmount || 0;
+      // Modal Asli = Hanya Subtotal Barang + Ongkir Supplier (Pajak diabaikan sebagai pass-through/uang negara)
+      sqModalMurni = sqSubtotal + sqFee; 
+    }
+  } else {
+    // Jika manual, modal dihitung dari input COGS mentah marketing
+    sqSubtotal = (quoObj.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 1)), 0);
+    sqModalMurni = sqSubtotal;
+  }
+
+  quoObj.supplierSubtotal = sqSubtotal;
+  quoObj.supplierFee = sqFee;
+  quoObj.supplierTax = sqTax;
+  quoObj.totalModal = sqModalMurni; // Patokan Modal Murni untuk Margin
+
+  return quoObj;
 };
 
 // 1. CREATE QUOTATION (untuk draft pertama kali)
@@ -22,13 +54,17 @@ exports.createQuotation = async (req, res) => {
       topOption,
       remarks,
       customTop,
-      quotationMode,      // 🆕 auto/manual
-      shippingFee,        // 🆕 ongkir ke client
-      taxPercentage,      // 🆕 persen pajak
-      taxAmount           // 🆕 nominal pajak (optional, bisa dihitung)
+      quotationMode,      
+      shippingFee,        
+      taxPercentage       
     } = req.body;
 
     const calculatedClientPrice = calculateTotalClientPrice(items || []);
+    const cleanTaxPerc = Number(taxPercentage) || 0;
+    
+    // Dasar pengenaan pajak (DPP) HANYA Harga Jual Barang (sesuai invoice PDF)
+    const calculatedTaxAmount = calculatedClientPrice * (cleanTaxPerc / 100);
+
     const finalTop = topOption === 'Termin' ? customTop : topOption;
 
     const newQuotation = new ClientQuotation({
@@ -37,15 +73,15 @@ exports.createQuotation = async (req, res) => {
       projectName,
       clientName,
       items: items || [],
-      currency,
+      currency: currency || 'IDR',
       clientPrice: calculatedClientPrice,
       topOption: finalTop,
       remarks,
       approvalStatus: req.body.approvalStatus || 'Draft',
-      quotationMode: quotationMode || 'auto',        // 🆕
-      shippingFee: shippingFee || 0,                 // 🆕
-      taxPercentage: taxPercentage || 0,             // 🆕
-      taxAmount: taxAmount || 0                      // 🆕
+      quotationMode: quotationMode || 'auto',        
+      shippingFee: Number(shippingFee) || 0,                 
+      taxPercentage: cleanTaxPerc,             
+      taxAmount: calculatedTaxAmount                      
     });
 
     const savedQuotation = await newQuotation.save();
@@ -63,9 +99,9 @@ exports.createQuotation = async (req, res) => {
 // 2. GET ALL QUOTATIONS
 exports.getAllQuotations = async (req, res) => {
   try {
-    const quotations = await ClientQuotation.find()
-      .sort({ createdAt: -1 });
-    res.json(quotations);
+    const quotations = await ClientQuotation.find().sort({ createdAt: -1 });
+    const enrichedQuotes = await Promise.all(quotations.map(q => injectSupplierModal(q)));
+    res.json(enrichedQuotes);
   } catch (err) {
     console.error("Error get all quotations:", err);
     res.status(500).json({ msg: err.message });
@@ -79,7 +115,8 @@ exports.getQuotationById = async (req, res) => {
     if (!quotation) {
       return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
     }
-    res.json(quotation);
+    const enrichedQuote = await injectSupplierModal(quotation);
+    res.json(enrichedQuote);
   } catch (err) {
     console.error("Error get quotation by id:", err);
     if (err.kind === 'ObjectId') {
@@ -105,7 +142,8 @@ exports.getQuotationByProject = async (req, res) => {
       });
     }
 
-    res.json(quotation);
+    const enrichedQuote = await injectSupplierModal(quotation);
+    res.json(enrichedQuote);
   } catch (err) {
     console.error("Error get quotation by project:", err);
     res.status(500).json({ msg: err.message });
@@ -118,7 +156,9 @@ exports.getPendingApprovals = async (req, res) => {
     const pendingQuotes = await ClientQuotation.find({ 
       approvalStatus: 'Pending' 
     }).sort({ createdAt: -1 });
-    res.json(pendingQuotes);
+    
+    const enrichedQuotes = await Promise.all(pendingQuotes.map(q => injectSupplierModal(q)));
+    res.json(enrichedQuotes);
   } catch (err) {
     console.error("Error get pending approvals:", err);
     res.status(500).json({ msg: err.message });
@@ -173,19 +213,21 @@ exports.updateQuotationItems = async (req, res) => {
       remarks, 
       clientName, 
       projectName,
-      quotationMode,    // 🆕
-      shippingFee,      // 🆕
-      taxPercentage,    // 🆕
-      taxAmount         // 🆕
+      quotationMode,    
+      shippingFee,      
+      taxPercentage     
     } = req.body;
-
-    const calculatedClientPrice = calculateTotalClientPrice(items || []);
-    const finalTop = topOption === 'Termin' ? customTop : topOption;
 
     const existingQuotation = await ClientQuotation.findById(id);
     if (!existingQuotation) {
       return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
     }
+
+    const calculatedClientPrice = calculateTotalClientPrice(items || []);
+    const finalTop = topOption === 'Termin' ? customTop : topOption;
+    
+    const finalTaxPerc = taxPercentage !== undefined ? Number(taxPercentage) : existingQuotation.taxPercentage;
+    const calculatedTaxAmount = calculatedClientPrice * (finalTaxPerc / 100);
     
     const updatedQuotation = await ClientQuotation.findByIdAndUpdate(
       id,
@@ -193,14 +235,14 @@ exports.updateQuotationItems = async (req, res) => {
         items: items,
         clientPrice: calculatedClientPrice,
         topOption: finalTop,
-        currency: currency,
+        currency: currency || existingQuotation.currency,
         remarks: remarks,
         clientName: clientName,
         projectName: projectName,
-        quotationMode: quotationMode || existingQuotation.quotationMode,  // 🆕
-        shippingFee: shippingFee !== undefined ? shippingFee : existingQuotation.shippingFee,  // 🆕
-        taxPercentage: taxPercentage !== undefined ? taxPercentage : existingQuotation.taxPercentage,  // 🆕
-        taxAmount: taxAmount !== undefined ? taxAmount : existingQuotation.taxAmount  // 🆕
+        quotationMode: quotationMode || existingQuotation.quotationMode,  
+        shippingFee: shippingFee !== undefined ? Number(shippingFee) : existingQuotation.shippingFee,  
+        taxPercentage: finalTaxPerc,  
+        taxAmount: calculatedTaxAmount  
       },
       { new: true }
     );
@@ -230,7 +272,8 @@ exports.getDraftByProject = async (req, res) => {
       return res.status(404).json({ msg: 'No draft found for this project' });
     }
 
-    res.json(draft);
+    const enrichedDraft = await injectSupplierModal(draft);
+    res.json(enrichedDraft);
   } catch (err) {
     console.error("Error get draft by project:", err);
     res.status(500).json({ msg: err.message });
@@ -251,14 +294,16 @@ exports.submitQuotation = async (req, res) => {
       topOption,
       remarks,
       customTop,
-      quotationMode,    // 🆕
-      shippingFee,      // 🆕
-      taxPercentage,    // 🆕
-      taxAmount         // 🆕
+      quotationMode,    
+      shippingFee,      
+      taxPercentage     
     } = req.body;
 
     const calculatedClientPrice = calculateTotalClientPrice(items || []);
     const finalTop = topOption === 'Termin' ? customTop : topOption;
+    
+    const cleanTaxPerc = Number(taxPercentage) || 0;
+    const calculatedTaxAmount = calculatedClientPrice * (cleanTaxPerc / 100);
 
     const updatedQuotation = await ClientQuotation.findByIdAndUpdate(
       id,
@@ -268,15 +313,15 @@ exports.submitQuotation = async (req, res) => {
         projectName,
         clientName,
         items: items || [],
-        currency,
+        currency: currency || 'IDR',
         clientPrice: calculatedClientPrice,
         topOption: finalTop,
         remarks,
         approvalStatus: 'Pending',
-        quotationMode: quotationMode || 'auto',        // 🆕
-        shippingFee: shippingFee || 0,                 // 🆕
-        taxPercentage: taxPercentage || 0,             // 🆕
-        taxAmount: taxAmount || 0                      // 🆕
+        quotationMode: quotationMode || 'auto',        
+        shippingFee: Number(shippingFee) || 0,                 
+        taxPercentage: cleanTaxPerc,             
+        taxAmount: calculatedTaxAmount                      
       },
       { new: true }
     );
@@ -307,9 +352,8 @@ exports.updateApprovedQuotation = async (req, res) => {
       currency, 
       remarks, 
       clientPrice,
-      shippingFee,      // 🆕
-      taxPercentage,    // 🆕
-      taxAmount         // 🆕
+      shippingFee,      
+      taxPercentage     
     } = req.body;
 
     const existingQuotation = await ClientQuotation.findById(id);
@@ -322,14 +366,17 @@ exports.updateApprovedQuotation = async (req, res) => {
       finalClientPrice = calculateTotalClientPrice(items);
     }
 
+    const finalTaxPerc = taxPercentage !== undefined ? Number(taxPercentage) : existingQuotation.taxPercentage;
+    const calculatedTaxAmount = finalClientPrice * (finalTaxPerc / 100);
+
     const updateData = {
       items: items || existingQuotation.items,
       clientPrice: finalClientPrice,
       currency: currency || existingQuotation.currency,
       remarks: remarks || existingQuotation.remarks,
-      shippingFee: shippingFee !== undefined ? shippingFee : existingQuotation.shippingFee,  // 🆕
-      taxPercentage: taxPercentage !== undefined ? taxPercentage : existingQuotation.taxPercentage,  // 🆕
-      taxAmount: taxAmount !== undefined ? taxAmount : existingQuotation.taxAmount  // 🆕
+      shippingFee: shippingFee !== undefined ? Number(shippingFee) : existingQuotation.shippingFee,  
+      taxPercentage: finalTaxPerc,  
+      taxAmount: calculatedTaxAmount  
     };
 
     if (topOption) {

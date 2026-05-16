@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FileText, ChevronRight, Clock, ArrowLeft, Package, Truck, TrendingUp } from 'lucide-react';
+import { FileText, ChevronRight, Clock, ArrowLeft, Package, Truck, TrendingUp, DollarSign } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -26,21 +26,18 @@ const ClientQuotationApproval = () => {
 
   useEffect(() => { fetchQuotations(); }, []);
 
-  // Helper untuk format currency
   const formatCurrency = (value) => {
-    if (!value) return '0';
-    return value.toLocaleString();
+    if (!value && value !== 0) return '0';
+    return value.toLocaleString('id-ID');
   };
 
-  // Helper untuk hitung grand total (subtotal + shipping + tax)
   const calculateGrandTotal = (quo) => {
     const subtotal = quo.clientPrice || 0;
     const shipping = quo.shippingFee || 0;
-    const tax = quo.taxAmount || (subtotal * (quo.taxPercentage || 0) / 100);
+    const tax = quo.taxAmount || 0;
     return subtotal + shipping + tax;
   };
 
-  // Helper untuk get mode badge
   const getModeBadge = (mode) => {
     if (mode === 'manual') {
       return (
@@ -60,13 +57,12 @@ const ClientQuotationApproval = () => {
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
       
-      {/* HEADER WITH BACK BUTTON */}
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
         <button 
           onClick={() => navigate('/dashboard')} 
           className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
         >
-          <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
+          <ArrowLeft className="text-slate-400 group-hover:text-indigo-600 transition-colors" size={24} />
         </button>
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
@@ -88,17 +84,25 @@ const ClientQuotationApproval = () => {
           ) : (
             quotations.map((quo) => {
               const grandTotal = calculateGrandTotal(quo);
-              const hasShipping = (quo.shippingFee || 0) > 0;
-              const hasTax = (quo.taxPercentage || 0) > 0;
               
+              // REVENUE MURNI KLIEN (Harga Jual Barang + Ongkir) --> PPN adalah uang titipan, tidak dihitung revenue
+              const netRevenue = (quo.clientPrice || 0) + (quo.shippingFee || 0); 
+              
+              // TOTAL MODAL MURNI (Dari Backend: Harga Beli Barang + Ongkir Supplier)
+              const totalModal = quo.totalModal || 0; 
+              
+              // GROSS PROFIT & MARGIN ASLI
+              const grossProfit = netRevenue - totalModal; 
+              const marginPerc = netRevenue > 0 ? ((grossProfit / netRevenue) * 100).toFixed(1) : 0;
+
               return (
                 <div 
                   key={quo._id} 
                   onClick={() => navigate(`/client-quotation-approval/${quo._id}`)}
-                  className="group flex items-center justify-between p-6 bg-slate-50 hover:bg-indigo-600 rounded-4xl border border-slate-100 transition-all cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1"
+                  className="group flex flex-col md:flex-row items-center justify-between p-6 bg-slate-50 hover:bg-indigo-600 rounded-4xl border border-slate-100 transition-all cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 gap-4"
                 >
-                  <div className="flex items-center gap-6 flex-1">
-                    <div className="bg-white p-4 rounded-2xl text-indigo-600 group-hover:text-indigo-600 shadow-sm">
+                  <div className="flex items-center gap-6 flex-1 w-full">
+                    <div className="bg-white p-4 rounded-2xl text-indigo-600 shadow-sm hidden md:block">
                       <FileText size={24}/>
                     </div>
                     <div className="flex-1">
@@ -117,27 +121,40 @@ const ClientQuotationApproval = () => {
                       <h3 className="text-xl font-black text-slate-800 group-hover:text-white uppercase italic tracking-tighter mt-1">
                         {quo.projectName || quo.projectId}
                       </h3>
-                      <div className="flex items-center gap-4 mt-1 flex-wrap">
-                        <span className="text-[9px] font-bold text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest flex items-center gap-1">
-                          <Clock size={10}/> {new Date(quo.timestamp).toLocaleDateString()}
+                      <div className="flex items-center gap-4 mt-2 flex-wrap">
+                        <span className="text-[10px] font-bold text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest flex items-center gap-1">
+                          <Clock size={12}/> {new Date(quo.timestamp).toLocaleDateString()}
                         </span>
-                        <span className="text-[9px] font-bold text-emerald-600 group-hover:text-emerald-300 uppercase tracking-widest">
-                          Total: Rp {formatCurrency(grandTotal)}
+                        <span className="text-[10px] font-bold text-slate-600 group-hover:text-white uppercase tracking-widest flex items-center gap-1">
+                          Client: {quo.clientName}
                         </span>
-                        {hasShipping && (
+                        {(quo.shippingFee || 0) > 0 && (
                           <span className="text-[8px] font-bold text-slate-500 group-hover:text-indigo-300 uppercase tracking-widest flex items-center gap-1">
                             <Truck size={8}/> + Ongkir
-                          </span>
-                        )}
-                        {hasTax && (
-                          <span className="text-[8px] font-bold text-slate-500 group-hover:text-indigo-300 uppercase tracking-widest">
-                            + PPN {quo.taxPercentage}%
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="text-slate-300 group-hover:text-white pr-4">
+
+                  {/* FINANCIAL METRICS */}
+                  <div className="flex flex-row md:flex-col gap-4 md:gap-1 items-end bg-white md:bg-transparent p-4 md:p-0 rounded-2xl md:rounded-none w-full md:w-auto border border-slate-100 md:border-none shadow-sm md:shadow-none">
+                    <div className="flex flex-col text-right flex-1 md:flex-none">
+                       <span className="text-[9px] font-black text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest">Bill to Client</span>
+                       <span className="text-base font-black text-indigo-600 group-hover:text-white">
+                         {quo.currency} {formatCurrency(grandTotal)}
+                       </span>
+                    </div>
+                    <div className="hidden md:block w-px h-8 bg-slate-200 group-hover:bg-indigo-400 mx-2"></div>
+                    <div className="flex flex-col text-right flex-1 md:flex-none">
+                       <span className="text-[9px] font-black text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest flex items-center justify-end gap-1"><DollarSign size={10}/> Gross Margin</span>
+                       <span className={`text-sm font-black ${grossProfit >= 0 ? 'text-emerald-500' : 'text-red-500'} group-hover:text-emerald-300`}>
+                         {marginPerc}%
+                       </span>
+                    </div>
+                  </div>
+
+                  <div className="text-slate-300 group-hover:text-white hidden md:block pl-4">
                     <ChevronRight size={32} />
                   </div>
                 </div>

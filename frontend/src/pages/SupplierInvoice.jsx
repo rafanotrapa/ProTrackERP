@@ -12,6 +12,9 @@ const InvoiceSubmission = () => {
   const [availablePOs, setAvailablePOs] = useState([]); 
   const [openDropdown, setOpenDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Menyimpan PO yang sedang dipilih beserta list termin pembayarannya
+  const [selectedPO, setSelectedPO] = useState(null); 
   const dropdownRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -20,6 +23,8 @@ const InvoiceSubmission = () => {
     poNumber: '',      
     projectId: '',
     vendorName: '',
+    currency: 'IDR',
+    terminName: 'Full Payment',
     invoiceNumber: '',
     amount: '',
     remarks: '',
@@ -34,7 +39,7 @@ const InvoiceSubmission = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         
-        // Semua PO sekarang bisa diinput tagihannya
+        // Narik SEMUA PO tanpa filter QC, jadi Procurement bisa langsung submit tagihan (DP/Full)
         setAvailablePOs(res.data || []);
       } catch (err) {
         console.error("Gagal load data PO:", err);
@@ -56,16 +61,40 @@ const InvoiceSubmission = () => {
   }, [availablePOs, searchTerm]);
 
   const handleSelect = (po) => {
+    setSelectedPO(po);
+    
+    // PENANGKAL GHOST DATA: Pastikan topOption aman dari undefined
+    const safeTopOption = po.topOption || '';
+    
+    // Cek apakah PO ini pakai Termin Dinamis
+    const isTermin = safeTopOption === 'Termin' || safeTopOption.includes('DP');
+    const firstTermin = isTermin && po.paymentTerms && po.paymentTerms.length > 0 ? po.paymentTerms[0] : null;
+
     setFormData((prev) => ({
       ...prev,
       poId: po._id,
       poNumber: po.poNumber || '',
       projectId: po.projectId || '',
-      vendorName: po.vendorId?.vendorName || 'Unknown Vendor',
-      amount: po.totalAmount || '' 
+      vendorName: po.vendorId?.vendorName || po.vendorId || 'Unknown Vendor',
+      currency: po.currency || 'IDR',
+      terminName: isTermin ? (firstTermin ? firstTermin.description : 'Termin') : 'Full Payment',
+      amount: isTermin ? (firstTermin ? firstTermin.amount : (po.totalAmount || 0)) : (po.totalAmount || 0)
     }));
+    
     setOpenDropdown(false);
     setSearchTerm('');
+  };
+
+  // Jika user ganti pilihan termin di UI
+  const handleTerminChange = (e) => {
+    const selectedDesc = e.target.value;
+    const selectedTerminObj = selectedPO.paymentTerms.find(t => t.description === selectedDesc);
+    
+    setFormData(prev => ({
+        ...prev,
+        terminName: selectedDesc,
+        amount: selectedTerminObj ? selectedTerminObj.amount : prev.amount
+    }));
   };
 
   const handleFileChange = (e) => {
@@ -77,6 +106,12 @@ const InvoiceSubmission = () => {
       }
       setFormData({ ...formData, file: selectedFile });
     }
+  };
+
+  const formatRupiah = (value) => {
+    if (!value && value !== 0) return '';
+    let numberString = value.toString().replace(/[^0-9]/g, '');
+    return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
   const handleSubmit = async (e) => {
@@ -93,7 +128,6 @@ const InvoiceSubmission = () => {
             data.append(key, formData[key] || '');
         }
     });
-    data.append('status', 'Pending Verification');
 
     try {
       const token = localStorage.getItem('token');
@@ -111,16 +145,14 @@ const InvoiceSubmission = () => {
       navigate('/dashboard');
     } catch (err) {
       console.error("FULL ERROR TRACE:", err);
-      
       let errorMessage = "Error tidak diketahui.";
       if (err.response) {
           errorMessage = err.response.data?.msg || JSON.stringify(err.response.data);
       } else if (err.request) {
-          errorMessage = "Network Error: Tidak bisa terhubung ke server Backend. Cek terminal Backend lu!";
+          errorMessage = "Network Error: Tidak bisa terhubung ke server Backend.";
       } else {
           errorMessage = err.message;
       }
-
       Swal.fire('ERROR TRACER', `Detail: ${errorMessage}`, 'error');
     } finally { setLoading(false); }
   };
@@ -165,7 +197,11 @@ const InvoiceSubmission = () => {
                         </div>
                         <ul className="max-h-56 overflow-y-auto">
                           {filteredOptions.length > 0 ? filteredOptions.map(po => (
-                            <li key={po._id} onClick={() => handleSelect(po)} className="px-5 py-4 hover:bg-indigo-600 group cursor-pointer transition-all border-b border-slate-50 last:border-none">
+                            <li 
+                              key={po._id} 
+                              onMouseDown={() => handleSelect(po)} // Menggunakan onMouseDown untuk mencegah race condition dengan blur
+                              className="px-5 py-4 hover:bg-indigo-600 group cursor-pointer transition-all border-b border-slate-50 last:border-none"
+                            >
                               <p className="text-[10px] font-black text-indigo-600 group-hover:text-white uppercase italic">{po.poNumber}</p>
                               <p className="text-xs font-black text-slate-800 group-hover:text-white uppercase truncate">{po.vendorId?.vendorName || 'Unknown'} (Proj: {po.projectId})</p>
                             </li>
@@ -177,39 +213,47 @@ const InvoiceSubmission = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* VENDOR (READ-ONLY) */}
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Vendor (Autofill)</label>
-                    <input 
-                      value={formData.vendorName || ''} 
-                      readOnly 
-                      className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-400 outline-none italic cursor-not-allowed" 
-                    />
+                    <input value={formData.vendorName || ''} readOnly className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-400 outline-none italic cursor-not-allowed" />
                   </div>
-                  {/* AMOUNT (AUTOFILL TAPI BISA DIEDIT JIKA ADA PAJAK) */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Billing Amount (IDR)</label>
-                    <input 
-                      type="number" 
-                      required 
-                      value={formData.amount || ''} 
-                      placeholder="0" 
-                      onChange={(e) => setFormData({...formData, amount: e.target.value})} 
-                      className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-black text-xl text-indigo-600 outline-none focus:border-indigo-600 shadow-sm" 
-                    />
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Currency</label>
+                    <input value={formData.currency} readOnly className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-400 outline-none cursor-not-allowed text-center" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                  {/* INVOICE NUMBER */}
+                {/* --- SELEKSI TERMIN PEMBAYARAN (MUNCUL JIKA PO PAKAI TERMIN) --- */}
+                {selectedPO && selectedPO.paymentTerms && selectedPO.paymentTerms.length > 0 && (
+                  <div className="space-y-1 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                     <label className="text-[10px] font-black text-amber-600 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Pilih Termin Pembayaran</label>
+                     <select 
+                        value={formData.terminName}
+                        onChange={handleTerminChange}
+                        className="w-full p-3 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-amber-500 cursor-pointer shadow-sm"
+                     >
+                        {selectedPO.paymentTerms.map((term, i) => (
+                          <option key={i} value={term.description} disabled={term.status === 'Invoiced'}>
+                             {term.description} - {formData.currency} {formatRupiah(term.amount)} {term.status === 'Invoiced' ? '(Sudah Ditagih)' : ''}
+                          </option>
+                        ))}
+                     </select>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none text-nowrap">Supp. Invoice Number</label>
+                    <input required value={formData.invoiceNumber} placeholder="INV-001/BJK/2026" onChange={(e) => setFormData({...formData, invoiceNumber: e.target.value})} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 transition-all shadow-sm italic" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Billing Amount</label>
                     <input 
+                      type="text" 
                       required 
-                      value={formData.invoiceNumber || ''} 
-                      placeholder="INV-001/BJK/2026" 
-                      onChange={(e) => setFormData({...formData, invoiceNumber: e.target.value})} 
-                      className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 transition-all shadow-sm italic" 
+                      value={formatRupiah(formData.amount)} 
+                      onChange={(e) => setFormData({...formData, amount: e.target.value.replace(/[^0-9]/g, '')})} 
+                      className={`w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-black text-xl outline-none focus:border-indigo-600 shadow-sm text-right ${selectedPO && selectedPO.paymentTerms?.length > 0 ? 'text-amber-600' : 'text-indigo-600'}`} 
                     />
                   </div>
                 </div>
@@ -217,12 +261,7 @@ const InvoiceSubmission = () => {
                 {/* REMARKS */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Internal Notes</label>
-                  <textarea 
-                    value={formData.remarks || ''} 
-                    placeholder="Catatan untuk Finance: misal tagihan termin 1..." 
-                    onChange={(e) => setFormData({...formData, remarks: e.target.value})} 
-                    className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl h-20 outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-sm" 
-                  />
+                  <textarea value={formData.remarks} placeholder="Catatan untuk Finance: misal tagihan termin 1..." onChange={(e) => setFormData({...formData, remarks: e.target.value})} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl h-20 outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-sm" />
                 </div>
               </div>
             </div>

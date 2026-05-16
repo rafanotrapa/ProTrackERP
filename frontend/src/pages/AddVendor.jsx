@@ -8,22 +8,28 @@ import Footer from '../components/Footer';
 const AddVendor = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [projects, setProjects] = useState([]); // State untuk nampung list project
+  const [projects, setProjects] = useState([]); 
+  const [existingVendors, setExistingVendors] = useState([]); // <-- State baru buat cek limit vendor
 
   useEffect(() => {
-    // Tarik data project buat dropdown
-    const fetchProjects = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get('http://localhost:5000/api/project', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProjects(res.data);
+        const headers = { Authorization: `Bearer ${token}` };
+        
+        // Tarik Project & Vendor sekaligus untuk pengecekan limitasi
+        const [resProj, resVend] = await Promise.all([
+          axios.get('http://localhost:5000/api/project', { headers }),
+          axios.get('http://localhost:5000/api/vendor', { headers })
+        ]);
+        
+        setProjects(resProj.data);
+        setExistingVendors(resVend.data);
       } catch (err) {
-        console.error("Gagal load project", err);
+        console.error("Gagal load data", err);
       }
     };
-    fetchProjects();
+    fetchData();
   }, []);
 
   const generateVendorID = () => {
@@ -35,7 +41,7 @@ const AddVendor = () => {
 
   const [formData, setFormData] = useState({
     vendorId: generateVendorID(),
-    projectId: '', // <-- Tambahan Field
+    projectId: '', 
     vendorName: '',
     companyType: 'PT',
     contactPerson: '',
@@ -46,12 +52,40 @@ const AddVendor = () => {
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // VALIDASI NOMOR HP: Hanya angka & Max 15 digit
+    if (name === 'phone') {
+      const onlyNums = value.replace(/[^0-9]/g, '');
+      if (onlyNums.length <= 15) {
+        setFormData({ ...formData, phone: onlyNums });
+      }
+      return;
+    }
+    
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.projectId) return Swal.fire('Warning', 'Pilih Project Target terlebih dahulu!', 'warning');
+
+    // --- LOGIC GATE: CEK LIMITASI VENDOR BERDASARKAN QUOTATION MODE ---
+    const selectedProj = projects.find(p => p.projectId === formData.projectId);
+    
+    if (selectedProj && selectedProj.quotationMode === 'auto') {
+      // Hitung ada berapa vendor yang terikat dengan project ini di DB
+      const linkedVendorsCount = existingVendors.filter(v => v.projectId === formData.projectId).length;
+      
+      if (linkedVendorsCount >= 1) {
+        return Swal.fire({
+          icon: 'error',
+          title: 'RESTRICTED',
+          text: `Project ini berstatus AUTO MODE (Maksimal 1 Supplier). Sudah ada supplier yang terikat dengan project ini!`,
+          confirmButtonColor: '#0f172a'
+        });
+      }
+    }
 
     setLoading(true);
     try {
@@ -92,7 +126,6 @@ const AddVendor = () => {
       <main className="flex-1 p-8 md:p-12 lg:p-16">
         <form onSubmit={handleSubmit} className="max-w-none w-full space-y-12">
           
-          {/* SECTION 1: IDENTITY */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 01. Company Profile & Target
@@ -104,7 +137,6 @@ const AddVendor = () => {
                 <input type="text" readOnly value={formData.vendorId} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-indigo-600 font-bold outline-none shadow-sm" />
               </div>
 
-              {/* DROPDOWN PROJECT BARU */}
               <div className="space-y-1 md:col-span-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Project Target</label>
                 <select name="projectId" required className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer" onChange={handleChange} value={formData.projectId}>
@@ -144,7 +176,6 @@ const AddVendor = () => {
             </div>
           </div>
 
-          {/* SECTION 2: CONTACT */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 02. Contact Information
@@ -156,7 +187,8 @@ const AddVendor = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Phone / WhatsApp</label>
-                <input name="phone" type="text" placeholder="0812xxxx" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} />
+                <input name="phone" type="text" placeholder="0812xxxx" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all" value={formData.phone} onChange={handleChange} />
+                <p className="text-[8px] text-slate-400 mt-1 ml-1">Hanya angka (Max 15 digit)</p>
               </div>
             </div>
             <div className="space-y-1 w-full">
@@ -165,7 +197,6 @@ const AddVendor = () => {
             </div>
           </div>
 
-          {/* SUBMIT */}
           <div className="flex justify-end pt-10 border-t border-slate-100">
             <button 
               type="submit" 

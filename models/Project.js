@@ -4,7 +4,8 @@ const ProjectSchema = new mongoose.Schema({
   // --- IDENTITY ---
   projectId: { type: String, required: true, unique: true },
   projectName: { type: String, required: true },
-  institutionName: { type: String },
+  institutionName: { type: String, required: true },  // Wajib untuk institusi (BIN, TNI, Polri)
+  clientCompany: { type: String },  // 🆕 Opsional untuk PT/CV swasta
   clientName: { type: String, required: true },
   clientContact: { type: String },
   clientAddress: { type: String },
@@ -14,7 +15,7 @@ const ProjectSchema = new mongoose.Schema({
   currency: { type: String, default: 'IDR' },
   description: { type: String },
 
-  // --- QUOTATION MODE (BARU) ---
+  // --- QUOTATION MODE ---
   quotationMode: {
     type: String,
     enum: ['auto', 'manual'],

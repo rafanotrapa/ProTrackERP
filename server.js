@@ -53,6 +53,8 @@ app.use('/api/supplier_invoices', supplierInvoiceRoutes);
 app.use('/api/supplier_payments', supplierPaymentRoutes);
 app.use('/api/project-billing', projectBillingRoutes);
 
+app.use('/api/project-timeline', require('./routes/projectTimelineRoutes'));
+
 // --- BASE ENDPOINT ---
 app.get('/', (req, res) => {
   res.send('Server ProTrack Firman sudah Jalan bray!');

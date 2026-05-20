@@ -2,47 +2,53 @@ const mongoose = require('mongoose');
 
 const ClientQuotationSchema = new mongoose.Schema({
   // --- IDENTITAS ---
-  quotationId: { type: String, required: true, unique: true },
-  projectId: { type: String, required: true },
-  projectName: { type: String },
-  clientName: { type: String },
-  
+  quotationId:  { type: String, required: true, unique: true },
+  projectId:    { type: String, required: true },
+  projectName:  { type: String },
+  clientName:   { type: String },
+
   // --- DAFTAR BARANG ---
-  items: [{ 
-    itemName: String,
-    quantity: Number,
-    unit: String,
-    cogs: Number,
-    salesPrice: Number
+  items: [{
+    itemName:   String,
+    quantity:   Number,
+    unit:       String,
+    cogs:       Number,
+    salesPrice: Number,
   }],
 
   // --- KOMERSIAL ---
-  currency: { type: String, default: 'IDR' },
+  currency:    { type: String, default: 'IDR' },
   clientPrice: { type: Number, required: true },
-  topOption: { type: String },
-  remarks: { type: String },
-  
+  topOption:   { type: String },
+  remarks:     { type: String },
+
+  // --- PAJAK & BIAYA ---
+  shippingFee:   { type: Number, default: 0 },
+  taxPercentage: { type: Number, default: 0 },   // 0 = Non-PPN, >0 = kena pajak
+  taxAmount:     { type: Number, default: 0 },
+
+  // --- REKENING BANK (hanya relevan jika kena pajak / PPN) ---
+  // Kosong string = non-PPN, diisi = kena PPN
+  bankAccount: { type: String, default: '' },
+
   // --- SISTEM APPROVAL ---
-  approvalStatus: { 
-    type: String, 
-    enum: ['Draft', 'Pending', 'Approved', 'Rejected'], 
-    default: 'Draft' 
+  approvalStatus: {
+    type:    String,
+    enum:    ['Draft', 'Pending', 'Approved', 'Rejected'],
+    default: 'Draft',
   },
-  approvalDate: { type: Date },
-  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  approvalDate:    { type: Date },
+  approvedBy:      { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   rejectionReason: { type: String },
 
-  // --- QUOTATION MODE (Auto dari supplier / Manual input) ---
+  // --- QUOTATION MODE ---
   quotationMode: { type: String, enum: ['auto', 'manual'], default: 'auto' },
-  shippingFee: { type: Number, default: 0 },
-  taxPercentage: { type: Number, default: 0 },
-  taxAmount: { type: Number, default: 0 },
-  
+
   // --- LOG WAKTU ---
-  timestamp: { type: Date, default: Date.now }
-}, { 
+  timestamp: { type: Date, default: Date.now },
+}, {
   collection: 'client_quotation',
-  timestamps: true 
+  timestamps: true,
 });
 
 module.exports = mongoose.model('ClientQuotation', ClientQuotationSchema);

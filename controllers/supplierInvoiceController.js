@@ -86,3 +86,55 @@ exports.updateStatus = async (req, res) => {
         res.status(500).json({ msg: 'Gagal update status' });
     }
 };
+
+exports.getPendingPayments = async (req, res) => {
+  try {
+    const pendingInvoices = await SupplierInvoice.find({ 
+      status: 'Pending Verification' 
+    }).sort({ createdAt: 1 });
+    res.json(pendingInvoices);
+  } catch (err) {
+    console.error("Error get pending payments:", err);
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+// 5. CONFIRM PAYMENT (Finance mark as Paid)
+exports.confirmPayment = async (req, res) => {
+  try {
+    const invoice = await SupplierInvoice.findByIdAndUpdate(
+      req.params.id,
+      { 
+        status: 'Paid', 
+        paymentDate: new Date() 
+      },
+      { new: true }
+    );
+    
+    if (!invoice) {
+      return res.status(404).json({ msg: 'Invoice tidak ditemukan' });
+    }
+    
+    res.json({ 
+      success: true, 
+      msg: 'Payment confirmed successfully', 
+      data: invoice 
+    });
+  } catch (err) {
+    console.error("Error confirm payment:", err);
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+exports.getInvoiceById = async (req, res) => {
+  try {
+    const invoice = await SupplierInvoice.findById(req.params.id).populate('user', 'name');
+    if (!invoice) {
+      return res.status(404).json({ msg: 'Invoice tidak ditemukan' });
+    }
+    res.json(invoice);
+  } catch (err) {
+    console.error("Error get invoice by id:", err);
+    res.status(500).json({ msg: err.message });
+  }
+};

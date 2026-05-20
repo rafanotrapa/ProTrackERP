@@ -9,33 +9,34 @@ exports.addProject = async (req, res) => {
       projectId, 
       projectName, 
       institutionName, 
+      clientCompany,
       clientName, 
       clientContact, 
       clientAddress, 
       amount, 
       currency, 
-      description 
+      description,
+      quotationMode
     } = req.body;
 
     const newProject = new Project({
-      projectId,        // BJK-YYYYMM-RANDOM
+      projectId,
       projectName,
       institutionName,
+      clientCompany: clientCompany || '',  // 🆕 Opsional
       clientName,
       clientContact,
       clientAddress,
       amount,
       currency,
       description,
-      status: 'Tendering', // Status default awal proyek
+      quotationMode: quotationMode || 'auto',
+      status: 'Tendering',
       createdBy: req.user.id
     });
 
     const savedProject = await newProject.save();
 
-    // ==========================================
-    // INSERT LOG: CREATE PROJECT
-    // ==========================================
     await Log.create({
       user: req.user.username,
       action: `CREATED NEW PROJECT: ${projectName} [ID: ${projectId}]`,
@@ -54,7 +55,7 @@ exports.addProject = async (req, res) => {
   }
 };
 
-// 2. GET ALL PROJECTS (Buat Monitoring/Timeline)
+// 2. GET ALL PROJECTS
 exports.getAllProjects = async (req, res) => {
   try {
     const projects = await Project.find().sort({ createdAt: -1 });
@@ -65,7 +66,61 @@ exports.getAllProjects = async (req, res) => {
   }
 };
 
-// 3. DELETE PROJECT
+// 3. GET PROJECT BY ID
+exports.getProjectById = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project) {
+      return res.status(404).json({ msg: 'Project tidak ditemukan' });
+    }
+    res.json(project);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Gagal mengambil detail project' });
+  }
+};
+
+// 4. GET PROJECT BY PROJECT ID (BJK-xxx)
+exports.getProjectByProjectId = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const project = await Project.findOne({ projectId: projectId });
+    if (!project) {
+      return res.status(404).json({ msg: 'Project tidak ditemukan' });
+    }
+    res.json(project);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Gagal mengambil detail project' });
+  }
+};
+
+// 5. UPDATE PROJECT
+exports.updateProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+    
+    const updatedProject = await Project.findByIdAndUpdate(id, updateData, { new: true });
+    if (!updatedProject) {
+      return res.status(404).json({ msg: 'Project tidak ditemukan' });
+    }
+
+    await Log.create({
+      user: req.user.username,
+      action: `UPDATED PROJECT: ${updatedProject.projectName} [ID: ${updatedProject.projectId}]`,
+      category: 'PROJECT',
+      type: 'UPDATE'
+    });
+
+    res.json({ msg: 'Project berhasil diupdate', project: updatedProject });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Gagal update project' });
+  }
+};
+
+// 6. DELETE PROJECT
 exports.deleteProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -76,9 +131,6 @@ exports.deleteProject = async (req, res) => {
 
     await Project.findByIdAndDelete(req.params.id);
 
-    // ==========================================
-    // INSERT LOG: DELETE PROJECT
-    // ==========================================
     await Log.create({
       user: req.user.username,
       action: `DELETED PROJECT: ${deletedName} [ID: ${deletedID}]`,
@@ -90,5 +142,37 @@ exports.deleteProject = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Gagal menghapus project' });
+  }
+};
+
+// 7. UPDATE PROJECT PROGRESS (DP, Received, Delivered, Final)
+exports.updateProjectProgress = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isDPPaid, isItemsReceived, isItemsDelivered, isFinalPaid } = req.body;
+    
+    const project = await Project.findById(id);
+    if (!project) {
+      return res.status(404).json({ msg: 'Project tidak ditemukan' });
+    }
+
+    if (isDPPaid !== undefined) project.isDPPaid = isDPPaid;
+    if (isItemsReceived !== undefined) project.isItemsReceived = isItemsReceived;
+    if (isItemsDelivered !== undefined) project.isItemsDelivered = isItemsDelivered;
+    if (isFinalPaid !== undefined) project.isFinalPaid = isFinalPaid;
+
+    await project.save();
+
+    await Log.create({
+      user: req.user.username,
+      action: `UPDATED PROGRESS: ${project.projectName} [DP:${project.isDPPaid}, Received:${project.isItemsReceived}, Delivered:${project.isItemsDelivered}, Final:${project.isFinalPaid}]`,
+      category: 'PROJECT',
+      type: 'UPDATE'
+    });
+
+    res.json({ msg: 'Progress project berhasil diupdate', project });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Gagal update progress project' });
   }
 };

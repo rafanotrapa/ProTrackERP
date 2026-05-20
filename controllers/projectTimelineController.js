@@ -1,0 +1,290 @@
+const Project = require('../models/Project');
+const ClientQuotation = require('../models/ClientQuotation');
+const CreateInvoice = require('../models/CreateInvoice');
+const Payment = require('../models/Payment');
+const PurchaseOrder = require('../models/PurchaseOrder');
+const SupplierQuotation = require('../models/SupplierQuotation');
+const SupplierInvoice = require('../models/SupplierInvoice');
+
+// ─── Helper: cek apakah invoice sudah verified/paid ─────────────────────────
+const getInvoicePaymentStatus = async (invoiceId) => {
+  const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
+  return payment ? 'Paid' : 'Unpaid';
+};
+
+// ─── Helper: parse TOP Option jadi stages ───────────────────────────────────
+const parseTopOption = (topOption, totalContractValue) => {
+  const topText = (topOption || '').toUpperCase();
+
+  const dpMatch = topText.match(/DP\s*(\d+)%/i);
+  if (dpMatch) {
+    const dp = parseInt(dpMatch[1]);
+    const sisa = 100 - dp;
+    return [
+      { name: `DP ${dp}%`, percentage: dp, amount: (totalContractValue * dp) / 100, order: 1 },
+      { name: `Pelunasan ${sisa}%`, percentage: sisa, amount: (totalContractValue * sisa) / 100, order: 2 }
+    ];
+  }
+
+  const terminMatches = [...topText.matchAll(/(\d+)%/g)];
+  if (terminMatches.length >= 2) {
+    return terminMatches.map((m, i) => {
+      const pct = parseInt(m[1]);
+      return { name: `Termin ${i + 1} (${pct}%)`, percentage: pct, amount: (totalContractValue * pct) / 100, order: i + 1 };
+    });
+  }
+
+  return [
+    { name: 'Full Payment', percentage: 100, amount: totalContractValue, order: 1 }
+  ];
+};
+
+// ─── MAIN CONTROLLER ─────────────────────────────────────────────────────────
+// GET /api/project-timeline/:projectId
+// Mengembalikan 1 response lengkap berisi semua data timeline project
+exports.getProjectTimeline = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    // 1. ── Project basic info ───────────────────────────────────────────────
+    const project = await Project.findOne({ projectId });
+    if (!project) {
+      return res.status(404).json({ msg: `Project ${projectId} tidak ditemukan` });
+    }
+
+    // 2. ── Client Quotation (Approved) ──────────────────────────────────────
+    const clientQuotation = await ClientQuotation.findOne({
+      projectId,
+      approvalStatus: 'Approved'
+    }).sort({ createdAt: -1 });
+
+    // Hitung grand total dari quotation
+    const clientPrice = clientQuotation?.clientPrice || project.amount || 0;
+    const shippingFee = clientQuotation?.shippingFee || 0;
+    const taxAmount = clientQuotation?.taxAmount || 0;
+    const taxPercentage = clientQuotation?.taxPercentage || 0;
+    const grandTotal = clientPrice + shippingFee + taxAmount;
+    const topOption = clientQuotation?.topOption || '—';
+
+    // 3. ── Client Invoices ──────────────────────────────────────────────────
+    const rawInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
+
+    // Cek status payment untuk tiap invoice (via Payment collection)
+    const clientInvoices = await Promise.all(
+      rawInvoices.map(async (inv) => {
+        const payStatus = await getInvoicePaymentStatus(inv._id);
+        // Sync status di dokumen jika belum sinkron
+        return {
+          _id: inv._id,
+          invoiceNumber: inv.invoiceNumber,
+          billingPhase: inv.billingPhase || '—',
+          amount: inv.amount,
+          dueDate: inv.dueDate,
+          createdAt: inv.createdAt,
+          status: payStatus,   // status real dari Payment collection
+          topOption: inv.topOption
+        };
+      })
+    );
+
+    const totalPaidFromInvoices = clientInvoices
+      .filter(inv => inv.status === 'Paid')
+      .reduce((sum, inv) => sum + inv.amount, 0);
+
+    const totalUnpaidFromInvoices = clientInvoices
+      .filter(inv => inv.status === 'Unpaid')
+      .reduce((sum, inv) => sum + inv.amount, 0);
+
+    // 4. ── Payment Stages (dari TOP option) ────────────────────────────────
+    const expectedStages = parseTopOption(topOption, grandTotal);
+    const paymentStages = expectedStages.map((stage, idx) => {
+      const invoice = clientInvoices[idx] || null;
+      return {
+        stageNumber: idx + 1,
+        name: stage.name,
+        percentage: stage.percentage,
+        expectedAmount: stage.amount,
+        invoice: invoice
+          ? {
+              invoiceNumber: invoice.invoiceNumber,
+              amount: invoice.amount,
+              dueDate: invoice.dueDate,
+              status: invoice.status
+            }
+          : null,
+        status: invoice ? invoice.status : 'Pending'
+      };
+    });
+
+    // 5. ── Progress ─────────────────────────────────────────────────────────
+    const totalStages = paymentStages.length;
+    const paidStages = paymentStages.filter(s => s.status === 'Paid').length;
+    const progressPercent = totalStages > 0 ? Math.round((paidStages / totalStages) * 100) : 0;
+    const isComplete = paidStages >= totalStages && totalStages > 0;
+
+    // 6. ── Purchase Orders ──────────────────────────────────────────────────
+    const purchaseOrders = await PurchaseOrder.find({ projectId })
+      .populate('vendorId', 'vendorName vendorContact vendorAddress')
+      .sort({ timestamp: -1 });
+
+    const poSummary = purchaseOrders.map(po => ({
+      _id: po._id,
+      poNumber: po.poNumber,
+      vendorName: po.vendorId?.vendorName || '—',
+      vendorContact: po.vendorId?.vendorContact || '—',
+      items: po.items || [],
+      totalAmount: po.totalAmount || 0,
+      additionalFee: po.additionalFee || 0,
+      taxAmount: po.taxAmount || 0,
+      paymentStatus: po.paymentStatus,   // Pending / Approved
+      qcStatus: po.qcStatus,             // Waiting Delivery / Passed / Returned
+      qcRemarks: po.qcRemarks || '',
+      deliveryStatus: po.deliveryStatus, // Pending / Scheduled / In Transit / Delivered
+      deliveryDate: po.deliveryDate || null,
+      courierName: po.courierName || '—',
+      trackingNumber: po.trackingNumber || '—',
+      createdAt: po.timestamp
+    }));
+
+    // 7. ── Supplier Quotations (COGS) ───────────────────────────────────────
+    const supplierQuotations = await SupplierQuotation.find({
+      projectId,
+      approvalStatus: 'Approved'
+    }).sort({ createdAt: -1 });
+
+    const totalCOGS = supplierQuotations.reduce((sum, sq) => {
+      const itemsCost = (sq.items || []).reduce(
+        (s, it) => s + (it.cogs || 0) * (it.quantity || 1),
+        0
+      );
+      return sum + itemsCost + (sq.additionalFee || 0) + (sq.taxAmount || 0);
+    }, 0);
+
+    const sqSummary = supplierQuotations.map(sq => ({
+      _id: sq._id,
+      quotationId: sq.quotationId,
+      vendorId: sq.vendorId,
+      items: sq.items || [],
+      additionalFee: sq.additionalFee || 0,
+      taxAmount: sq.taxAmount || 0,
+      taxPercentage: sq.taxPercentage || 0,
+      totalCOGS:
+        (sq.items || []).reduce((s, it) => s + (it.cogs || 0) * (it.quantity || 1), 0) +
+        (sq.additionalFee || 0) +
+        (sq.taxAmount || 0),
+      approvalStatus: sq.approvalStatus,
+      createdAt: sq.createdAt
+    }));
+
+    // 8. ── Supplier Invoices (duit keluar ke vendor) ────────────────────────
+    const supplierInvoices = await SupplierInvoice.find({ projectId }).sort({ createdAt: -1 });
+
+    const totalSupplierPaid = supplierInvoices
+      .filter(si => si.status === 'Paid')
+      .reduce((sum, si) => sum + si.amount, 0);
+
+    const totalSupplierPending = supplierInvoices
+      .filter(si => si.status !== 'Paid')
+      .reduce((sum, si) => sum + si.amount, 0);
+
+    const siSummary = supplierInvoices.map(si => ({
+      _id: si._id,
+      invoiceNumber: si.invoiceNumber,
+      poNumber: si.poNumber || '—',
+      vendorName: si.vendorName,
+      terminName: si.terminName,
+      amount: si.amount,
+      status: si.status,
+      invoiceDate: si.invoiceDate,
+      dueDate: si.dueDate || null,
+      paymentDate: si.paymentDate || null
+    }));
+
+    // 9. ── Profit Margin ────────────────────────────────────────────────────
+    const grossProfit = clientPrice - totalCOGS;
+    const profitMarginPct = clientPrice > 0
+      ? parseFloat(((grossProfit / clientPrice) * 100).toFixed(2))
+      : 0;
+
+    // 10. ── Project milestone flags (dari Project model) ───────────────────
+    const milestones = {
+      isDPPaid: project.isDPPaid || false,
+      isItemsReceived: project.isItemsReceived || false,
+      isItemsDelivered: project.isItemsDelivered || false,
+      isFinalPaid: project.isFinalPaid || false
+    };
+
+    // ─── Assemble response ──────────────────────────────────────────────────
+    res.json({
+      // Project info
+      project: {
+        projectId: project.projectId,
+        projectName: project.projectName,
+        clientName: project.clientName,
+        institutionName: project.institutionName || '',
+        clientContact: project.clientContact || '',
+        clientAddress: project.clientAddress || '',
+        status: project.status,
+        createdAt: project.createdAt,
+        milestones
+      },
+
+      // Financial overview
+      financial: {
+        clientPrice,       // subtotal sebelum ongkir & pajak
+        shippingFee,
+        taxPercentage,
+        taxAmount,
+        grandTotal,        // clientPrice + shippingFee + taxAmount
+        totalPaid: totalPaidFromInvoices,
+        totalUnpaid: totalUnpaidFromInvoices,
+        remaining: grandTotal - totalPaidFromInvoices,
+        topOption
+      },
+
+      // Progress
+      progress: {
+        percent: progressPercent,
+        paidStages,
+        totalStages,
+        isComplete
+      },
+
+      // Payment stages (termin)
+      paymentStages,
+
+      // Invoice history (client)
+      clientInvoices,
+
+      // Purchase orders & logistics
+      purchaseOrders: poSummary,
+
+      // COGS & supplier data
+      supplierQuotations: sqSummary,
+      cogs: {
+        total: totalCOGS,
+        breakdown: sqSummary
+      },
+
+      // Supplier invoices = duit keluar
+      supplierInvoices: siSummary,
+      cashOut: {
+        totalPaid: totalSupplierPaid,
+        totalPending: totalSupplierPending,
+        total: totalSupplierPaid + totalSupplierPending
+      },
+
+      // Profit
+      profitMargin: {
+        salesPrice: clientPrice,
+        cogs: totalCOGS,
+        grossProfit,
+        marginPercent: profitMarginPct
+      }
+    });
+
+  } catch (err) {
+    console.error('Error getProjectTimeline:', err);
+    res.status(500).json({ msg: err.message });
+  }
+};

@@ -11,27 +11,27 @@ const {
   updateQuotationItems,
   getDraftByProject,
   submitQuotation,
-  updateApprovedQuotation  // 🆕 untuk revisi harga setelah approved
+  updateApprovedQuotation,
+  getMyQuotations  
 } = require('../controllers/clientQuotationController');
 
 // --- CREATE & UPDATE DRAFT ---
-router.post('/', protect, createQuotation);  // Create draft (status: Draft)
-router.patch('/:id/items', protect, updateQuotationItems);  // Update draft items
+router.post('/', protect, createQuotation);
+router.patch('/:id/items', protect, updateQuotationItems);
+router.put('/:id/submit', protect, submitQuotation);
 
-// --- GET ROUTES ---
-router.get('/', protect, getAllQuotations);
+// --- GET ROUTES (STATIS - TARUH DI ATAS YANG DINAMIS) ---
+router.get('/my-quotations', protect, getMyQuotations);        // ← PINDAHKAN KE SINI
 router.get('/pending', protect, getPendingApprovals);
-router.get('/project/:projectId', protect, getQuotationByProject);  // Hanya Approved
+router.get('/project/:projectId', protect, getQuotationByProject);
+router.get('/draft/:projectId', protect, getDraftByProject);
+router.get('/', protect, getAllQuotations);
+
+// --- ROUTE DINAMIS (TARUH PALING BAWAH) ---
 router.get('/:id', protect, getQuotationById);
 
-// --- APPROVAL ---
+// --- APPROVAL & REVISION ---
 router.patch('/:id/approve', protect, approveQuotation);
-
-// --- DRAFT & SUBMIT ---
-router.get('/draft/:projectId', protect, getDraftByProject);  // Load draft by project
-router.put('/:id/submit', protect, submitQuotation);  // Draft -> Pending
-
-// --- REVISION AFTER APPROVED ---
-router.patch('/:id/revision', protect, updateApprovedQuotation);  // Edit setelah approved
+router.patch('/:id/revision', protect, updateApprovedQuotation);
 
 module.exports = router;

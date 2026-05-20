@@ -89,7 +89,7 @@ const CreatePO = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             
             {/* LEFT COL: PO DETAILS */}
-            <div className="p-8 space-y-6 bg-white border border-slate-200 shadow-sm rounded-[2rem] h-fit">
+            <div className="p-8 space-y-6 bg-white border border-slate-200 shadow-sm rounded-4xl h-fit">
               <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-blue-600"></span> 01. Order Identity</h3>
               
               <div className="space-y-1">
@@ -114,7 +114,7 @@ const CreatePO = () => {
             </div>
 
             {/* RIGHT COL: ITEMS PREVIEW DARI QUOTATION */}
-            <div className="p-8 bg-slate-900 border border-slate-800 shadow-xl rounded-[2rem] flex flex-col">
+            <div className="p-8 bg-slate-900 border border-slate-800 shadow-xl rounded-4xl flex flex-col">
                <h3 className="text-[11px] font-black text-slate-300 uppercase tracking-[0.3em] flex items-center gap-3 italic mb-6"><span className="w-8 h-1 bg-blue-500"></span> 02. Goods Summary</h3>
                {selectedQuote ? (
                  <div className="flex-1 flex flex-col">
@@ -123,7 +123,7 @@ const CreatePO = () => {
                        <p className="text-white font-bold">{selectedQuote.vendorId}</p>
                     </div>
                     
-                    <div className="flex-1 space-y-3 overflow-y-auto max-h-[220px] pr-2 custom-scrollbar">
+                    <div className="flex-1 space-y-3 overflow-y-auto max-h-55 pr-2 custom-scrollbar">
                        {selectedQuote.items?.map((item, i) => (
                          <div key={i} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
                             <div className="flex items-center gap-3">
@@ -181,7 +181,7 @@ const CreatePO = () => {
                  <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-center">
                     <ShoppingCart size={48} className="mb-4 opacity-20" />
                     <p className="text-sm font-black uppercase tracking-widest italic">No Quotation Selected</p>
-                    <p className="text-[10px] mt-2 max-w-[200px] mx-auto">Silakan pilih Quotation Dasar di sebelah kiri untuk melihat daftar barang yang akan di-order.</p>
+                    <p className="text-[10px] mt-2 max-w-50 mx-auto">Silakan pilih Quotation Dasar di sebelah kiri untuk melihat daftar barang yang akan di-order.</p>
                  </div>
                )}
             </div>

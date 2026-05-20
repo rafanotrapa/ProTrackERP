@@ -17,6 +17,12 @@ import AddProject from './pages/AddProject';
 import AddClientQuotation from './pages/AddClientQuotation';
 import AddClientInvoice from './pages/AddClientInvoice';
 import InputPayment from './pages/InputPayment';
+import QuotationCenter from './pages/QuotationCenter';
+import QuotationLog from './pages/QuotationLog';
+import QuotationLogDetail from './pages/QuotationLogDetail';
+import InvoiceCenter from './pages/InvoiceCenter';
+import InvoiceLog from './pages/InvoiceLog';
+import InvoiceLogDetail from './pages/InvoiceLogDetail';
 
 
 // --- PROCUREMENT & LOGISTICS MODULE ---
@@ -36,6 +42,7 @@ import PaymentVerifyDetail from './pages/PaymentVerifyDetail';
 import ProjectBilling from './pages/ProjectBilling';
 import ProjectBillingDetail from './pages/ProjectBillingDetail';
 import FinanceInputPayment from './pages/FinanceInputPayment';
+import SupplierPaymentDetail from './pages/SupplierPaymentDetail';
 
 // --- MONITORING & TIMELINE MODULE ---
 import ProjectList from './pages/ProjectList';
@@ -96,6 +103,13 @@ function App() {
             path="/input-payment" 
             element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><InputPayment /></ProtectedRoute>} 
           />
+
+          <Route path="/quotation-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationCenter /></ProtectedRoute>} />
+<Route path="/quotation-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationLog /></ProtectedRoute>} />
+<Route path="/quotation-log-detail/:id" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationLogDetail /></ProtectedRoute>} />
+<Route path="/invoice-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceCenter /></ProtectedRoute>} />
+<Route path="/invoice-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceLog /></ProtectedRoute>} />
+<Route path="/invoice-log-detail/:id" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceLogDetail /></ProtectedRoute>} />
 
 
 
@@ -194,6 +208,8 @@ function App() {
 <Route 
   path="/finance-input-payment" 
   element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><FinanceInputPayment /></ProtectedRoute>} />
+
+  <Route path="/supplier-payment-detail/:id" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><SupplierPaymentDetail /></ProtectedRoute>} />
 
           {/* 9. CATCH-ALL */}
           <Route path="*" element={<Login />} />

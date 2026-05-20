@@ -32,13 +32,14 @@ const AddProject = () => {
     projectId: generateProjectID(),
     projectName: '',
     institutionName: '',
+    clientCompany: '',  // 🆕 PT Tujuan (opsional)
     clientName: '',
     clientContact: '',
     clientAddress: '',
     amount: '',
     currency: 'IDR',
     description: '',
-    quotationMode: 'auto'  // 🆕 TAMBAHAN: auto = beli barang jadi, manual = rakit sendiri
+    quotationMode: 'auto'
   });
 
   // Validasi form - cek semua field wajib terisi
@@ -103,7 +104,7 @@ const AddProject = () => {
       Swal.fire({ 
         icon: 'warning', 
         title: 'INCOMPLETE DATA', 
-        text: 'Please fill in all required fields (Project Name, Institution, Client Name, Contact, Address, and Amount)!',
+        text: 'Please fill in all required fields (Project Name, Institution, PIC Name, Contact, Address, and Amount)!',
         confirmButtonColor: '#0f172a' 
       });
       return;
@@ -188,12 +189,22 @@ const AddProject = () => {
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  Client Company <span className="text-slate-400 text-[8px] ml-1">(Opsional)</span>
+                </label>
+                <input name="clientCompany" type="text" placeholder="PT. Maju Jaya / CV. Karya Abadi..."
+                  className="w-full p-3 bg-white border border-slate-300 rounded-xl focus:border-indigo-600 outline-none font-bold text-slate-700 transition-all shadow-sm" 
+                  value={formData.clientCompany} onChange={handleChange} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                   PIC Name <span className="text-red-500">*</span>
                 </label>
                 <input name="clientName" type="text" required placeholder="Contact person name..."
                   className="w-full p-3 bg-white border border-slate-300 rounded-xl focus:border-indigo-600 outline-none font-bold text-slate-700 transition-all shadow-sm" 
                   value={formData.clientName} onChange={handleChange} />
               </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
                   Phone Number <span className="text-red-500">*</span>
@@ -209,18 +220,18 @@ const AddProject = () => {
                 />
                 <p className="text-[8px] text-slate-400 mt-1">Only numbers, spaces, and + symbol allowed</p>
               </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                Address <span className="text-red-500">*</span>
-              </label>
-              <input name="clientAddress" type="text" required placeholder="Full logistics address..." 
-                className="w-full p-3 bg-white border border-slate-300 rounded-xl outline-none font-bold text-slate-700 shadow-sm focus:border-indigo-600 transition-all" 
-                value={formData.clientAddress} onChange={handleChange} />
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  Address <span className="text-red-500">*</span>
+                </label>
+                <input name="clientAddress" type="text" required placeholder="Full logistics address..." 
+                  className="w-full p-3 bg-white border border-slate-300 rounded-xl outline-none font-bold text-slate-700 shadow-sm focus:border-indigo-600 transition-all" 
+                  value={formData.clientAddress} onChange={handleChange} />
+              </div>
             </div>
           </div>
 
-          {/* 🆕 SECTION 2.5: QUOTATION MODE */}
+          {/* SECTION 2.5: QUOTATION MODE */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 02.5. Quotation Mode

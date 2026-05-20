@@ -9,7 +9,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 // ─────────────────────────────────────────────────────────────
-//  HELPER: format angka ke format Rupiah tanpa simbol
+//  HELPERS
 // ─────────────────────────────────────────────────────────────
 const formatRupiah = (value) => {
   if (!value && value !== 0) return '';
@@ -34,7 +34,9 @@ const AddClientQuotation = () => {
   const [quotationMode, setQuotationMode] = useState('auto');
   const [manualItems, setManualItems]     = useState([]);
   const [shippingFee, setShippingFee]     = useState(0);
-  const [taxPercentage, setTaxPercentage] = useState(11);
+
+  // TAX: 0 = non-PPN, >0 = kena pajak
+  const [taxPercentage, setTaxPercentage] = useState(0);
 
   // ── Form ─────────────────────────────────────────────────
   const [formData, setFormData] = useState({
@@ -49,43 +51,30 @@ const AddClientQuotation = () => {
     customTop:      '',
     timestamp:      new Date().toISOString().split('T')[0],
     remarks:        '',
+    bankAccount:    '',   // ← field rekening bank (aktif hanya jika kena pajak)
     _id:            null,
     approvalStatus: 'Draft',
   });
 
-  // ─────────────────────────────────────────────────────────
-  //  REFS — KUNCI MENCEGAH INFINITE LOOP
-  //
-  //  lastProjectIdRef : menyimpan projectId yang TERAKHIR
-  //                     di-fetch. Jika projectId sama dengan
-  //                     nilai ini, skip fetch → tidak ada loop.
-  //  isFetchingRef    : mutex sederhana agar tidak ada dua
-  //                     fetch berjalan bersamaan.
-  //
-  //  Dengan dua ref ini, useEffect([formData.projectId]) aman:
-  //  - setFormData di dalam effect TIDAK memicu effect ulang
-  //    karena dependency hanya formData.projectId (bukan
-  //    seluruh formData).
-  //  - Jika projectId tidak berubah, ref guard langsung return.
-  // ─────────────────────────────────────────────────────────
+  // ── Refs — mencegah infinite loop ───────────────────────
   const lastProjectIdRef = useRef(null);
   const isFetchingRef    = useRef(false);
 
   // ─────────────────────────────────────────────────────────
-  //  DERIVED VALUES — dihitung langsung saat render,
-  //  BUKAN melalui useEffect/useState tambahan.
-  //  Ini menghilangkan seluruh kelas masalah "state update
-  //  memicu re-render memicu state update".
+  //  DERIVED VALUES — dihitung saat render, bukan useEffect
   // ─────────────────────────────────────────────────────────
-  const activeItems  = quotationMode === 'auto' ? formData.items : manualItems;
-  const subtotal     = activeItems.reduce(
+  const activeItems = quotationMode === 'auto' ? formData.items : manualItems;
+  const subtotal    = activeItems.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.salesPrice) || 0), 0
   );
-  const taxAmount    = (subtotal * taxPercentage) / 100;
-  const grandTotal   = subtotal + (Number(shippingFee) || 0) + taxAmount;
+  const taxAmount  = (subtotal * taxPercentage) / 100;
+  const grandTotal = subtotal + (Number(shippingFee) || 0) + taxAmount;
+
+  // Apakah quotation ini kena pajak?
+  const isPPN = taxPercentage > 0;
 
   // ─────────────────────────────────────────────────────────
-  //  LOAD PROJECTS LIST — sekali saat mount, [] deps
+  //  LOAD PROJECTS LIST — sekali saat mount
   // ─────────────────────────────────────────────────────────
   useEffect(() => {
     const fetchProjectsList = async () => {
@@ -100,36 +89,23 @@ const AddClientQuotation = () => {
       }
     };
     fetchProjectsList();
-  }, []); // ← hanya sekali
+  }, []);
 
   // ─────────────────────────────────────────────────────────
   //  MAIN EFFECT — fetch data saat projectId berubah
   //
-  //  MENGAPA AMAN DARI INFINITE LOOP:
-  //  1. Dependency: hanya formData.projectId (string primitif).
-  //     React membandingkan string dengan === → hanya trigger
-  //     saat nilai string benar-benar berbeda.
-  //  2. Guard lastProjectIdRef: bahkan jika React re-render
-  //     ulang karena alasan lain dan effect ini dipanggil,
-  //     jika projectId sama → langsung return, tidak fetch.
-  //  3. setFormData di dalam effect TIDAK mengubah projectId,
-  //     jadi tidak ada pemicu ulang effect ini.
-  //  4. quotationMode, manualItems, shippingFee, taxPercentage
-  //     bukan dependency → perubahannya tidak memicu effect.
+  //  Aman dari infinite loop karena:
+  //  1. Dependency HANYA formData.projectId (string primitif)
+  //  2. Guard lastProjectIdRef → skip jika project sama
+  //  3. setFormData di dalam effect tidak mengubah projectId
+  //  4. isFetchingRef sebagai mutex
   // ─────────────────────────────────────────────────────────
   useEffect(() => {
     const projectId = formData.projectId;
-
-    // Guard 1: belum ada project
     if (!projectId) return;
-
-    // Guard 2: project sama, tidak perlu fetch ulang
     if (lastProjectIdRef.current === projectId) return;
-
-    // Guard 3: mutex — fetch sedang berjalan
     if (isFetchingRef.current) return;
 
-    // Tandai sebelum async dimulai
     lastProjectIdRef.current = projectId;
     isFetchingRef.current    = true;
 
@@ -138,20 +114,15 @@ const AddClientQuotation = () => {
       try {
         const token = localStorage.getItem('token');
 
-        // ── Fetch project info ─────────────────────────────
         const resProject = await axios.get(
           `http://localhost:5000/api/project/${projectId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
         const mode = resProject.data.quotationMode || 'auto';
-
-        // setQuotationMode hanya mengubah state lokal 'quotationMode',
-        // tidak termasuk dalam dependency → tidak memicu effect ulang
         setQuotationMode(mode);
 
         if (mode === 'auto') {
-          // ── AUTO MODE ──────────────────────────────────
           try {
             const resSQ = await axios.get(
               `http://localhost:5000/api/supplier_quotation/project/${projectId}`,
@@ -170,7 +141,6 @@ const AddClientQuotation = () => {
               ? supplierItems.map((i) => `- ${i.itemName} (${i.quantity} ${i.unit})`).join('\n')
               : 'Tidak ada item ditemukan';
 
-            // Satu setFormData — tidak menyentuh projectId
             setFormData((prev) => ({
               ...prev,
               projectName:   resProject.data.projectName || 'Tanpa Nama Project',
@@ -180,10 +150,7 @@ const AddClientQuotation = () => {
               topOption:     resSQ.data.topOption || 'COD',
             }));
             setManualItems([]);
-
-            // Load draft (opsional, tidak mengubah projectId)
             await loadDraftSilently(projectId, 'auto');
-
           } catch {
             setFormData((prev) => ({
               ...prev,
@@ -193,9 +160,7 @@ const AddClientQuotation = () => {
               items:         [],
             }));
           }
-
         } else {
-          // ── MANUAL MODE ────────────────────────────────
           setFormData((prev) => ({
             ...prev,
             projectName:   resProject.data.projectName || 'Tanpa Nama Project',
@@ -204,26 +169,22 @@ const AddClientQuotation = () => {
             items:         [],
           }));
           setManualItems([]);
-
           await loadDraftSilently(projectId, 'manual');
         }
-
       } catch (err) {
         console.error('Error fetching project/supplier details:', err);
       } finally {
         setFetching(false);
-        isFetchingRef.current = false; // lepas mutex
+        isFetchingRef.current = false;
       }
     };
 
     fetchAllDetails();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.projectId]); // ← HANYA string projectId, bukan object formData
+  }, [formData.projectId]);
 
   // ─────────────────────────────────────────────────────────
-  //  LOAD DRAFT — dipanggil secara imperatif dari dalam
-  //  fetchAllDetails, BUKAN sebagai useEffect terpisah.
-  //  Ini mencegah loadDraft menjadi trigger tambahan loop.
+  //  LOAD DRAFT — dipanggil imperatif dari fetchAllDetails
   // ─────────────────────────────────────────────────────────
   const loadDraftSilently = async (projectId, mode) => {
     if (!projectId) return;
@@ -242,7 +203,6 @@ const AddClientQuotation = () => {
           ? draft.items.map((item) => `- ${item.itemName} (${item.quantity} ${item.unit})`).join('\n')
           : '';
 
-        // Tidak mengubah projectId → tidak memicu main effect
         setFormData((prev) => ({
           ...prev,
           _id:            draft._id,
@@ -255,6 +215,7 @@ const AddClientQuotation = () => {
           topOption:      draft.topOption      || prev.topOption,
           customTop:      draft.customTop      || '',
           remarks:        draft.remarks        || '',
+          bankAccount:    draft.bankAccount    || '',
           approvalStatus: draft.approvalStatus || 'Draft',
         }));
 
@@ -290,6 +251,9 @@ const AddClientQuotation = () => {
     if (!formData.topOption)  return false;
     if (formData.topOption === 'Termin' && !formData.customTop) return false;
 
+    // Jika kena pajak, rekening bank wajib diisi
+    if (isPPN && !formData.bankAccount.trim()) return false;
+
     if (quotationMode === 'auto') {
       if (formData.items.length === 0) return false;
       return formData.items.every((item) => item.salesPrice && item.salesPrice > 0);
@@ -299,7 +263,16 @@ const AddClientQuotation = () => {
         (item) => item.salesPrice > 0 && item.cogs > 0 && item.itemName.trim() !== ''
       );
     }
-  }, [formData.projectId, formData.topOption, formData.customTop, formData.items, quotationMode, manualItems]);
+  }, [
+    formData.projectId,
+    formData.topOption,
+    formData.customTop,
+    formData.items,
+    formData.bankAccount,
+    quotationMode,
+    manualItems,
+    isPPN,
+  ]);
 
   // ─────────────────────────────────────────────────────────
   //  CRUD MANUAL ITEMS
@@ -342,7 +315,7 @@ const AddClientQuotation = () => {
   };
 
   // ─────────────────────────────────────────────────────────
-  //  HANDLE FORM CHANGE
+  //  HANDLE FORM CHANGE GENERIK
   // ─────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -350,21 +323,27 @@ const AddClientQuotation = () => {
   };
 
   // ─────────────────────────────────────────────────────────
-  //  HANDLE PROJECT SELECT — terpisah agar lebih eksplisit.
-  //  Saat project berubah, reset ref agar fetch bisa jalan
-  //  (kasus user kembali memilih project yang sama setelah
-  //   ganti ke project lain).
+  //  HANDLE TAX CHANGE
+  //  Jika user mengosongkan tax (→ 0), clear bankAccount
+  // ─────────────────────────────────────────────────────────
+  const handleTaxChange = (e) => {
+    const val = Number(e.target.value) || 0;
+    setTaxPercentage(val);
+    // Jika non-PPN, kosongkan rekening bank
+    if (val === 0) {
+      setFormData((prev) => ({ ...prev, bankAccount: '' }));
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────
+  //  HANDLE PROJECT SELECT
   // ─────────────────────────────────────────────────────────
   const handleProjectChange = (e) => {
     const newProjectId = e.target.value;
-
-    // Reset mutex dan last project id saat user ganti project
-    // agar effect bisa fetch project baru
     if (newProjectId !== formData.projectId) {
       lastProjectIdRef.current = null;
       isFetchingRef.current    = false;
     }
-
     setFormData((prev) => ({
       ...prev,
       projectId:      newProjectId,
@@ -375,11 +354,38 @@ const AddClientQuotation = () => {
       _id:            null,
       approvalStatus: 'Draft',
       quotationId:    `CQ-${Date.now()}`,
+      bankAccount:    '',
     }));
     setManualItems([]);
     setShippingFee(0);
-    setTaxPercentage(11);
+    setTaxPercentage(0);
     setQuotationMode('auto');
+  };
+
+  // ─────────────────────────────────────────────────────────
+  //  BUILD PAYLOAD (dipakai oleh draft & submit)
+  // ─────────────────────────────────────────────────────────
+  const buildPayload = (status) => {
+    const finalTop      = formData.topOption === 'Termin' ? formData.customTop : formData.topOption;
+    const itemsToUse    = quotationMode === 'auto' ? formData.items : manualItems;
+    return {
+      quotationId:    formData.quotationId,
+      projectId:      formData.projectId,
+      projectName:    formData.projectName,
+      clientName:     formData.clientName,
+      items:          itemsToUse,
+      currency:       formData.currency,
+      topOption:      finalTop,
+      customTop:      formData.customTop,
+      remarks:        formData.remarks  || '',
+      bankAccount:    isPPN ? (formData.bankAccount || '') : '',
+      timestamp:      formData.timestamp,
+      approvalStatus: status,
+      quotationMode,
+      shippingFee,
+      taxPercentage,
+      taxAmount,
+    };
   };
 
   // ─────────────────────────────────────────────────────────
@@ -397,25 +403,7 @@ const AddClientQuotation = () => {
     }
 
     setLoading(true);
-    const finalTop = formData.topOption === 'Termin' ? formData.customTop : formData.topOption;
-
-    const payload = {
-      quotationId:    formData.quotationId,
-      projectId:      formData.projectId,
-      projectName:    formData.projectName,
-      clientName:     formData.clientName,
-      items:          itemsToSave,
-      currency:       formData.currency,
-      topOption:      finalTop,
-      customTop:      formData.customTop,
-      remarks:        formData.remarks || '',
-      timestamp:      formData.timestamp,
-      approvalStatus: 'Draft',
-      quotationMode,
-      shippingFee,
-      taxPercentage,
-      taxAmount,
-    };
+    const payload = buildPayload('Draft');
 
     try {
       const token = localStorage.getItem('token');
@@ -436,7 +424,6 @@ const AddClientQuotation = () => {
       }
 
       const newId = response.data.data?._id || response.data._id;
-      // Hanya update _id — tidak mengubah projectId → tidak memicu fetch ulang
       setFormData((prev) => ({ ...prev, _id: newId }));
 
       Swal.fire({
@@ -460,6 +447,7 @@ const AddClientQuotation = () => {
     e.preventDefault();
 
     if (!isFormComplete()) {
+      const missingBank = isPPN && !formData.bankAccount.trim();
       Swal.fire({
         icon:               'warning',
         title:              'DATA BELUM LENGKAP',
@@ -467,33 +455,15 @@ const AddClientQuotation = () => {
           'Lengkapi semua field yang diperlukan:<br/>' +
           '- Semua item harus memiliki Sales Price &gt; 0<br/>' +
           '- Term of Payment harus dipilih<br/>' +
-          (formData.topOption === 'Termin' ? '- Custom TOP harus diisi<br/>' : ''),
+          (formData.topOption === 'Termin' ? '- Custom TOP harus diisi<br/>' : '') +
+          (missingBank ? '- Rekening Bank wajib diisi jika kena pajak<br/>' : ''),
         confirmButtonColor: '#0f172a',
       });
       return;
     }
 
     setLoading(true);
-    const finalTop      = formData.topOption === 'Termin' ? formData.customTop : formData.topOption;
-    const itemsToSubmit = quotationMode === 'auto' ? formData.items : manualItems;
-
-    const payload = {
-      quotationId:    formData.quotationId,
-      projectId:      formData.projectId,
-      projectName:    formData.projectName,
-      clientName:     formData.clientName,
-      items:          itemsToSubmit,
-      currency:       formData.currency,
-      topOption:      finalTop,
-      customTop:      formData.customTop,
-      remarks:        formData.remarks || '',
-      timestamp:      formData.timestamp,
-      approvalStatus: 'Pending',
-      quotationMode,
-      shippingFee,
-      taxPercentage,
-      taxAmount,
-    };
+    const payload = buildPayload('Pending');
 
     try {
       const token = localStorage.getItem('token');
@@ -528,182 +498,200 @@ const AddClientQuotation = () => {
     }
   };
 
-const generatePDF = () => {
-  const currentItems = quotationMode === 'auto' ? formData.items : manualItems;
+  // ─────────────────────────────────────────────────────────
+  //  GENERATE PDF — bisa kapan saja, draft watermark jika belum approved
+  // ─────────────────────────────────────────────────────────
+  const generatePDF = () => {
+    const currentItems = quotationMode === 'auto' ? formData.items : manualItems;
 
-  if (!formData.projectId || currentItems.length === 0) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'BELUM ADA DATA',
-      text: 'Pilih project dan tambahkan items terlebih dahulu sebelum download PDF.',
-      confirmButtonColor: '#0f172a',
-    });
-    return;
-  }
+    if (!formData.projectId || currentItems.length === 0) {
+      Swal.fire({
+        icon:               'warning',
+        title:              'BELUM ADA DATA',
+        text:               'Pilih project dan tambahkan items terlebih dahulu.',
+        confirmButtonColor: '#0f172a',
+      });
+      return;
+    }
 
-  try {
-    const doc = new jsPDF();
-    
-    const subtotal = quotationMode === 'auto' 
-      ? formData.items.reduce((sum, item) => sum + ((item.quantity || 0) * (item.salesPrice || 0)), 0)
-      : manualItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.salesPrice || 0)), 0);
-    
-    const taxCalc = (subtotal * taxPercentage) / 100;
-    const grandTotalPDF = subtotal + (Number(shippingFee) || 0) + taxCalc;
-
-    // Header image
     try {
-      doc.addImage('/header-batavia.png', 'PNG', 0, 0, 210, 40);
-    } catch {
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, 210, 20, 'F');
-      doc.setTextColor(255, 255, 255);
+      const doc           = new jsPDF();
+      const isDraft       = formData.approvalStatus !== 'Approved';
+      const taxCalc       = (subtotal * taxPercentage) / 100;
+      const grandTotalPDF = subtotal + (Number(shippingFee) || 0) + taxCalc;
+
+      // ── Header ─────────────────────────────────────────
+      try {
+        doc.addImage('/header-batavia.png', 'PNG', 0, 0, 210, 40);
+      } catch {
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PT. BATAVIA JAYA KREASI', 105, 13, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+      }
+
+      // ── Draft watermark ─────────────────────────────────
+      if (isDraft) {
+        doc.saveGraphicsState();
+        doc.setGState(new doc.GState({ opacity: 0.07 }));
+        doc.setFontSize(70);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(200, 0, 0);
+        doc.text('DRAFT', 105, 160, { align: 'center', angle: 45 });
+        doc.restoreGraphicsState();
+        doc.setTextColor(0, 0, 0);
+      }
+
+      // ── Judul ─────────────────────────────────────────
+      doc.setFontSize(26);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text('QUOTATION', 14, 55);
+
+      if (isDraft) {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(180, 0, 0);
+        doc.text('[ DRAFT — Belum disetujui Management ]', 14, 62);
+        doc.setTextColor(0, 0, 0);
+      }
+
+      const infoY = isDraft ? 70 : 65;
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('PT. BATAVIA JAYA KREASI', 105, 13, { align: 'center' });
-      doc.setTextColor(0, 0, 0);
-    }
-
-    // Judul
-    doc.setFontSize(26);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(15, 23, 42);
-    doc.text('QUOTATION', 105, 55, { align: 'center' });
-
-    // Info klien & quotation
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(0, 0, 0);
-    doc.text('To :', 14, 65);
-    doc.setFont('helvetica', 'bold');
-    doc.text((formData.clientName || '').toUpperCase(), 14, 71);
-
-    doc.setFont('helvetica', 'normal');
-    doc.text('Date', 120, 65);
-    doc.text(`: ${new Date().toLocaleDateString('en-GB')}`, 150, 65);
-    doc.text('QUOTATION #', 120, 71);
-    doc.text(`: ${formData.quotationId}`, 150, 71);
-    doc.text('Project ID', 120, 77);
-    doc.text(`: ${formData.projectId || '-'}`, 150, 77);
-
-    // Tabel items - CENTERED
-    const tableRows = currentItems.map((item) => [
-      item.quantity || 0,
-      (item.itemName || '').toUpperCase(),
-      (item.unit || '').toUpperCase(),
-      `Rp ${Number(item.salesPrice || 0).toLocaleString('id-ID')}`,
-      `Rp ${((Number(item.quantity) || 0) * (Number(item.salesPrice) || 0)).toLocaleString('id-ID')}`,
-    ]);
-
-    autoTable(doc, {
-      startY: 92,
-      head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Line Total (IDR)']],
-      body: tableRows,
-      theme: 'plain',
-      headStyles: {
-        fillColor: [15, 23, 42],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        halign: 'center',
-      },
-      bodyStyles: {
-        halign: 'center',  // ← CENTER semua isi tabel
-      },
-      styles: { fontSize: 9, cellPadding: 4 },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 15 },
-        1: { halign: 'left', cellWidth: 70 },
-        2: { halign: 'center', cellWidth: 20 },
-        3: { halign: 'right', cellWidth: 45 },
-        4: { halign: 'right', cellWidth: 45 },
-      },
-      didDrawCell: (data) => {
-        if (data.section === 'body') {
-          doc.setDrawColor(230);
-          doc.line(
-            data.cell.x,
-            data.cell.y + data.cell.height,
-            data.cell.x + data.cell.width,
-            data.cell.y + data.cell.height
-          );
-        }
-      },
-    });
-
-    // Totals
-    const finalY = doc.lastAutoTable.finalY + 15;
-    let currentY = finalY;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.text('Subtotal', 130, currentY);
-    doc.text(`Rp ${subtotal.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
-
-    if (shippingFee > 0) {
-      currentY += 7;
-      doc.text('Shipping Fee', 130, currentY);
-      doc.text(`Rp ${Number(shippingFee).toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
-    }
-
-    if (taxPercentage > 0) {
-      currentY += 7;
-      doc.text(`PPN ${taxPercentage}%`, 130, currentY);
-      doc.text(`Rp ${taxCalc.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
-    }
-
-    currentY += 10;
-    doc.setFontSize(12);
-    doc.setTextColor(15, 23, 42);
-    doc.text('GRAND TOTAL', 130, currentY);
-    doc.text(`Rp ${grandTotalPDF.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
-
-    // Footer
-    doc.setTextColor(0);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TERM OF PAYMENT :', 14, currentY + 20);
-    doc.setFont('helvetica', 'normal');
-    doc.text(
-      formData.topOption === 'Termin'
-        ? (formData.customTop || 'Termin')
-        : (formData.topOption || 'COD'),
-      14, currentY + 27
-    );
-
-    if (formData.remarks) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('REMARKS :', 14, currentY + 37);
       doc.setFont('helvetica', 'normal');
-      const splitRemarks = doc.splitTextToSize(formData.remarks, 180);
-      doc.text(splitRemarks, 14, currentY + 44);
-    }
-
-    // ── STEMPEL / TTD (DITURUNKAN) ──
-    const stampY = currentY + (formData.remarks ? 55 : 45);
-    
-    try {
-      doc.addImage("/stample-batavia.png", 'PNG', 140, stampY, 55, 55);
-      doc.setDrawColor(200);
-      doc.line(140, stampY + 50, 195, stampY + 50);
-    } catch {
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(150, 150, 150);
-      doc.text('[Digital Stamp]', 167, stampY + 30, { align: 'center' });
       doc.setTextColor(0, 0, 0);
+      doc.text('To :', 14, infoY);
+      doc.setFont('helvetica', 'bold');
+      doc.text((formData.clientName || '').toUpperCase(), 14, infoY + 6);
+
+      doc.setFont('helvetica', 'normal');
+      doc.text('Date',        120, infoY);
+      doc.text(`: ${new Date().toLocaleDateString('en-GB')}`, 150, infoY);
+      doc.text('QUOTATION #', 120, infoY + 6);
+      doc.text(`: ${formData.quotationId}`, 150, infoY + 6);
+      doc.text('Project ID',  120, infoY + 12);
+      doc.text(`: ${formData.projectId || '-'}`, 150, infoY + 12);
+      doc.text('Status',      120, infoY + 18);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(isDraft ? 180 : 0, isDraft ? 0 : 128, 0);
+      doc.text(`: ${formData.approvalStatus || 'Draft'}`, 150, infoY + 18);
+      doc.setTextColor(0, 0, 0);
+
+      // ── Tabel ─────────────────────────────────────────
+      const tableRows = currentItems.map((item) => [
+        item.quantity || 0,
+        (item.itemName || '').toUpperCase(),
+        (item.unit || '').toUpperCase(),
+        `Rp ${Number(item.salesPrice || 0).toLocaleString('id-ID')}`,
+        `Rp ${((Number(item.quantity) || 0) * (Number(item.salesPrice) || 0)).toLocaleString('id-ID')}`,
+      ]);
+
+      autoTable(doc, {
+        startY:     infoY + 28,
+        head:       [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Line Total (IDR)']],
+        body:       tableRows,
+        theme:      'plain',
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+        styles:     { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 15 },
+          1: { halign: 'left',   cellWidth: 70 },
+          2: { halign: 'center', cellWidth: 20 },
+          3: { halign: 'right',  cellWidth: 45 },
+          4: { halign: 'right',  cellWidth: 45 },
+        },
+        didDrawCell: (data) => {
+          if (data.section === 'body') {
+            doc.setDrawColor(230);
+            doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+          }
+        },
+      });
+
+      // ── Totals ────────────────────────────────────────
+      const finalY   = doc.lastAutoTable.finalY + 15;
+      let   currentY = finalY;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text('Subtotal', 130, currentY);
+      doc.text(`Rp ${subtotal.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+
+      if (shippingFee > 0) {
+        currentY += 7;
+        doc.text('Shipping Fee', 130, currentY);
+        doc.text(`Rp ${Number(shippingFee).toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+      }
+
+      if (taxPercentage > 0) {
+        currentY += 7;
+        doc.text(`PPN ${taxPercentage}%`, 130, currentY);
+        doc.text(`Rp ${taxCalc.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+      }
+
+      currentY += 10;
+      doc.setFontSize(12);
+      doc.setTextColor(15, 23, 42);
+      doc.text('GRAND TOTAL', 130, currentY);
+      doc.text(`Rp ${grandTotalPDF.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+
+      // ── Footer ────────────────────────────────────────
+      doc.setTextColor(0);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TERM OF PAYMENT :', 14, currentY + 20);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        formData.topOption === 'Termin' ? (formData.customTop || 'Termin') : (formData.topOption || 'COD'),
+        14, currentY + 27
+      );
+
+      // Rekening bank (hanya jika kena pajak)
+      if (isPPN && formData.bankAccount) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('REKENING BANK :', 14, currentY + 37);
+        doc.setFont('helvetica', 'normal');
+        doc.text(formData.bankAccount, 14, currentY + 44);
+      }
+
+      const remarkOffsetY = (isPPN && formData.bankAccount) ? 54 : 37;
+      if (formData.remarks) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('REMARKS :', 14, currentY + remarkOffsetY);
+        doc.setFont('helvetica', 'normal');
+        const splitRemarks = doc.splitTextToSize(formData.remarks, 180);
+        doc.text(splitRemarks, 14, currentY + remarkOffsetY + 7);
+      }
+
+      // ── Stempel ───────────────────────────────────────
+      const stampY = currentY + (formData.remarks ? remarkOffsetY + 20 : remarkOffsetY + 10);
+      try {
+        doc.addImage('/stample-batavia.png', 'PNG', 140, stampY, 55, 55);
+      } catch {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(150);
+        doc.text('[Digital Stamp]', 167, stampY + 30, { align: 'center' });
+        doc.setTextColor(0);
+      }
+
+      const suffix = isDraft ? '_DRAFT' : '';
+      doc.save(`${formData.quotationId}${suffix}.pdf`);
+
+    } catch (error) {
+      console.error('PDF Error:', error);
+      Swal.fire('PDF Error', 'Gagal generate PDF: ' + error.message, 'error');
     }
-
-    doc.save(`${formData.quotationId}.pdf`);
-
-  } catch (error) {
-    console.error('PDF Error:', error);
-    Swal.fire('PDF Error', 'Gagal generate PDF: ' + error.message, 'error');
-  }
-};
+  };
 
   // ─────────────────────────────────────────────────────────
   //  RENDER
   // ─────────────────────────────────────────────────────────
+  const hasItems = quotationMode === 'auto' ? formData.items.length > 0 : manualItems.length > 0;
+
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
@@ -798,23 +786,15 @@ const generatePDF = () => {
                 <p className="font-black text-slate-400 text-sm italic">Loading...</p>
               </div>
             ) : quotationMode === 'auto' ? (
-              /* AUTO MODE */
               formData.items.length === 0 ? (
                 <div className="p-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                  <p className="font-black text-slate-400 text-sm italic uppercase tracking-wider">
-                    No items available
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-2">
-                    Pilih project dengan supplier quotation yang sudah di-approve
-                  </p>
+                  <p className="font-black text-slate-400 text-sm italic uppercase tracking-wider">No items available</p>
+                  <p className="text-[10px] text-slate-400 mt-2">Pilih project dengan supplier quotation yang sudah di-approve</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {formData.items.map((item, index) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-12 gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-end"
-                    >
+                    <div key={index} className="grid grid-cols-12 gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-end">
                       <div className="col-span-4 space-y-1">
                         <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Item Name</label>
                         <p className="font-bold text-slate-800 text-sm uppercase">{item.itemName}</p>
@@ -836,9 +816,7 @@ const generatePDF = () => {
                           value={formatRupiah(item.salesPrice)}
                           onChange={(e) => handleSalesPriceChange(index, e.target.value)}
                           className={`w-full p-2 bg-white border rounded-lg font-black text-right outline-none focus:border-emerald-500 ${
-                            item.salesPrice && item.salesPrice > 0
-                              ? 'border-emerald-300 text-emerald-600'
-                              : 'border-red-300 text-red-500'
+                            item.salesPrice && item.salesPrice > 0 ? 'border-emerald-300 text-emerald-600' : 'border-red-300 text-red-500'
                           }`}
                           placeholder="0"
                           required
@@ -852,10 +830,7 @@ const generatePDF = () => {
               /* MANUAL MODE */
               <div className="space-y-4">
                 {manualItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="grid grid-cols-12 gap-3 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-end"
-                  >
+                  <div key={item.id} className="grid grid-cols-12 gap-3 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-end">
                     <div className="col-span-3 space-y-1">
                       <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Item Name *</label>
                       <input
@@ -923,7 +898,6 @@ const generatePDF = () => {
                     </div>
                   </div>
                 ))}
-
                 <button
                   type="button"
                   onClick={addManualItem}
@@ -934,12 +908,13 @@ const generatePDF = () => {
               </div>
             )}
 
-            {/* Total Summary — pakai derived values */}
+            {/* ── Total Summary ── */}
             <div className="flex justify-end mt-6 pt-4 border-t border-slate-200">
               <div className="text-right w-80 space-y-2">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Subtotal</p>
                 <p className="text-2xl font-black text-slate-800">Rp {formatRupiah(subtotal)}</p>
 
+                {/* Shipping Fee */}
                 <div className="flex items-center justify-between gap-4 pt-2">
                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Shipping Fee</label>
                   <input
@@ -951,24 +926,44 @@ const generatePDF = () => {
                   />
                 </div>
 
+                {/* Tax % — manual input, default 0 */}
                 <div className="flex items-center justify-between gap-4">
-                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">PPN (%)</label>
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                    Tax / PPN (%)
+                    <span className="ml-1 text-slate-300 font-normal normal-case tracking-normal">0 = non-PPN</span>
+                  </label>
                   <div className="flex items-center gap-2">
                     <input
                       type="number"
                       value={taxPercentage}
-                      onChange={(e) => setTaxPercentage(Number(e.target.value) || 0)}
-                      className="w-20 p-2 bg-white border border-slate-300 rounded-lg font-bold text-right"
+                      onChange={handleTaxChange}
+                      className={`w-20 p-2 bg-white border rounded-lg font-bold text-right transition-colors ${
+                        isPPN ? 'border-orange-400 text-orange-600' : 'border-slate-300 text-slate-500'
+                      }`}
                       min="0"
                       max="100"
+                      placeholder="0"
                     />
                     <span className="text-[10px] font-bold text-slate-500">%</span>
                   </div>
                 </div>
 
+                {/* PPN badge */}
+                {isPPN && (
+                  <div className="flex justify-end">
+                    <span className="text-[8px] font-black bg-orange-100 text-orange-600 border border-orange-200 rounded-full px-2 py-0.5 uppercase tracking-widest">
+                      Kena PPN {taxPercentage}%
+                    </span>
+                  </div>
+                )}
+
                 <div className="border-t border-slate-200 pt-2 mt-2">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tax ({taxPercentage}%)</p>
-                  <p className="text-sm font-black text-slate-500">Rp {formatRupiah(taxAmount)}</p>
+                  {taxPercentage > 0 && (
+                    <>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tax ({taxPercentage}%)</p>
+                      <p className="text-sm font-black text-slate-500">Rp {formatRupiah(taxAmount)}</p>
+                    </>
+                  )}
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">Grand Total</p>
                   <p className="text-3xl font-black text-emerald-600 tracking-tighter">
                     Rp {formatRupiah(grandTotal)}
@@ -984,6 +979,7 @@ const generatePDF = () => {
               <span className="w-8 h-1 bg-indigo-600" /> 03. Terms & Commercials
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Currency */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Currency</label>
                 <select
@@ -998,6 +994,7 @@ const generatePDF = () => {
                 </select>
               </div>
 
+              {/* TOP */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-amber-500 uppercase tracking-widest ml-1 italic">
                   Term of Payment (TOP) <span className="text-red-500">*</span>
@@ -1020,7 +1017,6 @@ const generatePDF = () => {
                     <option value="2/10 Net 30">2/10 Net 30 (2% Disc/10 Days)</option>
                     <option value="Termin">Custom Cicilan / Termin (Manual)</option>
                   </select>
-
                   {formData.topOption === 'Termin' && (
                     <input
                       type="text"
@@ -1034,6 +1030,49 @@ const generatePDF = () => {
                   )}
                 </div>
               </div>
+            </div>
+
+            {/* ── Rekening Bank — aktif hanya jika kena pajak ── */}
+            <div className="space-y-1">
+              <label className={`text-[10px] font-black uppercase tracking-widest ml-1 italic flex items-center gap-2 ${
+                isPPN ? 'text-orange-500' : 'text-slate-300'
+              }`}>
+                Rekening Bank (Wajib jika kena PPN)
+                {isPPN && <span className="text-red-500">*</span>}
+                {!isPPN && (
+                  <span className="text-[8px] bg-slate-100 text-slate-400 rounded-full px-2 py-0.5 font-bold normal-case tracking-normal">
+                    Aktifkan dengan mengisi Tax % di atas
+                  </span>
+                )}
+              </label>
+              <input
+                type="text"
+                name="bankAccount"
+                value={formData.bankAccount}
+                onChange={handleChange}
+                disabled={!isPPN}
+                required={isPPN}
+                className={`w-full p-3 border rounded-xl font-bold transition-all outline-none ${
+                  isPPN
+                    ? 'bg-white border-orange-300 text-slate-800 focus:border-orange-500 shadow-sm'
+                    : 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
+                }`}
+                placeholder={
+                  isPPN
+                    ? 'Contoh: BCA 123-456-7890 a/n PT. Batavia Jaya Kreasi'
+                    : 'Tidak diperlukan (Non-PPN)'
+                }
+              />
+              {isPPN && !formData.bankAccount.trim() && (
+                <p className="text-[9px] text-red-500 font-black ml-1 mt-0.5">
+                  ⚠ Rekening bank wajib diisi untuk transaksi kena PPN
+                </p>
+              )}
+              {isPPN && formData.bankAccount.trim() && (
+                <p className="text-[9px] text-emerald-600 font-black ml-1 mt-0.5">
+                  ✓ Rekening bank tersimpan
+                </p>
+              )}
             </div>
           </div>
 
@@ -1063,15 +1102,9 @@ const generatePDF = () => {
             <button
               type="button"
               onClick={handleSaveDraft}
-              disabled={
-                loading ||
-                !formData.projectId ||
-                (quotationMode === 'auto' ? formData.items.length === 0 : manualItems.length === 0)
-              }
+              disabled={loading || !formData.projectId || !hasItems}
               className={`px-6 py-4 rounded-xl font-black text-slate-600 uppercase tracking-widest text-[10px] border-2 border-slate-300 transition-all active:scale-95 ${
-                loading ||
-                !formData.projectId ||
-                (quotationMode === 'auto' ? formData.items.length === 0 : manualItems.length === 0)
+                loading || !formData.projectId || !hasItems
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:bg-slate-50 hover:border-indigo-300'
               }`}
@@ -1079,32 +1112,24 @@ const generatePDF = () => {
               💾 Save Draft
             </button>
 
-            {/* Download PDF — selalu aktif jika ada items */}
+            {/* Download PDF */}
             <button
               type="button"
               onClick={generatePDF}
-              disabled={
-                !formData.projectId ||
-                (quotationMode === 'auto' ? formData.items.length === 0 : manualItems.length === 0)
-              }
+              disabled={!formData.projectId || !hasItems}
               className={`px-6 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center gap-2 ${
-                !formData.projectId ||
-                (quotationMode === 'auto' ? formData.items.length === 0 : manualItems.length === 0)
+                !formData.projectId || !hasItems
                   ? 'bg-slate-300 cursor-not-allowed'
                   : formData.approvalStatus === 'Approved'
                     ? 'bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100'
                     : 'bg-slate-600 hover:bg-slate-700 shadow-lg shadow-slate-100'
               }`}
-              title={
-                formData.approvalStatus !== 'Approved'
-                  ? 'Download PDF (Draft — belum di-approve)'
-                  : 'Download PDF Final'
-              }
+              title={formData.approvalStatus !== 'Approved' ? 'Download PDF (Draft preview)' : 'Download PDF Final'}
             >
-              📄 {formData.approvalStatus === 'Approved' ? 'Download PDF' : 'Download PDF'}
+              📄 Download PDF
             </button>
 
-            {/* Submit for Approval */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading || !isFormComplete()}
@@ -1122,7 +1147,7 @@ const generatePDF = () => {
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-              Approval Required: Quotation ini akan direview Management sebelum bisa digunakan untuk Client Invoice.
+              Approval Required: Quotation akan direview Management sebelum bisa digunakan untuk Client Invoice.
               PDF dapat didownload kapan saja sebagai draft preview.
             </p>
           </div>

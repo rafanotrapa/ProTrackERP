@@ -20,8 +20,8 @@ const Dashboard = () => {
   const allModules = {
     Marketing: [
       { title: 'Add Project', icon: FolderPlus, desc: 'Input data project baru', path: '/add-project' },
-      { title: 'Create Quotation', icon: FileText, desc: 'Buat penawaran harga detail', path: '/client-quote' },
-      { title: 'Create Invoice', icon: Receipt, desc: 'Buat invoice untuk customer', path: '/create-invoice' },
+      { title: 'Create Quotation', icon: FileText, desc: 'Buat penawaran harga detail', path: '/quotation-center' },
+      { title: 'Create Invoice', icon: Receipt, desc: 'Buat invoice untuk customer', path: '/invoice-center' },
       { title: 'Input Payment', icon: CreditCard, desc: 'Upload bukti transfer client', path: '/input-payment' },
       { title: 'Project Timeline', icon: Calendar, desc: 'Monitor progress & milestones', path: '/timeline' }
     ],

@@ -9,7 +9,7 @@ const AddVendor = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState([]); 
-  const [existingVendors, setExistingVendors] = useState([]); // <-- State baru buat cek limit vendor
+  const [existingVendors, setExistingVendors] = useState([]); 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,7 +17,6 @@ const AddVendor = () => {
         const token = localStorage.getItem('token');
         const headers = { Authorization: `Bearer ${token}` };
         
-        // Tarik Project & Vendor sekaligus untuk pengecekan limitasi
         const [resProj, resVend] = await Promise.all([
           axios.get('http://localhost:5000/api/project', { headers }),
           axios.get('http://localhost:5000/api/vendor', { headers })
@@ -54,7 +53,6 @@ const AddVendor = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // VALIDASI NOMOR HP: Hanya angka & Max 15 digit
     if (name === 'phone') {
       const onlyNums = value.replace(/[^0-9]/g, '');
       if (onlyNums.length <= 15) {
@@ -70,11 +68,9 @@ const AddVendor = () => {
     e.preventDefault();
     if (!formData.projectId) return Swal.fire('Warning', 'Pilih Project Target terlebih dahulu!', 'warning');
 
-    // --- LOGIC GATE: CEK LIMITASI VENDOR BERDASARKAN QUOTATION MODE ---
     const selectedProj = projects.find(p => p.projectId === formData.projectId);
     
     if (selectedProj && selectedProj.quotationMode === 'auto') {
-      // Hitung ada berapa vendor yang terikat dengan project ini di DB
       const linkedVendorsCount = existingVendors.filter(v => v.projectId === formData.projectId).length;
       
       if (linkedVendorsCount >= 1) {
@@ -96,7 +92,7 @@ const AddVendor = () => {
       Swal.fire({
         icon: 'success',
         title: 'REGISTERED',
-        text: `Vendor ${formData.vendorName} successfully added to queue.`,
+        text: `Vendor ${formData.vendorName} successfully registered to the system.`,
         confirmButtonColor: '#0f172a' 
       });
       navigate('/existing-vendors');

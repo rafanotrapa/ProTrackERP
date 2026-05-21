@@ -5,11 +5,16 @@ const Vendor = require('../models/Vendor');
 // @route   POST api/vendor
 router.post('/', async (req, res) => {
   try {
-    const newVendor = new Vendor(req.body);
+    // Force status Approved
+    const newVendor = new Vendor({
+      ...req.body,
+      approvalStatus: 'Approved',
+      approvalDate: new Date()
+    });
     const savedVendor = await newVendor.save();
     res.status(201).json({ 
       success: true, 
-      msg: "Vendor Berhasil Terdaftar & Menunggu Approval!",
+      msg: "Vendor Berhasil Terdaftar di Database!",
       data: savedVendor 
     });
   } catch (err) {
@@ -27,7 +32,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// @route   PATCH api/vendor/:id/approve
+// @route   PATCH api/vendor/:id/approve (Tetap dipertahankan kalau sewaktu-waktu mau di-reject manual)
 router.patch('/:id/approve', async (req, res) => {
   try {
     const { status } = req.body; 

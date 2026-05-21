@@ -12,13 +12,14 @@ const VendorSchema = new mongoose.Schema({
   bankAccount: String, 
   category: { type: String, default: 'General' }, 
   
+  // Langsung diset Approved dari awal
   approvalStatus: { 
     type: String, 
     enum: ['Pending', 'Approved', 'Rejected'], 
-    default: 'Pending' 
+    default: 'Approved' 
   },
   
-  approvalDate: { type: Date },
+  approvalDate: { type: Date, default: Date.now },
   createdAt: { type: Date, default: Date.now } 
 }, { 
   collection: 'vendor' 

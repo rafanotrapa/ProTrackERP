@@ -24,7 +24,6 @@ import InvoiceCenter from './pages/InvoiceCenter';
 import InvoiceLog from './pages/InvoiceLog';
 import InvoiceLogDetail from './pages/InvoiceLogDetail';
 
-
 // --- PROCUREMENT & LOGISTICS MODULE ---
 import VendorMenu from './pages/VendorMenu'; 
 import AddVendor from './pages/AddVendor';
@@ -49,7 +48,6 @@ import ProjectList from './pages/ProjectList';
 import ProjectTimeline from './pages/ProjectTimeline';
 
 // --- MANAGEMENT MODULE (NEW) ---
-import SupplierApproval from './pages/SupplierApproval';
 import QuotationApproval from './pages/QuotationApproval';
 import QuotationDetailReview from './pages/QuotationDetailReview';
 import ClientQuotationApproval from './pages/ClientQuotationApproval';
@@ -105,15 +103,11 @@ function App() {
           />
 
           <Route path="/quotation-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationCenter /></ProtectedRoute>} />
-<Route path="/quotation-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationLog /></ProtectedRoute>} />
-<Route path="/quotation-log-detail/:id" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationLogDetail /></ProtectedRoute>} />
-<Route path="/invoice-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceCenter /></ProtectedRoute>} />
-<Route path="/invoice-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceLog /></ProtectedRoute>} />
-<Route path="/invoice-log-detail/:id" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceLogDetail /></ProtectedRoute>} />
-
-
-
-
+          <Route path="/quotation-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationLog /></ProtectedRoute>} />
+          <Route path="/quotation-log-detail/:id" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationLogDetail /></ProtectedRoute>} />
+          <Route path="/invoice-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceCenter /></ProtectedRoute>} />
+          <Route path="/invoice-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceLog /></ProtectedRoute>} />
+          <Route path="/invoice-log-detail/:id" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceLogDetail /></ProtectedRoute>} />
 
           {/* 5. PROCUREMENT & LOGISTICS MODULE */}
           <Route 
@@ -152,7 +146,7 @@ function App() {
 
           {/* 6. MONITORING & TIMELINE */}
           <Route path="/timeline" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']}><ProjectList /></ProtectedRoute>} />
-<Route path="/timeline/:projectId" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']}><ProjectTimeline /></ProtectedRoute>} />
+          <Route path="/timeline/:projectId" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']}><ProjectTimeline /></ProtectedRoute>} />
 
           {/* 7. OWNER & FINANCE INSIGHT */}
           <Route 
@@ -170,7 +164,7 @@ function App() {
 
           <Route 
             path="/verify-payment" 
-            element={<ProtectedRoute allowRoles={['Finance', 'Admin',]}><PaymentVerification /></ProtectedRoute>} 
+            element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><PaymentVerification /></ProtectedRoute>} 
           />
 
           <Route 
@@ -180,11 +174,6 @@ function App() {
 
           {/* 8. MANAGEMENT APPROVAL MODULE */}
           <Route 
-            path="/approve-supplier" 
-            element={<ProtectedRoute allowRoles={['Management', 'Admin']}><SupplierApproval /></ProtectedRoute>} 
-          />
-
-          <Route 
             path="/quotation-approval" 
             element={<ProtectedRoute allowRoles={['Management', 'Admin']}><QuotationApproval /></ProtectedRoute>} 
           />
@@ -193,7 +182,6 @@ function App() {
             path="/quotation-approval/:id" 
             element={<ProtectedRoute allowRoles={['Management', 'Admin']}><QuotationDetailReview /></ProtectedRoute>} 
           />
-
           
           <Route path="/client-quotation-approval" element={<ProtectedRoute allowRoles={['Management', 'Admin']}><ClientQuotationApproval /></ProtectedRoute>} />
           
@@ -202,14 +190,15 @@ function App() {
             element={<ProtectedRoute allowRoles={['Management', 'Admin']}><ClientQuotationDetailReview /></ProtectedRoute>} 
           />
 
-<Route path="/project-billing" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><ProjectBilling /></ProtectedRoute>} />
-<Route path="/project-billing/:projectId" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><ProjectBillingDetail /></ProtectedRoute>} />
+          <Route path="/project-billing" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><ProjectBilling /></ProtectedRoute>} />
+          <Route path="/project-billing/:projectId" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><ProjectBillingDetail /></ProtectedRoute>} />
 
-<Route 
-  path="/finance-input-payment" 
-  element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><FinanceInputPayment /></ProtectedRoute>} />
+          <Route 
+            path="/finance-input-payment" 
+            element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><FinanceInputPayment /></ProtectedRoute>} 
+          />
 
-  <Route path="/supplier-payment-detail/:id" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><SupplierPaymentDetail /></ProtectedRoute>} />
+          <Route path="/supplier-payment-detail/:id" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><SupplierPaymentDetail /></ProtectedRoute>} />
 
           {/* 9. CATCH-ALL */}
           <Route path="*" element={<Login />} />

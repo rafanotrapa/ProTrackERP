@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FolderPlus, FileText, Receipt, CreditCard, Calendar, 
   Truck, Package, ClipboardCheck, FileCheck, 
-  Users, Logs, Award, CheckCircle, Shield, DollarSign, BarChart3,
+  Users, Logs, Award, Shield, DollarSign, BarChart3,
   ArrowRight, CircleDot, Layers, Briefcase, Sparkles, TrendingUp
 } from 'lucide-react';
 import Header from '../components/Header';
@@ -29,7 +29,6 @@ const Dashboard = () => {
       { title: 'Vendor Directory', icon: Package, desc: 'Kelola Master Supplier', path: '/vendor' },
       { title: 'Supplier Quotation', icon: FileCheck, desc: 'Input COGS dari supplier', path: '/add-supplier-quotation' },
       { title: 'Purchase Order', icon: ClipboardCheck, desc: 'Buat pesanan ke supplier', path: '/create-po' },
-      { title: 'Receive & QC', icon: CheckCircle, desc: 'Terima & cek barang', path: '/receive-qc' },
       { title: 'Invoice Submission', icon: FileText, desc: 'Kirim invoice ke Finance', path: '/upload-to-finance' },
       { title: 'Delivery Management', icon: Truck, desc: 'Jadwal pengiriman ke klien', path: '/delivery-management' }
     ],
@@ -48,7 +47,6 @@ const Dashboard = () => {
       { title: 'Executive Summary', icon: Award, desc: 'Analisis profit & performa', path: '/owner-insight' }
     ],
     Management: [
-      { title: 'Supplier Approval', icon: CheckCircle, desc: 'Review & setujui vendor', path: '/approve-supplier' },
       { title: 'Supplier Quotation Approval', icon: FileCheck, desc: 'Approve penawaran supplier', path: '/quotation-approval' },
       { title: 'Client Quotation Approval', icon: FileText, desc: 'Approve quotation client', path: '/client-quotation-approval' },
       { title: 'Transaction Approval', icon: Shield, desc: 'Verifikasi transaksi', path: '/approve-transaction' }
@@ -78,8 +76,6 @@ const Dashboard = () => {
       <Header />
 
       <main className="flex-1 px-6 md:px-10 py-8 max-w-7xl mx-auto w-full">
-        
-        {/* HERO SECTION - SELARAS DENGAN THEME LAMA */}
         <div className="relative mb-10 bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100 overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
           
@@ -107,7 +103,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* MODULES GRID */}
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-5">
             <Layers size={18} className="text-indigo-500" />
@@ -124,20 +119,15 @@ const Dashboard = () => {
                   onClick={() => navigate(mod.path)}
                   className="group relative bg-white rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-100"
                 >
-                  {/* Icon Container - SELARAS */}
                   <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center mb-4 group-hover:bg-indigo-600 transition-all duration-300">
                     <mod.icon size={20} className="text-slate-600 group-hover:text-white transition-all" />
                   </div>
-                  
-                  {/* Content */}
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-1">
                     {mod.title}
                   </h3>
                   <p className="text-[9px] font-bold text-slate-400 leading-relaxed mb-3">
                     {mod.desc}
                   </p>
-                  
-                  {/* Action */}
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
                     <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Access</span>
                     <ArrowRight size={12} className="text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
@@ -153,34 +143,6 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-
-        {/* QUICK INSIGHT - OPSIONAL */}
-        {(user.role === 'Owner' || user.role === 'Admin') && (
-          <div className="mt-8 p-5 bg-white rounded-xl border border-slate-100 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={16} className="text-emerald-500" />
-              <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quick Insights</h3>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="text-center p-3 bg-slate-50 rounded-lg">
-                <p className="text-[7px] font-black text-slate-400 uppercase">Active Projects</p>
-                <p className="text-xl font-black text-indigo-600">—</p>
-              </div>
-              <div className="text-center p-3 bg-slate-50 rounded-lg">
-                <p className="text-[7px] font-black text-slate-400 uppercase">Revenue</p>
-                <p className="text-xl font-black text-emerald-600">—</p>
-              </div>
-              <div className="text-center p-3 bg-slate-50 rounded-lg">
-                <p className="text-[7px] font-black text-slate-400 uppercase">Pending</p>
-                <p className="text-xl font-black text-amber-600">—</p>
-              </div>
-              <div className="text-center p-3 bg-slate-50 rounded-lg">
-                <p className="text-[7px] font-black text-slate-400 uppercase">Completion</p>
-                <p className="text-xl font-black text-emerald-600">—</p>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       <Footer />

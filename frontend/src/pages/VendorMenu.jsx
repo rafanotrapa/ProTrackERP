@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, LayoutList } from 'lucide-react';
+import { UserPlus, LayoutList, ArrowRight } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -11,26 +11,22 @@ const VendorMenu = () => {
     {
       title: "Add New Supplier",
       desc: "Registrasi mitra & kaitkan ke ID Project baru.",
-      icon: <UserPlus size={32} className="text-emerald-600" />,
-      path: "/add-vendor",
-      bg: "bg-emerald-50",
-      accent: "bg-emerald-600"
+      icon: <UserPlus />,
+      path: "/add-vendor"
     },
     {
       title: "Vendor Track Record",
-      desc: "Histori supplier yang terikat dengan project dan status approval.",
-      icon: <LayoutList size={32} className="text-blue-600" />,
-      path: "/existing-vendors",
-      bg: "bg-blue-50",
-      accent: "bg-blue-600"
+      desc: "Histori supplier yang terikat dengan project.",
+      icon: <LayoutList />,
+      path: "/existing-vendors"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-white font-sans flex flex-col">
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
       <Header />
 
-      <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
+      <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-white shadow-sm z-10">
         <button 
           onClick={() => navigate('/dashboard')}
           className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
@@ -45,45 +41,29 @@ const VendorMenu = () => {
         </div>
       </div>
 
-      <main className="flex-1 p-8 md:p-12 lg:p-16">
-        <div className="max-w-5xl mx-auto">
-          
-          <div className="flex justify-between items-end mb-8 px-2">
-            <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">Vendor Operations</h2>
-          </div>
+      <main className="flex-1 p-8 md:p-12 lg:p-16 max-w-5xl mx-auto w-full">
+        <div className="flex justify-between items-end mb-6 px-2">
+          <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">Vendor Operations</h2>
+        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {menus.map((menu, index) => (
-              <div 
-                key={index}
-                onClick={() => navigate(menu.path)}
-                className="group relative cursor-pointer bg-white p-10 rounded-[3rem] border-2 border-slate-100 shadow-xl shadow-slate-100/50 transition-all duration-500 hover:-translate-y-3 hover:border-emerald-200 hover:shadow-2xl active:scale-95 overflow-hidden"
-              >
-                <div className={`absolute top-0 left-0 w-full h-2 ${menu.accent} opacity-20 group-hover:opacity-100 transition-opacity`}></div>
-
-                <div className={`${menu.bg} w-20 h-20 rounded-4xl flex items-center justify-center mb-10 group-hover:rotate-6 group-hover:scale-110 transition-all duration-500`}>
-                  {menu.icon}
-                </div>
-                
-                <h3 className="text-3xl font-black italic uppercase tracking-tight text-slate-800 leading-tight">
-                  {menu.title}
-                </h3>
-                
-                <p className="text-slate-500 text-sm font-bold mt-4 leading-relaxed uppercase tracking-wider opacity-80 group-hover:opacity-100 transition-opacity">
-                  {menu.desc}
-                </p>
-
-                <div className="mt-10 flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-emerald-600 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
-                  Open Module <span>→</span>
-                </div>
-
-                <span className="absolute -bottom-6 -right-2 text-9xl font-black italic text-slate-50 select-none opacity-0 group-hover:opacity-100 transition-opacity">
-                  0{index + 1}
-                </span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {menus.map((menu, index) => (
+            <div 
+              key={index}
+              onClick={() => navigate(menu.path)}
+              className="group relative bg-white rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-100"
+            >
+              <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center mb-4 group-hover:bg-emerald-600 transition-all duration-300">
+                {React.cloneElement(menu.icon, { size: 20, className: "text-slate-600 group-hover:text-white transition-all" })}
               </div>
-            ))}
-          </div>
-
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-1">{menu.title}</h3>
+              <p className="text-[9px] font-bold text-slate-400 leading-relaxed mb-3">{menu.desc}</p>
+              <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
+                <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Access</span>
+                <ArrowRight size={12} className="text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+              </div>
+            </div>
+          ))}
         </div>
       </main>
 

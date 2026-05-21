@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Phone, Building2, Search } from 'lucide-react';
+import { Building2, Search } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -98,23 +98,20 @@ const ExistingVendors = () => {
                 <tr>
                   <th className="p-6 md:px-10 whitespace-nowrap">ID / Company Name</th>
                   <th className="p-6 text-center whitespace-nowrap">Linked Project</th>
-                  <th className="p-6 text-center whitespace-nowrap">Approval Status</th> 
-                  <th className="p-6 md:px-10 text-right whitespace-nowrap">Audit Timeline</th>
+                  <th className="p-6 md:px-10 text-right whitespace-nowrap">Registration Date</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
                 {loading ? (
                   <tr>
-                    <td colSpan="4" className="py-24 text-center font-black text-slate-200 text-2xl animate-pulse italic uppercase">Syncing Vendor History...</td>
+                    <td colSpan="3" className="py-24 text-center font-black text-slate-200 text-2xl animate-pulse italic uppercase">Syncing Vendor History...</td>
                   </tr>
                 ) : filteredVendors.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="py-24 text-center font-black text-slate-300 text-xl italic uppercase">No Linked Vendors Found.</td>
+                    <td colSpan="3" className="py-24 text-center font-black text-slate-300 text-xl italic uppercase">No Linked Vendors Found.</td>
                   </tr>
                 ) : (
-                  filteredVendors.map((vendor) => {
-                    const currentStatus = vendor.approvalStatus || 'Pending';
-                    return(
+                  filteredVendors.map((vendor) => (
                     <tr key={vendor._id} className="hover:bg-slate-50/80 transition-all group">
                       <td className="p-6 md:px-10">
                         <div className="flex items-center gap-4">
@@ -135,30 +132,13 @@ const ExistingVendors = () => {
                             {vendor.projectId || 'N/A'}
                          </span>
                       </td>
-                      
-                      <td className="p-6 text-center">
-                        <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest italic inline-flex items-center gap-1.5 ${
-                          currentStatus === 'Approved' ? 'bg-emerald-100 text-emerald-600' :
-                          currentStatus === 'Rejected' ? 'bg-red-100 text-red-600' :
-                          'bg-amber-100 text-amber-600'
-                        }`}>
-                          {currentStatus === 'Pending' && <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span>}
-                          {currentStatus}
-                        </span>
-                      </td>
-
                       <td className="p-6 md:px-10 text-right">
-                         <div className="flex flex-col items-end">
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                              Submitted: <span className="text-slate-600">{formatDate(vendor.createdAt)}</span>
-                            </span>
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                              Decision: <span className={vendor.approvalDate ? "text-slate-600" : "text-amber-500"}>{formatDate(vendor.approvalDate)}</span>
-                            </span>
-                         </div>
+                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                           {formatDate(vendor.createdAt)}
+                         </span>
                       </td>
                     </tr>
-                  )})
+                  ))
                 )}
               </tbody>
             </table>

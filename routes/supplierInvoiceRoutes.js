@@ -4,25 +4,24 @@ const {
   submitInvoice, 
   getAllInvoices, 
   updateStatus,
-  getPendingPayments,    // 🆕
+  getPendingPayments,    
   confirmPayment, 
-  getInvoiceById     // 🆕
+  getInvoiceById     
 } = require('../controllers/supplierInvoiceController');
 
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/uploadMiddleware');
 
-// --- ROUTE LAMA ---
+// --- ROUTE UTAMA ---
 router.route('/')
   .post(protect, upload.single('file'), submitInvoice)
-  .get(protect, getAllInvoices);
+  .get(protect, getAllInvoices); // Endpoint ini dipanggil buat tabel Track Record!
 
 router.route('/:id').patch(protect, updateStatus);
 
-// --- 🆕 ROUTE BARU UNTUK SUPPLIER PAYMENT ---
+// --- ROUTE UNTUK SUPPLIER PAYMENT ---
 router.get('/pending', protect, getPendingPayments);
 router.get('/:id', protect, getInvoiceById);
 router.patch('/:id/confirm', protect, confirmPayment);
-router.get('/:id', protect, getInvoiceById);
 
 module.exports = router;

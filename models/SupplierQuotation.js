@@ -39,10 +39,6 @@ const SupplierQuotationSchema = new mongoose.Schema({
     type: Boolean, 
     default: false 
   }, 
-  taxPercentage: { 
-    type: Number, 
-    default: 0 
-  },
   taxAmount: { 
     type: Number, 
     default: 0 

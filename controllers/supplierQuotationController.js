@@ -5,7 +5,7 @@ exports.createQuotation = async (req, res) => {
   try {
     const { 
       quotationId, projectId, vendorId, topOption, customTop, remarks, 
-      additionalFee, additionalFeeRemarks, isTaxIncluded, taxPercentage, currency 
+      additionalFee, additionalFeeRemarks, isTaxIncluded, taxAmount, currency 
     } = req.body;
     
     let parsedItems = [];
@@ -23,18 +23,16 @@ exports.createQuotation = async (req, res) => {
           itemName: String(item.itemName),
           quantity: qty, 
           unit: String(item.unit),
-          cogs: cogs // <-- SIMPAN HARGA ASLI, JANGAN DIUBAH!
+          cogs: cogs // SIMPAN HARGA ASLI
         };
       });
     }
 
     const cleanAdditionalFee = Number(String(additionalFee || '0').replace(/[^0-9]/g, '')) || 0;
-    
     const taxBool = isTaxIncluded === 'true' || isTaxIncluded === true;
-    const cleanTaxPerc = taxBool ? (Number(taxPercentage) || 0) : 0;
     
-    // Pajak dihitung dari Subtotal murni
-    const calculatedTaxAmount = taxBool ? (subTotal * (cleanTaxPerc / 100)) : 0;
+    // Langsung tangkap nominal tax, bersihkan dari format string kalau ada
+    const cleanTaxAmount = taxBool ? (Number(String(taxAmount || '0').replace(/[^0-9]/g, '')) || 0) : 0;
 
     const documentUrl = req.file ? `/uploads/documents/${req.file.filename}` : '';
 
@@ -42,12 +40,11 @@ exports.createQuotation = async (req, res) => {
       quotationId,
       projectId,
       vendorId,
-      items: parsedItems, // <-- Langsung pakai item murni
+      items: parsedItems, 
       additionalFee: cleanAdditionalFee,
       additionalFeeRemarks,
       isTaxIncluded: taxBool,
-      taxPercentage: cleanTaxPerc,
-      taxAmount: calculatedTaxAmount,
+      taxAmount: cleanTaxAmount,
       currency: currency || 'IDR',
       topOption,
       customTop: topOption === 'Termin' ? customTop : '',
@@ -165,7 +162,7 @@ exports.approveQuotation = async (req, res) => {
   }
 };
 
-// 7. UPDATE QUOTATION ITEMS (untuk save draft)
+// 7. UPDATE QUOTATION ITEMS
 exports.updateQuotationItems = async (req, res) => {
   try {
     const { id } = req.params;
@@ -217,7 +214,10 @@ exports.getDraftByProject = async (req, res) => {
 exports.submitQuotation = async (req, res) => {
   try {
     const { id } = req.params;
-    const { items, additionalFee, additionalFeeRemarks, isTaxIncluded, taxPercentage, taxAmount, topOption, remarks } = req.body;
+    const { items, additionalFee, additionalFeeRemarks, isTaxIncluded, taxAmount, topOption, remarks } = req.body;
+
+    const taxBool = isTaxIncluded === 'true' || isTaxIncluded === true;
+    const cleanTaxAmount = taxBool ? (Number(String(taxAmount || '0').replace(/[^0-9]/g, '')) || 0) : 0;
 
     const updatedQuotation = await SupplierQuotation.findByIdAndUpdate(
       id,
@@ -225,9 +225,8 @@ exports.submitQuotation = async (req, res) => {
         items: items,
         additionalFee: additionalFee,
         additionalFeeRemarks: additionalFeeRemarks,
-        isTaxIncluded: isTaxIncluded,
-        taxPercentage: taxPercentage,
-        taxAmount: taxAmount,
+        isTaxIncluded: taxBool,
+        taxAmount: cleanTaxAmount,
         topOption: topOption,
         remarks: remarks,
         approvalStatus: 'Pending'

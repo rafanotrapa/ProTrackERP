@@ -41,7 +41,7 @@ const AddSupplierQuotation = () => {
     additionalFee: '', 
     additionalFeeRemarks: '', 
     isTaxIncluded: false, 
-    taxPercentage: '',
+    taxAmount: '', // <-- Diubah dari taxPercentage jadi nominal taxAmount
     remarks: '',
     document: null 
   });
@@ -50,6 +50,22 @@ const AddSupplierQuotation = () => {
     { itemName: '', quantity: 1, unit: 'Pcs', cogs: '' }
   ]);
 
+  const calculateSubTotal = () => {
+    return quotationItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.cogs || 0)), 0);
+  };
+
+  const calculateTaxNominal = () => {
+    return formData.isTaxIncluded ? (Number(formData.taxAmount) || 0) : 0;
+  };
+
+  const calculateGrandTotal = () => {
+    const subTotal = calculateSubTotal();
+    const addFee = Number(formData.additionalFee) || 0;
+    const taxNominal = calculateTaxNominal();
+    return subTotal + addFee + taxNominal;
+  };
+
+  // Hitung effective COGS per item setelah distribusi (preview)
   const calculateEffectiveCogsPreview = () => {
     const subTotal = calculateSubTotal();
     const addFee = Number(formData.additionalFee) || 0;
@@ -156,23 +172,6 @@ const AddSupplierQuotation = () => {
 
   const handleFileChange = (e) => setFormData({ ...formData, document: e.target.files[0] });
 
-  const calculateSubTotal = () => {
-    return quotationItems.reduce((sum, item) => sum + ((item.quantity || 0) * (item.cogs || 0)), 0);
-  };
-
-  const calculateTaxNominal = () => {
-    const subTotal = calculateSubTotal();
-    const taxPerc = formData.isTaxIncluded ? (Number(formData.taxPercentage) || 0) : 0;
-    return subTotal * (taxPerc / 100);
-  };
-
-  const calculateGrandTotal = () => {
-    const subTotal = calculateSubTotal();
-    const addFee = Number(formData.additionalFee) || 0;
-    const taxNominal = calculateTaxNominal();
-    return subTotal + addFee + taxNominal;
-  };
-
   const effectiveItems = calculateEffectiveCogsPreview();
 
   const handleSubmit = async (e) => {
@@ -182,8 +181,9 @@ const AddSupplierQuotation = () => {
        return Swal.fire('Warning', 'Project dan Vendor harus lengkap!', 'warning');
     }
 
-    if (formData.isTaxIncluded && (!formData.taxPercentage || Number(formData.taxPercentage) <= 0)) {
-       return Swal.fire('Data Incomplete', 'Persentase Pajak wajib diisi jika opsi PPN diaktifkan!', 'warning');
+    // Validasi Tax: Jika dicentang, wajib isi nominalnya
+    if (formData.isTaxIncluded && (!formData.taxAmount || Number(formData.taxAmount) <= 0)) {
+       return Swal.fire('Data Incomplete', 'Nominal Tax wajib diisi jika opsi Tax diaktifkan!', 'warning');
     }
 
     if (formData.topOption === 'Termin' && !formData.customTop) {
@@ -193,13 +193,13 @@ const AddSupplierQuotation = () => {
     setLoading(true);
     const data = new FormData();
     Object.keys(formData).forEach(key => {
-        if(key !== 'additionalFee' && key !== 'taxPercentage' && key !== 'isTaxIncluded' && key !== 'document') {
+        if(key !== 'additionalFee' && key !== 'taxAmount' && key !== 'isTaxIncluded' && key !== 'document') {
             data.append(key, formData[key]);
         }
     });
     
     data.append('additionalFee', formData.additionalFee || 0);
-    data.append('taxPercentage', formData.taxPercentage || 0);
+    data.append('taxAmount', formData.taxAmount || 0);
     data.append('isTaxIncluded', formData.isTaxIncluded);
     data.append('items', JSON.stringify(quotationItems));
     if (formData.document) {
@@ -219,7 +219,7 @@ const AddSupplierQuotation = () => {
   };
 
   const hasAdditionalFee = Number(formData.additionalFee) > 0;
-  const hasTax = formData.isTaxIncluded && Number(formData.taxPercentage) > 0;
+  const hasTax = formData.isTaxIncluded && Number(formData.taxAmount) > 0;
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col text-slate-900">
@@ -357,33 +357,24 @@ const AddSupplierQuotation = () => {
                     type="checkbox" 
                     id="ppnCheckbox"
                     checked={formData.isTaxIncluded} 
-                    onChange={(e) => setFormData({ ...formData, isTaxIncluded: e.target.checked, taxPercentage: e.target.checked ? formData.taxPercentage : '' })} 
+                    onChange={(e) => setFormData({ ...formData, isTaxIncluded: e.target.checked, taxAmount: e.target.checked ? formData.taxAmount : '' })} 
                     className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-600 cursor-pointer"
                   />
                   <label htmlFor="ppnCheckbox" className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic cursor-pointer flex items-center gap-1">
-                    <Receipt size={12}/> Include PPN / Pajak
+                    <Receipt size={12}/> Include Tax
                   </label>
                 </div>
                 
+                {/* UBAHAN INPUT PAJAK: Jadi format Rupiah Manual */}
                 <div className="flex items-center gap-3 w-full md:w-1/2 justify-end">
-                  {formData.isTaxIncluded && (
-                    <span className="text-[10px] font-black text-slate-400 italic">
-                      (+ {formData.currency} {formatRupiah(calculateTaxNominal())})
-                    </span>
-                  )}
-                  <div className="relative w-24">
-                    <input 
-                      type="number" 
-                      min="0"
-                      max="100"
-                      disabled={!formData.isTaxIncluded}
-                      value={formData.taxPercentage} 
-                      onChange={(e) => setFormData({...formData, taxPercentage: e.target.value})} 
-                      placeholder="%" 
-                      className="w-full p-2.5 pr-8 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-indigo-600 outline-none focus:border-indigo-600 text-right shadow-inner transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">%</span>
-                  </div>
+                  <input 
+                    type="text" 
+                    disabled={!formData.isTaxIncluded}
+                    value={formatRupiah(formData.taxAmount)} 
+                    onChange={(e) => setFormData({...formData, taxAmount: e.target.value.replace(/[^0-9]/g, '')})} 
+                    placeholder="Nominal Tax" 
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-indigo-600 outline-none focus:border-indigo-600 text-right shadow-inner transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  />
                 </div>
               </div>
 

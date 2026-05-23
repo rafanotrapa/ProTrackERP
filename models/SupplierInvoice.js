@@ -9,10 +9,15 @@ const SupplierInvoiceSchema = new mongoose.Schema({
   projectId: { type: String },
   vendorName: { type: String, required: true },
   
-  // --- FITUR BARU: CURRENCY & TERMIN ---
   currency: { type: String, default: 'IDR' },
-  terminName: { type: String, default: 'Full Payment' }, // ex: "DP 30%" atau "Pelunasan"
+  terminName: { type: String, default: 'Full Payment' }, 
   amount: { type: Number, required: true }, 
+
+  // --- FITUR BARU: PAJAK & BEA CUKAI ---
+  isTaxEnabled: { type: Boolean, default: false },
+  taxAmount: { type: Number, default: 0 },
+  isImportEnabled: { type: Boolean, default: false },
+  importDutyAmount: { type: Number, default: 0 },
   
   file: { type: String }, 
   remarks: { type: String },

@@ -27,9 +27,10 @@ const Dashboard = () => {
     ],
     Procurement: [
       { title: 'Vendor Directory', icon: Package, desc: 'Kelola Master Supplier', path: '/vendor' },
-      { title: 'Supplier Quotation', icon: FileCheck, desc: 'Input COGS dari supplier', path: '/add-supplier-quotation' },
-      { title: 'Purchase Order', icon: ClipboardCheck, desc: 'Buat pesanan ke supplier', path: '/create-po' },
-      { title: 'Invoice Submission', icon: FileText, desc: 'Kirim invoice ke Finance', path: '/upload-to-finance' },
+      { title: 'Supplier Quotation', icon: FileCheck, desc: 'Input COGS dari supplier', path: '/supplier-quotation-menu' },
+      { title: 'Purchase Order', icon: ClipboardCheck, desc: 'Kelola & Histori PO', path: '/po-menu' },
+      // --- UPDATE PATH INVOICE DI SINI ---
+      { title: 'Invoice Submission', icon: FileText, desc: 'Kirim tagihan vendor ke Finance', path: '/supplier-invoice-menu' },
       { title: 'Delivery Management', icon: Truck, desc: 'Jadwal pengiriman ke klien', path: '/delivery-management' }
     ],
     Finance: [

@@ -41,7 +41,7 @@ const AddSupplierQuotation = () => {
     additionalFee: '', 
     additionalFeeRemarks: '', 
     isTaxIncluded: false, 
-    taxAmount: '', // <-- Diubah dari taxPercentage jadi nominal taxAmount
+    taxAmount: '', 
     remarks: '',
     document: null 
   });
@@ -65,7 +65,6 @@ const AddSupplierQuotation = () => {
     return subTotal + addFee + taxNominal;
   };
 
-  // Hitung effective COGS per item setelah distribusi (preview)
   const calculateEffectiveCogsPreview = () => {
     const subTotal = calculateSubTotal();
     const addFee = Number(formData.additionalFee) || 0;
@@ -117,26 +116,41 @@ const AddSupplierQuotation = () => {
     projects.filter(p => `${p.projectId || ''} ${p.projectName || ''}`.toLowerCase().includes((searchTerms.project || '').toLowerCase())),
   [projects, searchTerms.project]);
 
+  // --- LOGIKA SINGLE vs MULTI SUPPLIER ---
   const handleProjectSelect = (pId) => {
-    const linkedVendor = vendors.find(v => v.projectId === pId && v.approvalStatus === 'Approved');
+    const selectedProj = projects.find(p => p.projectId === pId);
+    const projMode = selectedProj?.quotationMode || 'auto'; 
+    
+    // Tarik semua vendor yang terikat dengan project ini (TANPA cek approvalStatus)
+    const linkedVendors = vendors.filter(v => v.projectId === pId);
 
-    setFormData(prev => ({
-      ...prev,
-      projectId: pId,
-      vendorId: linkedVendor ? linkedVendor.vendorId : ''
-    }));
+    if (projMode === 'auto') {
+      // SINGLE SUPPLIER: Auto-fill vendor
+      setFormData(prev => ({
+        ...prev,
+        projectId: pId,
+        vendorId: linkedVendors.length > 0 ? linkedVendors[0].vendorId : ''
+      }));
+
+      if (linkedVendors.length === 0) {
+        Swal.fire({
+          icon: 'info',
+          title: 'NO VENDOR LINKED',
+          text: 'Project ini belum memiliki Supplier yang terdaftar.',
+          confirmButtonColor: '#0f172a'
+        });
+      }
+    } else {
+      // MULTI SUPPLIER: Kosongkan vendorId agar user milih dari dropdown
+      setFormData(prev => ({
+        ...prev,
+        projectId: pId,
+        vendorId: '' 
+      }));
+    }
 
     setOpenDropdown(null);
     setSearchTerms({ project: '' });
-
-    if (!linkedVendor) {
-      Swal.fire({
-        icon: 'info',
-        title: 'NO VENDOR LINKED',
-        text: 'Project ini belum memiliki Supplier yang diverifikasi Management.',
-        confirmButtonColor: '#0f172a'
-      });
-    }
   };
 
   const handleChange = (e) => {
@@ -181,9 +195,8 @@ const AddSupplierQuotation = () => {
        return Swal.fire('Warning', 'Project dan Vendor harus lengkap!', 'warning');
     }
 
-    // Validasi Tax: Jika dicentang, wajib isi nominalnya
     if (formData.isTaxIncluded && (!formData.taxAmount || Number(formData.taxAmount) <= 0)) {
-       return Swal.fire('Data Incomplete', 'Nominal Tax wajib diisi jika opsi Tax diaktifkan!', 'warning');
+       return Swal.fire('Data Incomplete', 'Nominal Pajak wajib diisi jika opsi Tax diaktifkan!', 'warning');
     }
 
     if (formData.topOption === 'Termin' && !formData.customTop) {
@@ -212,7 +225,7 @@ const AddSupplierQuotation = () => {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       Swal.fire({ icon: 'success', title: 'SAVED', text: 'Quotation recorded. Database updated.', confirmButtonColor: '#0f172a' });
-      navigate('/dashboard'); 
+      navigate('/supplier-quotation-menu'); 
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || "Gagal simpan quotation!" });
     } finally { setLoading(false); }
@@ -221,12 +234,17 @@ const AddSupplierQuotation = () => {
   const hasAdditionalFee = Number(formData.additionalFee) > 0;
   const hasTax = formData.isTaxIncluded && Number(formData.taxAmount) > 0;
 
+  // Cek Status Project Mode
+  const selectedProjObj = projects.find(p => p.projectId === formData.projectId);
+  const isManualMode = selectedProjObj?.quotationMode === 'manual';
+  const linkedVendorsToProject = vendors.filter(v => v.projectId === formData.projectId);
+
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col text-slate-900">
       <Header />
 
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
-        <button onClick={() => navigate('/dashboard')} className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group">
+        <button onClick={() => navigate('/supplier-quotation-menu')} className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group">
           <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
         </button>
         <div>
@@ -257,7 +275,7 @@ const AddSupplierQuotation = () => {
               <div className="space-y-1 relative">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Linked Project</label>
                 <div onClick={() => setOpenDropdown(openDropdown === 'project' ? null : 'project')} className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm">
-                  <span className="truncate">{projects.find(p => p.projectId === formData.projectId)?.projectName || '-- Select Project --'}</span>
+                  <span className="truncate">{selectedProjObj?.projectName || '-- Select Project --'}</span>
                   <span className={`text-[8px] transition-transform ${openDropdown === 'project' ? 'rotate-180' : ''}`}>▼</span>
                 </div>
                 {openDropdown === 'project' && (
@@ -287,15 +305,33 @@ const AddSupplierQuotation = () => {
                 </select>
               </div>
 
+              {/* RENDER VENDOR INPUT BERDASARKAN MODE PROJECT */}
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Auto-Mapped Supplier</label>
-                <div className="w-full p-3.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-500 shadow-inner cursor-not-allowed flex items-center">
-                  <span className="truncate">
-                    {formData.vendorId 
-                      ? vendors.find(v => v.vendorId === formData.vendorId)?.vendorName || formData.vendorId 
-                      : '-- Auto Fill from Project --'}
-                  </span>
-                </div>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">
+                  {isManualMode ? 'Select Supplier (Multi)' : 'Auto-Mapped Supplier'}
+                </label>
+                {isManualMode ? (
+                  <select 
+                    name="vendorId" 
+                    className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer"
+                    onChange={handleChange}
+                    value={formData.vendorId}
+                    required
+                  >
+                    <option value="">-- Pilih Supplier --</option>
+                    {linkedVendorsToProject.map(v => (
+                      <option key={v._id} value={v.vendorId}>{v.vendorId} - {v.vendorName}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="w-full p-3.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-500 shadow-inner cursor-not-allowed flex items-center">
+                    <span className="truncate">
+                      {formData.vendorId 
+                        ? vendors.find(v => v.vendorId === formData.vendorId)?.vendorName || formData.vendorId 
+                        : '-- Auto Fill from Project --'}
+                    </span>
+                  </div>
+                )}
               </div>
 
             </div>
@@ -365,7 +401,6 @@ const AddSupplierQuotation = () => {
                   </label>
                 </div>
                 
-                {/* UBAHAN INPUT PAJAK: Jadi format Rupiah Manual */}
                 <div className="flex items-center gap-3 w-full md:w-1/2 justify-end">
                   <input 
                     type="text" 

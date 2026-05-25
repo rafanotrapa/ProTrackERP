@@ -47,7 +47,7 @@ const AddVendor = () => {
     email: '',
     phone: '',
     address: '',
-    category: 'IT Services'
+    category: 'Software Development' // <-- Default disesuaikan dengan list pertama
   });
 
   const handleChange = (e) => {
@@ -162,11 +162,27 @@ const AddVendor = () => {
                <div className="space-y-1">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Category</label>
                  <select name="category" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer" onChange={handleChange} value={formData.category}>
-                   <option value="IT Services">IT Services</option>
-                   <option value="Stationary">Stationary</option>
-                   <option value="Construction">Construction</option>
-                   <option value="Furniture">Furniture</option>
-                   <option value="Consultant">Consultant</option>
+                   {/* 20 KATEGORI IT DITAMBAHKAN DI SINI */}
+                   <option value="Software Development">Software Development</option>
+                   <option value="IT Consulting Services">IT Consulting Services</option>
+                   <option value="System Integrator">System Integrator</option>
+                   <option value="Cloud Computing Services">Cloud Computing Services</option>
+                   <option value="Cyber Security Services">Cyber Security Services</option>
+                   <option value="Network Infrastructure Provider">Network Infrastructure Provider</option>
+                   <option value="Data Center Services">Data Center Services</option>
+                   <option value="Hardware Distributor">Hardware Distributor</option>
+                   <option value="Computer & Laptop Supplier">Computer & Laptop Supplier</option>
+                   <option value="Server & Storage Solution Provider">Server & Storage Solution Provider</option>
+                   <option value="Managed IT Services">Managed IT Services</option>
+                   <option value="Enterprise Application Provider">Enterprise Application Provider</option>
+                   <option value="Mobile Application Development">Mobile Application Development</option>
+                   <option value="Artificial Intelligence (AI) Solutions">Artificial Intelligence (AI) Solutions</option>
+                   <option value="Internet of Things (IoT) Solutions">Internet of Things (IoT) Solutions</option>
+                   <option value="IT Support & Maintenance Services">IT Support & Maintenance Services</option>
+                   <option value="Database Management Services">Database Management Services</option>
+                   <option value="Digital Transformation Services">Digital Transformation Services</option>
+                   <option value="Telecommunications & Unified Communication">Telecommunications & Unified Communication</option>
+                   <option value="IT Outsourcing Services">IT Outsourcing Services</option>
                  </select>
                </div>
             </div>

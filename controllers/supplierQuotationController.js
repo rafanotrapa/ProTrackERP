@@ -16,14 +16,12 @@ exports.createQuotation = async (req, res) => {
       parsedItems = rawItems.map(item => {
         const cogs = Number(String(item.cogs).replace(/[^0-9]/g, '')) || 0;
         const qty = Number(item.quantity) || 1;
-        
         subTotal += (cogs * qty);
-
         return {
           itemName: String(item.itemName),
           quantity: qty, 
           unit: String(item.unit),
-          cogs: cogs // SIMPAN HARGA ASLI
+          cogs: cogs
         };
       });
     }
@@ -31,7 +29,7 @@ exports.createQuotation = async (req, res) => {
     const cleanAdditionalFee = Number(String(additionalFee || '0').replace(/[^0-9]/g, '')) || 0;
     const taxBool = isTaxIncluded === 'true' || isTaxIncluded === true;
     
-    // Langsung tangkap nominal tax, bersihkan dari format string kalau ada
+    // TANGKAP NOMINAL TAX MURNI
     const cleanTaxAmount = taxBool ? (Number(String(taxAmount || '0').replace(/[^0-9]/g, '')) || 0) : 0;
 
     const documentUrl = req.file ? `/uploads/documents/${req.file.filename}` : '';
@@ -54,7 +52,7 @@ exports.createQuotation = async (req, res) => {
     });
 
     await newQuotation.save();
-    res.status(201).json({ success: true, msg: 'Supplier Quotation & Dokumen berhasil disimpan!', data: newQuotation });
+    res.status(201).json({ success: true, msg: 'Supplier Quotation berhasil disimpan!', data: newQuotation });
 
   } catch (err) {
     console.error("Error save quotation:", err);
@@ -85,22 +83,18 @@ exports.getPendingApprovals = async (req, res) => {
   }
 };
 
-// 4. Fungsi Get by Project ID (HANYA YANG APPROVED)
+// 4. Fungsi Get by Project ID
 exports.getQuotationByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
-    
     const quotation = await SupplierQuotation.findOne({ 
       projectId: projectId,
       approvalStatus: 'Approved'
     }).sort({ timestamp: -1 });
 
     if (!quotation) {
-      return res.status(404).json({ 
-        msg: 'Data Supplier belum di-approve oleh Management atau tidak ditemukan.' 
-      });
+      return res.status(404).json({ msg: 'Data Supplier belum di-approve atau tidak ditemukan.' });
     }
-
     res.json(quotation);
   } catch (err) {
     res.status(500).json({ msg: err.message });
@@ -111,17 +105,12 @@ exports.getQuotationByProject = async (req, res) => {
 exports.getQuotationById = async (req, res) => {
   try {
     const quotation = await SupplierQuotation.findById(req.params.id);
-    
     if (!quotation) {
       return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
     }
-    
     res.json(quotation);
   } catch (err) {
     console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'Format ID salah' });
-    }
     res.status(500).json({ msg: 'Server Error' });
   }
 };
@@ -139,25 +128,13 @@ exports.approveQuotation = async (req, res) => {
       approvedBy: userId
     };
 
-    if (status === 'Rejected' && rejectionReason) {
-      updateData.rejectionReason = rejectionReason;
-    }
+    if (status === 'Rejected' && rejectionReason) updateData.rejectionReason = rejectionReason;
 
-    const updatedQuo = await SupplierQuotation.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true }
-    );
-
+    const updatedQuo = await SupplierQuotation.findByIdAndUpdate(id, updateData, { new: true });
     if (!updatedQuo) return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
 
-    res.json({ 
-      success: true, 
-      msg: `Quotation berhasil di-${status}!`, 
-      data: updatedQuo 
-    });
+    res.json({ success: true, msg: `Quotation berhasil di-${status}!`, data: updatedQuo });
   } catch (err) {
-    console.error("Error approve quotation:", err);
     res.status(500).json({ msg: err.message });
   }
 };
@@ -167,24 +144,10 @@ exports.updateQuotationItems = async (req, res) => {
   try {
     const { id } = req.params;
     const { items } = req.body;
-
-    const updatedQuotation = await SupplierQuotation.findByIdAndUpdate(
-      id,
-      { items: items },
-      { new: true }
-    );
-
-    if (!updatedQuotation) {
-      return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
-    }
-
-    res.json({ 
-      success: true, 
-      msg: 'Items updated successfully', 
-      data: updatedQuotation 
-    });
+    const updatedQuotation = await SupplierQuotation.findByIdAndUpdate(id, { items: items }, { new: true });
+    if (!updatedQuotation) return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
+    res.json({ success: true, msg: 'Items updated successfully', data: updatedQuotation });
   } catch (err) {
-    console.error("Error update quotation items:", err);
     res.status(500).json({ msg: err.message });
   }
 };
@@ -193,19 +156,10 @@ exports.updateQuotationItems = async (req, res) => {
 exports.getDraftByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
-    
-    const draft = await SupplierQuotation.findOne({ 
-      projectId: projectId,
-      approvalStatus: 'Draft'
-    }).sort({ createdAt: -1 });
-
-    if (!draft) {
-      return res.status(404).json({ msg: 'No draft found for this project' });
-    }
-
+    const draft = await SupplierQuotation.findOne({ projectId: projectId, approvalStatus: 'Draft' }).sort({ createdAt: -1 });
+    if (!draft) return res.status(404).json({ msg: 'No draft found for this project' });
     res.json(draft);
   } catch (err) {
-    console.error("Error get draft by project:", err);
     res.status(500).json({ msg: err.message });
   }
 };
@@ -234,17 +188,9 @@ exports.submitQuotation = async (req, res) => {
       { new: true }
     );
 
-    if (!updatedQuotation) {
-      return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
-    }
-
-    res.json({ 
-      success: true, 
-      msg: 'Quotation submitted for approval!', 
-      data: updatedQuotation 
-    });
+    if (!updatedQuotation) return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
+    res.json({ success: true, msg: 'Quotation submitted for approval!', data: updatedQuotation });
   } catch (err) {
-    console.error("Error submit quotation:", err);
     res.status(500).json({ msg: err.message });
   }
 };

@@ -29,7 +29,7 @@ const Dashboard = () => {
       { title: 'Vendor Directory', icon: Package, desc: 'Kelola Master Supplier', path: '/vendor' },
       { title: 'Supplier Quotation', icon: FileCheck, desc: 'Input COGS dari supplier', path: '/supplier-quotation-menu' },
       { title: 'Purchase Order', icon: ClipboardCheck, desc: 'Kelola & Histori PO', path: '/po-menu' },
-      // --- UPDATE PATH INVOICE DI SINI ---
+      { title: 'Receive & QC Goods', icon: '🔍', desc: 'Terima, cek barang & proses retur.', path: '/receive-qc', color: 'border-amber-500' },
       { title: 'Invoice Submission', icon: FileText, desc: 'Kirim tagihan vendor ke Finance', path: '/supplier-invoice-menu' },
       { title: 'Delivery Management', icon: Truck, desc: 'Jadwal pengiriman ke klien', path: '/delivery-management' }
     ],

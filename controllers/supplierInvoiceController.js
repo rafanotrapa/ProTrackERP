@@ -14,15 +14,16 @@ exports.submitInvoice = async (req, res) => {
       return res.status(400).json({ msg: `Nomor Tagihan ${req.body.invoiceNumber} sudah ada di sistem!` });
     }
 
-    // --- Parse customs duty & tax ---
-    const customsDutyEnabled = req.body.customsDutyEnabled === 'true' || req.body.customsDutyEnabled === true;
-    const customsDuty        = customsDutyEnabled ? (Number(req.body.customsDuty) || 0) : 0;
+    // --- Parse Bea Masuk (Import Duty) & Tax ---
+    // Sesuaikan variabel dengan yang dikirim Frontend: isImportEnabled & importDutyAmount
+    const isImportEnabled  = req.body.isImportEnabled === 'true' || req.body.isImportEnabled === true;
+    const importDutyAmount = isImportEnabled ? (Number(req.body.importDutyAmount) || 0) : 0;
     
-    const isTaxEnabled       = req.body.isTaxEnabled === 'true' || req.body.isTaxEnabled === true;
-    const taxAmount          = isTaxEnabled ? (Number(req.body.taxAmount) || 0) : 0;
+    const isTaxEnabled     = req.body.isTaxEnabled === 'true' || req.body.isTaxEnabled === true;
+    const taxAmount        = isTaxEnabled ? (Number(req.body.taxAmount) || 0) : 0;
     
-    const baseAmount         = Number(req.body.amount) || 0;
-    const totalAmount        = baseAmount + customsDuty + taxAmount;
+    const baseAmount       = Number(req.body.amount) || 0;
+    const totalAmount      = baseAmount + importDutyAmount + taxAmount;
 
     const newInvoice = new SupplierInvoice({
       submissionId:  req.body.submissionId,
@@ -33,21 +34,24 @@ exports.submitInvoice = async (req, res) => {
       invoiceNumber: req.body.invoiceNumber,
       currency:      req.body.currency || 'IDR',
       terminName:    req.body.terminName || 'Full Payment',
+      
+      // Nominal
       amount:        baseAmount,
+      totalAmount:   totalAmount,
 
       // --- Customs Duty & Tax ---
       isTaxEnabled,
       taxAmount,
-      customsDutyEnabled,
-      customsDuty,
+      isImportEnabled,
+      importDutyAmount,
       customsDutyNote: req.body.customsDutyNote || '',
-      totalAmount,
 
       remarks:  req.body.remarks,
       file:     req.file ? req.file.filename : null,
       user:     userId,
       status:   'Pending Verification',
 
+      // Catat history awal
       statusHistory: [{
         status:        'Pending Verification',
         changedBy:     userId,
@@ -59,6 +63,7 @@ exports.submitInvoice = async (req, res) => {
 
     const submission = await newInvoice.save();
 
+    // Update status termin di PO jika termin
     if (req.body.terminName && req.body.terminName !== 'Full Payment') {
       await PurchaseOrder.findOneAndUpdate(
         { _id: req.body.poId, 'paymentTerms.description': req.body.terminName },
@@ -66,7 +71,11 @@ exports.submitInvoice = async (req, res) => {
       );
     }
 
-    res.status(201).json({ success: true, msg: 'Tagihan berhasil di-submit ke Finance', data: submission });
+    res.status(201).json({
+      success: true,
+      msg:  'Tagihan berhasil di-submit ke Finance',
+      data: submission
+    });
   } catch (error) {
     res.status(500).json({ msg: `Gagal simpan invoice: ${error.message}` });
   }
@@ -88,7 +97,7 @@ exports.getAllInvoices = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. UPDATE STATUS (Approve / Reject by Finance)
+// 3. UPDATE STATUS (Approve / Reject by Finance) + catat statusHistory
 // ─────────────────────────────────────────────────────────────────────────────
 exports.updateStatus = async (req, res) => {
   try {
@@ -141,7 +150,7 @@ exports.getPendingPayments = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. CONFIRM PAYMENT (Finance mark as Paid)
+// 5. CONFIRM PAYMENT (Finance mark as Paid) + catat statusHistory
 // ─────────────────────────────────────────────────────────────────────────────
 exports.confirmPayment = async (req, res) => {
   try {
@@ -197,7 +206,7 @@ exports.getInvoiceById = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. GET TRACK RECORD
+// 7. GET TRACK RECORD (semua invoice dengan filter opsional)
 // ─────────────────────────────────────────────────────────────────────────────
 exports.getInvoiceRecord = async (req, res) => {
   try {

@@ -17,24 +17,25 @@ const SupplierPaymentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showFile, setShowFile] = useState(false);
 
+  const fetchDetail = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`http://localhost:5000/api/supplier_invoices/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setInvoice(res.data);
+    } catch (err) {
+      console.error("Gagal load detail:", err);
+      Swal.fire('Error', 'Failed to load invoice detail', 'error');
+      navigate('/supplier-payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchDetail = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`http://localhost:5000/api/supplier_invoices/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setInvoice(res.data);
-      } catch (err) {
-        console.error("Gagal load detail:", err);
-        Swal.fire('Error', 'Failed to load invoice detail', 'error');
-        navigate('/supplier-payment');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDetail();
-  }, [id, navigate]);
+  }, [id]);
 
   const handleConfirmPayment = async () => {
     const result = await Swal.fire({
@@ -54,20 +55,13 @@ const SupplierPaymentDetail = () => {
         await axios.patch(`http://localhost:5000/api/supplier_invoices/${id}/confirm`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
         Swal.fire({
           icon: 'success',
           title: 'Payment Confirmed!',
           text: `Invoice ${invoice?.invoiceNumber} has been marked as PAID.`,
           confirmButtonColor: '#0f172a'
         });
-        
-        // Refresh data
-        const res = await axios.get(`http://localhost:5000/api/supplier_invoices/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setInvoice(res.data);
-        
+        fetchDetail();
       } catch (err) {
         Swal.fire({
           icon: 'error',
@@ -98,12 +92,22 @@ const SupplierPaymentDetail = () => {
 
   const formatRupiah = (value) => {
     if (!value) return '0';
-    return value.toLocaleString();
+    return Number(value).toLocaleString('id-ID');
   };
 
+  // FIX: file disimpan di uploads/documents/ bukan uploads/
   const getFileUrl = (filename) => {
     if (!filename) return null;
-    return `http://localhost:5000/uploads/${filename}`;
+    // Kalau filename sudah mengandung path lengkap, pakai apa adanya
+    if (filename.startsWith('http')) return filename;
+    if (filename.startsWith('/uploads')) return `http://localhost:5000${filename}`;
+    // Default: file ada di uploads/documents/
+    return `http://localhost:5000/uploads/documents/${filename}`;
+  };
+
+  const isPDF = (filename) => {
+    if (!filename) return false;
+    return filename.toLowerCase().endsWith('.pdf');
   };
 
   if (loading) {
@@ -130,7 +134,8 @@ const SupplierPaymentDetail = () => {
   }
 
   const isPending = invoice.status === 'Pending Verification';
-  const isPaid = invoice.status === 'Paid';
+  const isPaid    = invoice.status === 'Paid';
+  const fileUrl   = getFileUrl(invoice.file);
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
@@ -173,9 +178,13 @@ const SupplierPaymentDetail = () => {
         <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
           {getStatusBadge(invoice.status)}
           <div className="flex items-center gap-4 text-[9px] text-slate-500">
-            <span className="flex items-center gap-1"><Calendar size={12} /> Submitted: {new Date(invoice.createdAt).toLocaleDateString()}</span>
+            <span className="flex items-center gap-1">
+              <Calendar size={12} /> Submitted: {new Date(invoice.createdAt).toLocaleDateString('id-ID')}
+            </span>
             {invoice.paymentDate && (
-              <span className="flex items-center gap-1 text-emerald-600"><CheckCircle size={12} /> Paid: {new Date(invoice.paymentDate).toLocaleDateString()}</span>
+              <span className="flex items-center gap-1 text-emerald-600">
+                <CheckCircle size={12} /> Paid: {new Date(invoice.paymentDate).toLocaleDateString('id-ID')}
+              </span>
             )}
           </div>
         </div>
@@ -183,8 +192,9 @@ const SupplierPaymentDetail = () => {
         {/* MAIN CONTENT */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* LEFT COLUMN - DETAILS */}
+          {/* LEFT COLUMN */}
           <div className="lg:col-span-2 space-y-8">
+
             {/* Vendor & Project Info */}
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
               <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
@@ -234,43 +244,70 @@ const SupplierPaymentDetail = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[9px] font-black text-slate-400">Submitted By</span>
-                  <span className="text-[10px] font-bold text-slate-600">{invoice.user?.name || 'Procurement'}</span>
+                  <span className="text-[10px] font-bold text-slate-600">{invoice.user?.name || invoice.user?.username || 'Procurement'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[9px] font-black text-slate-400">Submitted Date</span>
-                  <span className="text-[10px] font-bold text-slate-600">{new Date(invoice.createdAt).toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-slate-600">{new Date(invoice.createdAt).toLocaleString('id-ID')}</span>
                 </div>
+                {invoice.dueDate && (
+                  <div className="flex justify-between">
+                    <span className="text-[9px] font-black text-slate-400">Due Date</span>
+                    <span className="text-[10px] font-bold text-amber-600">{new Date(invoice.dueDate).toLocaleDateString('id-ID')}</span>
+                  </div>
+                )}
+                {invoice.bankInfo && (
+                  <div className="flex justify-between">
+                    <span className="text-[9px] font-black text-slate-400">Bank Info</span>
+                    <span className="text-[10px] font-bold text-slate-600">{invoice.bankInfo}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* RIGHT COLUMN - SUMMARY & FILE */}
+          {/* RIGHT COLUMN */}
           <div className="space-y-6">
+
             {/* Financial Summary */}
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl sticky top-24">
               <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">
                 Financial Summary
               </h3>
-              
               <div className="space-y-3">
                 <div className="flex justify-between py-2 border-b border-white/10">
                   <span className="text-[10px] font-bold text-slate-300">Currency</span>
                   <span className="font-black text-white">{invoice.currency || 'IDR'}</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-[10px] font-bold text-slate-300">Billing Amount</span>
-                  <span className="font-black text-emerald-300">Rp {formatRupiah(invoice.amount)}</span>
+                  <span className="text-[10px] font-bold text-slate-300">Base Amount</span>
+                  <span className="font-black text-white">Rp {formatRupiah(invoice.amount)}</span>
                 </div>
+                {invoice.isTaxEnabled && invoice.taxAmount > 0 && (
+                  <div className="flex justify-between py-2 border-b border-white/10">
+                    <span className="text-[10px] font-bold text-slate-300">Tax</span>
+                    <span className="font-black text-amber-300">+ Rp {formatRupiah(invoice.taxAmount)}</span>
+                  </div>
+                )}
+                {invoice.customsDutyEnabled && invoice.customsDuty > 0 && (
+                  <div className="flex justify-between py-2 border-b border-white/10">
+                    <span className="text-[10px] font-bold text-slate-300">Customs Duty</span>
+                    <span className="font-black text-amber-300">+ Rp {formatRupiah(invoice.customsDuty)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between py-3 mt-2 bg-indigo-500/20 -mx-3 px-3 rounded-xl">
                   <span className="text-[11px] font-black text-indigo-300 uppercase tracking-wider">TOTAL</span>
-                  <span className="text-xl font-black text-indigo-300">Rp {formatRupiah(invoice.amount)}</span>
+                  <span className="text-xl font-black text-indigo-300">
+                    Rp {formatRupiah(invoice.totalAmount || invoice.amount)}
+                  </span>
                 </div>
               </div>
-              
               {isPaid && invoice.paymentDate && (
                 <div className="mt-4 pt-3 border-t border-white/10 text-center">
                   <p className="text-[8px] text-slate-400">Payment Date</p>
-                  <p className="text-[10px] font-bold text-emerald-300">{new Date(invoice.paymentDate).toLocaleDateString()}</p>
+                  <p className="text-[10px] font-bold text-emerald-300">
+                    {new Date(invoice.paymentDate).toLocaleDateString('id-ID')}
+                  </p>
                 </div>
               )}
             </div>
@@ -286,17 +323,38 @@ const SupplierPaymentDetail = () => {
                 <div className="p-5">
                   {showFile ? (
                     <div className="relative">
-                      <img 
-                        src={getFileUrl(invoice.file)} 
-                        alt="Invoice" 
-                        className="w-full rounded-xl border border-slate-200"
-                        onError={(e) => {
-                          e.target.src = 'https://placehold.co/600x400?text=File+Not+Found';
-                        }}
-                      />
+                      {isPDF(invoice.file) ? (
+                        // PDF: tampilkan dalam iframe
+                        <iframe
+                          src={fileUrl}
+                          title="Invoice PDF"
+                          className="w-full h-80 rounded-xl border border-slate-200"
+                        />
+                      ) : (
+                        // Gambar
+                        <img
+                          src={fileUrl}
+                          alt="Invoice"
+                          className="w-full rounded-xl border border-slate-200 object-contain"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      )}
+                      {/* Fallback jika gambar gagal load */}
+                      <div
+                        style={{ display: 'none' }}
+                        className="w-full h-40 bg-slate-100 rounded-xl border border-slate-200 flex-col items-center justify-center text-slate-400"
+                      >
+                        <FileText size={32} className="mb-2" />
+                        <p className="text-[9px] font-black uppercase tracking-widest">Gagal memuat file</p>
+                        <p className="text-[8px] mt-1">{invoice.file}</p>
+                      </div>
+
                       <button
                         onClick={() => setShowFile(false)}
-                        className="absolute top-2 right-2 p-2 bg-slate-900/80 text-white rounded-lg hover:bg-slate-900 transition-all"
+                        className="absolute top-2 right-2 p-2 bg-slate-900/80 text-white rounded-lg hover:bg-slate-900 transition-all text-xs font-black"
                       >
                         ✕
                       </button>
@@ -304,30 +362,35 @@ const SupplierPaymentDetail = () => {
                   ) : (
                     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
                       <div className="flex items-center gap-3">
-                        <FileText size={24} className="text-indigo-500" />
+                        <div className={`p-2 rounded-xl ${isPDF(invoice.file) ? 'bg-red-100' : 'bg-indigo-100'}`}>
+                          <FileText size={20} className={isPDF(invoice.file) ? 'text-red-500' : 'text-indigo-500'} />
+                        </div>
                         <div>
-                          <p className="text-[10px] font-black text-slate-700">{invoice.file}</p>
-                          <p className="text-[8px] text-slate-400">Uploaded invoice document</p>
+                          <p className="text-[10px] font-black text-slate-700 break-all">{invoice.file}</p>
+                          <p className="text-[8px] text-slate-400 mt-0.5">
+                            {isPDF(invoice.file) ? 'PDF Document' : 'Image File'}
+                          </p>
                         </div>
                       </div>
                       <button
                         onClick={() => setShowFile(true)}
-                        className="p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-all"
+                        className="p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-all flex-shrink-0"
+                        title="Preview file"
                       >
                         <Eye size={16} />
                       </button>
                     </div>
                   )}
-                  {showFile && (
-                    <a 
-                      href={getFileUrl(invoice.file)} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 rounded-xl text-[9px] font-black text-slate-600 hover:bg-slate-200 transition-all"
-                    >
-                      <Download size={12} /> Download Original
-                    </a>
-                  )}
+
+                  {/* Download button — selalu tampil */}
+                  <a
+                    href={fileUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[9px] font-black text-slate-600 transition-all"
+                  >
+                    <Download size={12} /> Download / Open in New Tab
+                  </a>
                 </div>
               </div>
             )}

@@ -3,9 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { 
-  ArrowLeft, Building2, FileText, DollarSign, Calendar, 
-  Clock, CheckCircle, AlertCircle, User, Package, 
-  Truck, Receipt, Download, Eye, CreditCard
+  Building2, FileText, Calendar, 
+  Clock, CheckCircle, User,
+  Download, Eye, CreditCard
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -95,13 +95,10 @@ const SupplierPaymentDetail = () => {
     return Number(value).toLocaleString('id-ID');
   };
 
-  // FIX: file disimpan di uploads/documents/ bukan uploads/
   const getFileUrl = (filename) => {
     if (!filename) return null;
-    // Kalau filename sudah mengandung path lengkap, pakai apa adanya
     if (filename.startsWith('http')) return filename;
     if (filename.startsWith('/uploads')) return `http://localhost:5000${filename}`;
-    // Default: file ada di uploads/documents/
     return `http://localhost:5000/uploads/documents/${filename}`;
   };
 
@@ -127,7 +124,9 @@ const SupplierPaymentDetail = () => {
         <div className="text-center">
           <FileText size={48} className="text-slate-300 mx-auto mb-4" />
           <p className="font-black text-slate-600 text-lg">Invoice not found</p>
-          <button onClick={() => navigate('/supplier-payment')} className="mt-4 text-indigo-600 underline text-sm">Back to List</button>
+          <button onClick={() => navigate('/supplier-payment')} className="mt-4 text-indigo-600 underline text-sm">
+            Back to List
+          </button>
         </div>
       </div>
     );
@@ -154,7 +153,9 @@ const SupplierPaymentDetail = () => {
             <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
               Supplier <span className="text-emerald-600">Invoice</span>
             </h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">{invoice.invoiceNumber}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+              {invoice.invoiceNumber}
+            </p>
           </div>
         </div>
         {isPending && (
@@ -189,7 +190,6 @@ const SupplierPaymentDetail = () => {
           </div>
         </div>
 
-        {/* MAIN CONTENT */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* LEFT COLUMN */}
@@ -220,6 +220,16 @@ const SupplierPaymentDetail = () => {
               </div>
             </div>
 
+            {/* Customs Duty Note */}
+            {invoice.isImportEnabled && invoice.customsDutyNote && (
+              <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100">
+                <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                  🛃 Customs / Import Duty Note
+                </p>
+                <p className="text-sm text-orange-700 font-medium">{invoice.customsDutyNote}</p>
+              </div>
+            )}
+
             {/* Remarks */}
             {invoice.remarks && (
               <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
@@ -244,16 +254,22 @@ const SupplierPaymentDetail = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[9px] font-black text-slate-400">Submitted By</span>
-                  <span className="text-[10px] font-bold text-slate-600">{invoice.user?.name || invoice.user?.username || 'Procurement'}</span>
+                  <span className="text-[10px] font-bold text-slate-600">
+                    {invoice.user?.name || invoice.user?.username || 'Procurement'}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-[9px] font-black text-slate-400">Submitted Date</span>
-                  <span className="text-[10px] font-bold text-slate-600">{new Date(invoice.createdAt).toLocaleString('id-ID')}</span>
+                  <span className="text-[10px] font-bold text-slate-600">
+                    {new Date(invoice.createdAt).toLocaleString('id-ID')}
+                  </span>
                 </div>
                 {invoice.dueDate && (
                   <div className="flex justify-between">
                     <span className="text-[9px] font-black text-slate-400">Due Date</span>
-                    <span className="text-[10px] font-bold text-amber-600">{new Date(invoice.dueDate).toLocaleDateString('id-ID')}</span>
+                    <span className="text-[10px] font-bold text-amber-600">
+                      {new Date(invoice.dueDate).toLocaleDateString('id-ID')}
+                    </span>
                   </div>
                 )}
                 {invoice.bankInfo && (
@@ -275,26 +291,35 @@ const SupplierPaymentDetail = () => {
                 Financial Summary
               </h3>
               <div className="space-y-3">
+
                 <div className="flex justify-between py-2 border-b border-white/10">
                   <span className="text-[10px] font-bold text-slate-300">Currency</span>
                   <span className="font-black text-white">{invoice.currency || 'IDR'}</span>
                 </div>
+
+                {/* Base amount */}
                 <div className="flex justify-between py-2 border-b border-white/10">
                   <span className="text-[10px] font-bold text-slate-300">Base Amount</span>
                   <span className="font-black text-white">Rp {formatRupiah(invoice.amount)}</span>
                 </div>
+
+                {/* Tax — pakai isTaxEnabled & taxAmount */}
                 {invoice.isTaxEnabled && invoice.taxAmount > 0 && (
                   <div className="flex justify-between py-2 border-b border-white/10">
-                    <span className="text-[10px] font-bold text-slate-300">Tax</span>
+                    <span className="text-[10px] font-bold text-slate-300">PPN / Tax</span>
                     <span className="font-black text-amber-300">+ Rp {formatRupiah(invoice.taxAmount)}</span>
                   </div>
                 )}
-                {invoice.customsDutyEnabled && invoice.customsDuty > 0 && (
+
+                {/* Import / Customs Duty — pakai isImportEnabled & importDutyAmount */}
+                {invoice.isImportEnabled && invoice.importDutyAmount > 0 && (
                   <div className="flex justify-between py-2 border-b border-white/10">
-                    <span className="text-[10px] font-bold text-slate-300">Customs Duty</span>
-                    <span className="font-black text-amber-300">+ Rp {formatRupiah(invoice.customsDuty)}</span>
+                    <span className="text-[10px] font-bold text-slate-300">Bea Masuk / Import Duty</span>
+                    <span className="font-black text-orange-300">+ Rp {formatRupiah(invoice.importDutyAmount)}</span>
                   </div>
                 )}
+
+                {/* Grand Total */}
                 <div className="flex justify-between py-3 mt-2 bg-indigo-500/20 -mx-3 px-3 rounded-xl">
                   <span className="text-[11px] font-black text-indigo-300 uppercase tracking-wider">TOTAL</span>
                   <span className="text-xl font-black text-indigo-300">
@@ -302,6 +327,7 @@ const SupplierPaymentDetail = () => {
                   </span>
                 </div>
               </div>
+
               {isPaid && invoice.paymentDate && (
                 <div className="mt-4 pt-3 border-t border-white/10 text-center">
                   <p className="text-[8px] text-slate-400">Payment Date</p>
@@ -324,14 +350,12 @@ const SupplierPaymentDetail = () => {
                   {showFile ? (
                     <div className="relative">
                       {isPDF(invoice.file) ? (
-                        // PDF: tampilkan dalam iframe
                         <iframe
                           src={fileUrl}
                           title="Invoice PDF"
                           className="w-full h-80 rounded-xl border border-slate-200"
                         />
                       ) : (
-                        // Gambar
                         <img
                           src={fileUrl}
                           alt="Invoice"
@@ -342,7 +366,6 @@ const SupplierPaymentDetail = () => {
                           }}
                         />
                       )}
-                      {/* Fallback jika gambar gagal load */}
                       <div
                         style={{ display: 'none' }}
                         className="w-full h-40 bg-slate-100 rounded-xl border border-slate-200 flex-col items-center justify-center text-slate-400"
@@ -351,7 +374,6 @@ const SupplierPaymentDetail = () => {
                         <p className="text-[9px] font-black uppercase tracking-widest">Gagal memuat file</p>
                         <p className="text-[8px] mt-1">{invoice.file}</p>
                       </div>
-
                       <button
                         onClick={() => setShowFile(false)}
                         className="absolute top-2 right-2 p-2 bg-slate-900/80 text-white rounded-lg hover:bg-slate-900 transition-all text-xs font-black"
@@ -374,15 +396,13 @@ const SupplierPaymentDetail = () => {
                       </div>
                       <button
                         onClick={() => setShowFile(true)}
-                        className="p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-all flex-shrink-0"
+                        className="p-2 bg-indigo-100 text-indigo-600 rounded-lg hover:bg-indigo-200 transition-all shrink-0"
                         title="Preview file"
                       >
                         <Eye size={16} />
                       </button>
                     </div>
                   )}
-
-                  {/* Download button — selalu tampil */}
                   <a
                     href={fileUrl}
                     target="_blank"

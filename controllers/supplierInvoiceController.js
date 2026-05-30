@@ -1,5 +1,5 @@
 const SupplierInvoice = require('../models/SupplierInvoice');
-const PurchaseOrder = require('../models/PurchaseOrder');
+const PurchaseOrder   = require('../models/PurchaseOrder');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. SUBMIT TAGIHAN (Procurement Side)
@@ -14,44 +14,33 @@ exports.submitInvoice = async (req, res) => {
       return res.status(400).json({ msg: `Nomor Tagihan ${req.body.invoiceNumber} sudah ada di sistem!` });
     }
 
-    // --- Parse Bea Masuk (Import Duty) & Tax ---
-    // Sesuaikan variabel dengan yang dikirim Frontend: isImportEnabled & importDutyAmount
     const isImportEnabled  = req.body.isImportEnabled === 'true' || req.body.isImportEnabled === true;
     const importDutyAmount = isImportEnabled ? (Number(req.body.importDutyAmount) || 0) : 0;
-    
     const isTaxEnabled     = req.body.isTaxEnabled === 'true' || req.body.isTaxEnabled === true;
     const taxAmount        = isTaxEnabled ? (Number(req.body.taxAmount) || 0) : 0;
-    
     const baseAmount       = Number(req.body.amount) || 0;
     const totalAmount      = baseAmount + importDutyAmount + taxAmount;
 
     const newInvoice = new SupplierInvoice({
-      submissionId:  req.body.submissionId,
-      poId:          req.body.poId,
-      poNumber:      req.body.poNumber,
-      projectId:     req.body.projectId,
-      vendorName:    req.body.vendorName,
-      invoiceNumber: req.body.invoiceNumber,
-      currency:      req.body.currency || 'IDR',
-      terminName:    req.body.terminName || 'Full Payment',
-      
-      // Nominal
-      amount:        baseAmount,
-      totalAmount:   totalAmount,
-
-      // --- Customs Duty & Tax ---
+      submissionId:    req.body.submissionId,
+      poId:            req.body.poId,
+      poNumber:        req.body.poNumber,
+      projectId:       req.body.projectId,
+      vendorName:      req.body.vendorName,
+      invoiceNumber:   req.body.invoiceNumber,
+      currency:        req.body.currency || 'IDR',
+      terminName:      req.body.terminName || 'Full Payment',
+      amount:          baseAmount,
+      totalAmount,
       isTaxEnabled,
       taxAmount,
       isImportEnabled,
       importDutyAmount,
       customsDutyNote: req.body.customsDutyNote || '',
-
-      remarks:  req.body.remarks,
-      file:     req.file ? req.file.filename : null,
-      user:     userId,
-      status:   'Pending Verification',
-
-      // Catat history awal
+      remarks:         req.body.remarks,
+      file:            req.file ? req.file.filename : null,
+      user:            userId,
+      status:          'Pending Verification',
       statusHistory: [{
         status:        'Pending Verification',
         changedBy:     userId,
@@ -63,7 +52,6 @@ exports.submitInvoice = async (req, res) => {
 
     const submission = await newInvoice.save();
 
-    // Update status termin di PO jika termin
     if (req.body.terminName && req.body.terminName !== 'Full Payment') {
       await PurchaseOrder.findOneAndUpdate(
         { _id: req.body.poId, 'paymentTerms.description': req.body.terminName },
@@ -71,11 +59,7 @@ exports.submitInvoice = async (req, res) => {
       );
     }
 
-    res.status(201).json({
-      success: true,
-      msg:  'Tagihan berhasil di-submit ke Finance',
-      data: submission
-    });
+    res.status(201).json({ success: true, msg: 'Tagihan berhasil di-submit ke Finance', data: submission });
   } catch (error) {
     res.status(500).json({ msg: `Gagal simpan invoice: ${error.message}` });
   }
@@ -97,7 +81,7 @@ exports.getAllInvoices = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. UPDATE STATUS (Approve / Reject by Finance) + catat statusHistory
+// 3. UPDATE STATUS (Approve / Reject by Finance)
 // ─────────────────────────────────────────────────────────────────────────────
 exports.updateStatus = async (req, res) => {
   try {
@@ -114,10 +98,7 @@ exports.updateStatus = async (req, res) => {
 
     const invoice = await SupplierInvoice.findByIdAndUpdate(
       req.params.id,
-      {
-        status: req.body.status,
-        $push: { statusHistory: historyEntry }
-      },
+      { status: req.body.status, $push: { statusHistory: historyEntry } },
       { new: true }
     );
 
@@ -139,9 +120,8 @@ exports.updateStatus = async (req, res) => {
 // ─────────────────────────────────────────────────────────────────────────────
 exports.getPendingPayments = async (req, res) => {
   try {
-    const pendingInvoices = await SupplierInvoice.find({
-      status: 'Pending Verification'
-    }).sort({ createdAt: 1 });
+    const pendingInvoices = await SupplierInvoice.find({ status: 'Pending Verification' })
+      .sort({ createdAt: 1 });
     res.json(pendingInvoices);
   } catch (err) {
     console.error('Error get pending payments:', err);
@@ -150,7 +130,7 @@ exports.getPendingPayments = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. CONFIRM PAYMENT (Finance mark as Paid) + catat statusHistory
+// 5. CONFIRM PAYMENT (Finance mark as Paid)
 // ─────────────────────────────────────────────────────────────────────────────
 exports.confirmPayment = async (req, res) => {
   try {
@@ -167,21 +147,13 @@ exports.confirmPayment = async (req, res) => {
 
     const invoice = await SupplierInvoice.findByIdAndUpdate(
       req.params.id,
-      {
-        status:      'Paid',
-        paymentDate: new Date(),
-        $push: { statusHistory: historyEntry }
-      },
+      { status: 'Paid', paymentDate: new Date(), $push: { statusHistory: historyEntry } },
       { new: true }
     );
 
     if (!invoice) return res.status(404).json({ msg: 'Invoice tidak ditemukan' });
 
-    res.json({
-      success: true,
-      msg:  'Payment confirmed successfully',
-      data: invoice
-    });
+    res.json({ success: true, msg: 'Payment confirmed successfully', data: invoice });
   } catch (err) {
     console.error('Error confirm payment:', err);
     res.status(500).json({ msg: err.message });
@@ -190,23 +162,27 @@ exports.confirmPayment = async (req, res) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 6. GET BY ID
+// FIX: hapus populate('statusHistory.changedBy') → StrictPopulateError
+//      karena changedBy di statusHistory bukan ObjectId ref di schema
 // ─────────────────────────────────────────────────────────────────────────────
 exports.getInvoiceById = async (req, res) => {
   try {
     const invoice = await SupplierInvoice.findById(req.params.id)
-      .populate('user', 'name')
-      .populate('statusHistory.changedBy', 'name');
+      .populate('user', 'name username'); // hanya populate 'user' yang ada di schema
 
     if (!invoice) return res.status(404).json({ msg: 'Invoice tidak ditemukan' });
     res.json(invoice);
   } catch (err) {
     console.error('Error get invoice by id:', err);
+    if (err.name === 'CastError') {
+      return res.status(400).json({ msg: 'Format ID tidak valid' });
+    }
     res.status(500).json({ msg: err.message });
   }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. GET TRACK RECORD (semua invoice dengan filter opsional)
+// 7. GET TRACK RECORD
 // ─────────────────────────────────────────────────────────────────────────────
 exports.getInvoiceRecord = async (req, res) => {
   try {

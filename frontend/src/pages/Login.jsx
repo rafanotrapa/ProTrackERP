@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, ArrowRight, ShieldCheck, Building2, Eye, EyeOff, Sparkles } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { Lock, Mail, ArrowRight, ShieldCheck, Building2, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -25,9 +26,53 @@ const Login = () => {
       });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Berhasil!',
+        text: `Selamat datang, ${res.data.user.username}`,
+        timer: 1500,
+        showConfirmButton: false,
+        background: '#ffffff',
+        color: '#1e293b'
+      });
+      
       navigate('/dashboard'); 
     } catch (err) {
-      alert(err.response?.data?.msg || 'Login Gagal! Cek kredensial.');
+      const errorMsg = err.response?.data?.msg || 'Login Gagal!';
+      const isLocked = err.response?.data?.isLocked;
+      const remainingAttempts = err.response?.data?.remainingAttempts;
+      
+      if (isLocked) {
+        Swal.fire({
+          icon: 'error',
+          title: 'AKUN DIBLOKIR',
+          html: `<p class="text-slate-700">${errorMsg}</p>
+                 <p class="text-slate-500 text-sm mt-2">Silakan hubungi Administrator untuk membuka blokir akun Anda.</p>`,
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#4f46e5',
+          background: '#ffffff'
+        });
+      } else if (remainingAttempts !== undefined && remainingAttempts > 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'PASSWORD SALAH!',
+          html: `<p class="text-slate-700">${errorMsg}</p>
+                 <p class="text-amber-600 text-sm font-bold mt-2">⚠️ Sisa ${remainingAttempts} kesempatan lagi sebelum akun diblokir.</p>`,
+          confirmButtonText: 'Coba Lagi',
+          confirmButtonColor: '#4f46e5',
+          background: '#ffffff'
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Login Gagal!',
+          text: errorMsg,
+          confirmButtonText: 'Coba Lagi',
+          confirmButtonColor: '#4f46e5',
+          background: '#ffffff'
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -109,6 +154,13 @@ const Login = () => {
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+              </div>
+
+              {/* Forgot Password Link */}
+              <div className="text-right">
+                <a href="/forgot-password" className="text-[9px] font-bold text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-wider">
+                  Forgot Password?
+                </a>
               </div>
 
               <button 

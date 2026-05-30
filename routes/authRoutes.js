@@ -1,26 +1,29 @@
 const express = require('express');
 const router = express.Router();
 
-// IMPORT MIDDLEWARE (Pastikan nama file di folder middleware adalah auth.js)
 const { protect, admin } = require('../middleware/auth'); 
 
-// IMPORT CONTROLLER
 const { 
   register, 
   login, 
   getAllUsers, 
   deleteUser, 
-  adminResetPassword 
+  adminResetPassword,
+  adminUnlockAccount,    // 🆕
+  forgotPassword,
+  resetPassword
 } = require('../controllers/authController');
 
 // --- PUBLIC ROUTES ---
 router.post('/login', login);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password/:token', resetPassword);
 
 // --- PRIVATE ROUTES (ADMIN ONLY) ---
-// Register, Get Users, Delete, & Reset Password cuma bisa diakses Admin
 router.post('/register', protect, admin, register);
 router.get('/users', protect, admin, getAllUsers);
 router.delete('/user/:id', protect, admin, deleteUser);
 router.patch('/reset-admin/:id', protect, admin, adminResetPassword);
+router.patch('/unlock/:id', protect, admin, adminUnlockAccount); // 🆕 Buka blokir akun
 
 module.exports = router;

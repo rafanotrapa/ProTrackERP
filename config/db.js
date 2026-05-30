@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    // Kita biarin MONGO_URI nya standar, 
-    // tapi kita kasih instruksi tambahan "dbName" di sini
+
     await mongoose.connect(process.env.MONGO_URI, {
       dbName: 'protrack_erp' 
     });

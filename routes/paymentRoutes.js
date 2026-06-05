@@ -8,7 +8,7 @@ const {
   getPaymentById, 
   verifyPayment 
 } = require('../controllers/paymentController');
-const { protect } = require('../middleware/auth'); // ← DIUBAH: ambil protect dari named export
+const { protect } = require('../middleware/auth');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
@@ -16,13 +16,10 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// JALUR MARKETING (Input Payment)
-router.get('/invoices', protect, getInvoicesForPayment);           // ← auth diganti protect
-router.post('/', protect, upload.single('evidence'), createPayment); // ← auth diganti protect
-
-// JALUR FINANCE (Verification)
-router.get('/all', protect, getAllPayments);                       // ← auth diganti protect
-router.get('/detail/:id', protect, getPaymentById);                // ← auth diganti protect
-router.patch('/verify', protect, verifyPayment);                   // ← auth diganti protect
+router.get('/invoices', protect, getInvoicesForPayment);    
+router.post('/', protect, upload.single('evidence'), createPayment); 
+router.get('/all', protect, getAllPayments);                       
+router.get('/detail/:id', protect, getPaymentById);               
+router.patch('/verify', protect, verifyPayment);                
 
 module.exports = router;

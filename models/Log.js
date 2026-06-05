@@ -9,7 +9,7 @@ const LogSchema = new mongoose.Schema({
   timestamp: { 
     type: Date, 
     default: Date.now,
-    expires: '7d' // <-- PELURU KENDALINYA DI SINI! (Otomatis hapus setelah 7 hari)
+    expires: '7d' 
   }
 });
 

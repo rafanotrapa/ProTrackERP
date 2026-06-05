@@ -1,7 +1,6 @@
 const Payment = require('../models/Payment');
 const ClientInvoice = require('../models/CreateInvoice');
-
-// 1. Ambil data Invoice Unpaid (Marketing dropdown)
+ 
 exports.getInvoicesForPayment = async (req, res) => {
   try {
     const invoices = await ClientInvoice.find({ status: 'Unpaid' });
@@ -11,7 +10,6 @@ exports.getInvoicesForPayment = async (req, res) => {
   }
 };
 
-// 2. Submit Bukti Pembayaran Baru (Marketing side)
 exports.createPayment = async (req, res) => {
   try {
     const { invoiceId, amountPaid, paymentDate, remarks } = req.body;
@@ -32,7 +30,6 @@ exports.createPayment = async (req, res) => {
   }
 };
 
-// 3. List Semua Payment (Finance list page)
 exports.getAllPayments = async (req, res) => {
   try {
     const payments = await Payment.find()
@@ -44,7 +41,6 @@ exports.getAllPayments = async (req, res) => {
   }
 };
 
-// 4. Detail Satu Payment (Finance detail page)
 exports.getPaymentById = async (req, res) => {
   try {
     const payment = await Payment.findById(req.params.id).populate('invoiceId');
@@ -55,7 +51,6 @@ exports.getPaymentById = async (req, res) => {
   }
 };
 
-// 5. Verifikasi & Update Status Invoice (Finance save button)
 exports.verifyPayment = async (req, res) => {
   try {
     const { paymentId, status } = req.body; 

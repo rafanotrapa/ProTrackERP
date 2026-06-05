@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const ItemSchema = new mongoose.Schema({
   itemId: { type: String, required: true, unique: true },
   itemName: { type: String, required: true },
-  unit: { type: String, default: 'Pcs' }, // Pcs, Box, Lot, Meter
+  unit: { type: String, default: 'Pcs' },
   specifications: String,
   category: String,
   vendorName: String, 

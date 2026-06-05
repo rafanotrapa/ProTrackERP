@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const Item = require('../models/Item');
 
-// Ini untuk GET (Ambil data buat tabel)
 router.get('/', async (req, res) => {
   try {
     const items = await Item.find().sort({ createdAt: -1 });
@@ -12,16 +11,14 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Ini untuk POST (Simpan data dari form)
 router.post('/', async (req, res) => {
   try {
-    // Generate Item ID Otomatis (Contoh: ITM-8372)
     const randomID = Math.floor(1000 + Math.random() * 9000);
     const generatedID = `ITM-${randomID}`;
 
     const newItem = new Item({
       ...req.body,
-      itemId: generatedID // Masukin ID-nya di sini biar gak error required
+      itemId: generatedID 
     });
 
     await newItem.save();
@@ -32,4 +29,4 @@ router.post('/', async (req, res) => {
   }
 });
 
-module.exports = router; // <-- CEK INI, JANGAN SAMPE TYPO/ILANG
+module.exports = router;

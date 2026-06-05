@@ -4,8 +4,8 @@ const ProjectSchema = new mongoose.Schema({
   // --- IDENTITY ---
   projectId: { type: String, required: true, unique: true },
   projectName: { type: String, required: true },
-  institutionName: { type: String, required: true },  // Wajib untuk institusi (BIN, TNI, Polri)
-  clientCompany: { type: String },  // 🆕 Opsional untuk PT/CV swasta
+  institutionName: { type: String, required: true },  
+  clientCompany: { type: String },  
   clientName: { type: String, required: true },
   clientContact: { type: String },
   clientAddress: { type: String },
@@ -22,7 +22,7 @@ const ProjectSchema = new mongoose.Schema({
     default: 'auto'
   },
 
-  // --- PROGRESS TRACKING (Step-by-Step) ---
+  // --- PROGRESS TRACKING ---
   isDPPaid: { type: Boolean, default: false },
   isItemsReceived: { type: Boolean, default: false },
   isItemsDelivered: { type: Boolean, default: false },

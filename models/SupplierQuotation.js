@@ -16,7 +16,7 @@ const SupplierQuotationSchema = new mongoose.Schema({
   additionalFeeRemarks: { type: String }, 
   
   isTaxIncluded: { type: Boolean, default: false }, 
-  taxAmount: { type: Number, default: 0 }, // Cuma pakai nominal murni
+  taxAmount: { type: Number, default: 0 },
   
   currency: { type: String, default: 'IDR' },
   topOption: { type: String },

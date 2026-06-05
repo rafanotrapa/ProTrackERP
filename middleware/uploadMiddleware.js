@@ -1,16 +1,12 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-
-// 1. GUNAKAN ABSOLUTE PATH BIAR GAK NYASAR
 const uploadDir = path.join(__dirname, '../uploads/documents');
 
-// 2. AUTO-CREATE FOLDER (Safety Net)
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Konfigurasi Penyimpanan (Disk Storage)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir); 
@@ -21,7 +17,6 @@ const storage = multer.diskStorage({
   }
 });
 
-// Filter Format File (Security Match)
 const fileFilter = (req, file, cb) => {
   const allowedFileTypes = /jpeg|jpg|png|pdf/;
   const extname = allowedFileTypes.test(path.extname(file.originalname).toLowerCase());
@@ -34,7 +29,6 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// Inisialisasi Multer
 const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // Limit 5MB

@@ -11,8 +11,6 @@ const VendorSchema = new mongoose.Schema({
   address: String,
   bankAccount: String, 
   category: { type: String, default: 'General' }, 
-  
-  // Langsung diset Approved dari awal
   approvalStatus: { 
     type: String, 
     enum: ['Pending', 'Approved', 'Rejected'], 

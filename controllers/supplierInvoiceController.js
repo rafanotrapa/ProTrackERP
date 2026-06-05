@@ -2,7 +2,7 @@ const SupplierInvoice = require('../models/SupplierInvoice');
 const PurchaseOrder   = require('../models/PurchaseOrder');
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. SUBMIT TAGIHAN (Procurement Side)
+// 1. SUBMIT TAGIHAN
 // ─────────────────────────────────────────────────────────────────────────────
 exports.submitInvoice = async (req, res) => {
   try {
@@ -66,7 +66,7 @@ exports.submitInvoice = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. LIST SEMUA INVOICE (Finance Side)
+// 2. LIST SEMUA INVOICE
 // ─────────────────────────────────────────────────────────────────────────────
 exports.getAllInvoices = async (req, res) => {
   try {
@@ -81,7 +81,7 @@ exports.getAllInvoices = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. UPDATE STATUS (Approve / Reject by Finance)
+// 3. UPDATE STATUS
 // ─────────────────────────────────────────────────────────────────────────────
 exports.updateStatus = async (req, res) => {
   try {
@@ -130,7 +130,7 @@ exports.getPendingPayments = async (req, res) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. CONFIRM PAYMENT (Finance mark as Paid)
+// 5. CONFIRM PAYMENT
 // ─────────────────────────────────────────────────────────────────────────────
 exports.confirmPayment = async (req, res) => {
   try {
@@ -162,13 +162,11 @@ exports.confirmPayment = async (req, res) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 6. GET BY ID
-// FIX: hapus populate('statusHistory.changedBy') → StrictPopulateError
-//      karena changedBy di statusHistory bukan ObjectId ref di schema
 // ─────────────────────────────────────────────────────────────────────────────
 exports.getInvoiceById = async (req, res) => {
   try {
     const invoice = await SupplierInvoice.findById(req.params.id)
-      .populate('user', 'name username'); // hanya populate 'user' yang ada di schema
+      .populate('user', 'name username'); 
 
     if (!invoice) return res.status(404).json({ msg: 'Invoice tidak ditemukan' });
     res.json(invoice);

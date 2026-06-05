@@ -15,22 +15,18 @@ const {
   getMyQuotations  
 } = require('../controllers/clientQuotationController');
 
-// --- CREATE & UPDATE DRAFT ---
+
 router.post('/', protect, createQuotation);
 router.patch('/:id/items', protect, updateQuotationItems);
 router.put('/:id/submit', protect, submitQuotation);
 
-// --- GET ROUTES (STATIS - TARUH DI ATAS YANG DINAMIS) ---
-router.get('/my-quotations', protect, getMyQuotations);        // ← PINDAHKAN KE SINI
+
+router.get('/my-quotations', protect, getMyQuotations);  
 router.get('/pending', protect, getPendingApprovals);
 router.get('/project/:projectId', protect, getQuotationByProject);
 router.get('/draft/:projectId', protect, getDraftByProject);
 router.get('/', protect, getAllQuotations);
-
-// --- ROUTE DINAMIS (TARUH PALING BAWAH) ---
 router.get('/:id', protect, getQuotationById);
-
-// --- APPROVAL & REVISION ---
 router.patch('/:id/approve', protect, approveQuotation);
 router.patch('/:id/revision', protect, updateApprovedQuotation);
 

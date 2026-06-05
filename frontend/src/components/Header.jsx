@@ -22,7 +22,7 @@ const Header = () => {
         <div className="p-2 font-black italic text-white bg-indigo-600 shadow-lg rounded-xl shadow-indigo-500/20">PT</div>
         <div>
           <h1 className="text-xl font-black italic uppercase tracking-tighter text-white leading-none">
-            PROTRACK <span className="text-xs not-italic tracking-widest text-indigo-400 ml-1">ERP</span>
+            ProTrack <span className="text-xs not-italic tracking-widest text-indigo-400 ml-1">ERP</span>
           </h1>
           <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Enterprise Resource Planning</p>
         </div>

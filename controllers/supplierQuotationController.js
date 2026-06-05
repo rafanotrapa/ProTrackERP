@@ -1,6 +1,5 @@
 const SupplierQuotation = require('../models/SupplierQuotation');
 
-// 1. Fungsi Create
 exports.createQuotation = async (req, res) => {
   try {
     const { 
@@ -29,7 +28,6 @@ exports.createQuotation = async (req, res) => {
     const cleanAdditionalFee = Number(String(additionalFee || '0').replace(/[^0-9]/g, '')) || 0;
     const taxBool = isTaxIncluded === 'true' || isTaxIncluded === true;
     
-    // TANGKAP NOMINAL TAX MURNI
     const cleanTaxAmount = taxBool ? (Number(String(taxAmount || '0').replace(/[^0-9]/g, '')) || 0) : 0;
 
     const documentUrl = req.file ? `/uploads/documents/${req.file.filename}` : '';
@@ -60,7 +58,6 @@ exports.createQuotation = async (req, res) => {
   }
 };
 
-// 2. Fungsi Get All
 exports.getAllQuotations = async (req, res) => {
   try {
     const data = await SupplierQuotation.find().sort({ timestamp: -1 });
@@ -70,7 +67,6 @@ exports.getAllQuotations = async (req, res) => {
   }
 };
 
-// 3. FUNGSI GET PENDING APPROVALS
 exports.getPendingApprovals = async (req, res) => {
   try {
     const pendingQuotes = await SupplierQuotation.find({ 
@@ -83,7 +79,6 @@ exports.getPendingApprovals = async (req, res) => {
   }
 };
 
-// 4. Fungsi Get by Project ID
 exports.getQuotationByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -101,7 +96,6 @@ exports.getQuotationByProject = async (req, res) => {
   }
 };
 
-// 5. Fungsi Get by ID
 exports.getQuotationById = async (req, res) => {
   try {
     const quotation = await SupplierQuotation.findById(req.params.id);
@@ -115,7 +109,6 @@ exports.getQuotationById = async (req, res) => {
   }
 };
 
-// 6. Fungsi Approve/Reject Quotation
 exports.approveQuotation = async (req, res) => {
   try {
     const { status, rejectionReason } = req.body;
@@ -139,7 +132,6 @@ exports.approveQuotation = async (req, res) => {
   }
 };
 
-// 7. UPDATE QUOTATION ITEMS
 exports.updateQuotationItems = async (req, res) => {
   try {
     const { id } = req.params;
@@ -152,7 +144,6 @@ exports.updateQuotationItems = async (req, res) => {
   }
 };
 
-// 8. GET DRAFT BY PROJECT ID
 exports.getDraftByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -164,7 +155,6 @@ exports.getDraftByProject = async (req, res) => {
   }
 };
 
-// 9. SUBMIT DRAFT FOR APPROVAL
 exports.submitQuotation = async (req, res) => {
   try {
     const { id } = req.params;

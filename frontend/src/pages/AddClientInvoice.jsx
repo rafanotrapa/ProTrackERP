@@ -32,7 +32,6 @@ const AddClientInvoice = () => {
     taxPercentage: 0
   });
 
-  // Fetch available quotations (client quotation yang sudah APPROVED)
   useEffect(() => {
     const fetchQuotes = async () => {
       try {

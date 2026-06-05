@@ -62,7 +62,7 @@ exports.register = async (req, res) => {
 };
 
 // ============================================================
-// 2. LOGIN (Dengan fitur blokir 3x salah)
+// 2. LOGIN
 // ============================================================
 exports.login = async (req, res) => {
   try {
@@ -73,7 +73,6 @@ exports.login = async (req, res) => {
       return res.status(401).json({ msg: 'Email atau password salah!' });
     }
 
-    // 🔒 Cek apakah akun sedang terblokir
     if (user.isLocked && user.lockedUntil > Date.now()) {
       const remainingMinutes = Math.ceil((user.lockedUntil - Date.now()) / 60000);
       return res.status(423).json({ 
@@ -83,7 +82,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Jika blokir sudah kadaluarsa, reset status
     if (user.isLocked && user.lockedUntil <= Date.now()) {
       await resetLoginAttempts(user._id);
       user.isLocked = false;
@@ -93,16 +91,14 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     
     if (!isMatch) {
-      // Increment login attempts
       user.loginAttempts = (user.loginAttempts || 0) + 1;
       user.lastLoginAttempt = new Date();
       
       const remainingAttempts = 3 - user.loginAttempts;
       
-      // Jika sudah 3x salah, blokir akun
       if (user.loginAttempts >= 3) {
         user.isLocked = true;
-        user.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); // Blokir 30 menit (atau permanen sampai admin buka)
+        user.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); 
         await user.save();
         
         await Log.create({
@@ -127,7 +123,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Login berhasil - reset login attempts
     await resetLoginAttempts(user._id);
 
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
@@ -216,7 +211,6 @@ exports.adminResetPassword = async (req, res) => {
     user.lockedUntil = null;
     await user.save();
 
-    // 🔥 PERBAIKAN: Tambahkan user yang valid
     try {
       await Log.create({
         user: req.user.username,
@@ -250,17 +244,15 @@ exports.adminUnlockAccount = async (req, res) => {
     user.lockedUntil = null;
     await user.save();
 
-    // 🔥 PERBAIKAN: Tambahkan user dan action yang valid untuk Log
     try {
       await Log.create({
-        user: req.user.username,  // Username dari Admin yang melakukan unlock
+        user: req.user.username, 
         action: `UNLOCKED ACCOUNT FOR: ${user.username}`,
         category: 'ACCOUNT',
         type: 'SECURITY'
       });
     } catch (logErr) {
       console.error("⚠️ Gagal mencatat log unlock:", logErr.message);
-      // Jangan gagalkan proses unlock hanya karena log error
     }
 
     res.json({ msg: `Akun ${user.username} berhasil dibuka!` });

@@ -104,7 +104,7 @@ function App() {
           <Route path="/supplier-quotation-menu" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><SupplierQuotationMenu /></ProtectedRoute>} />
           <Route path="/supplier-quotation-record" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><SupplierQuotationRecord /></ProtectedRoute>} />
           <Route path="/add-supplier-quotation" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><AddSupplierQuotation /></ProtectedRoute>} />
-          <Route path="/receive-qc" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><ReceiveQCGoods /></ProtectedRoute>} />
+          
           <Route path="/po-menu" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><POMenu /></ProtectedRoute>} />
           <Route path="/po-record" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><PORecord /></ProtectedRoute>} />
           <Route path="/create-po" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><CreatePO /></ProtectedRoute>} />

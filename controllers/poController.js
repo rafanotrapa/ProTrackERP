@@ -2,7 +2,6 @@ const PurchaseOrder = require('../models/PurchaseOrder');
 const SupplierQuotation = require('../models/SupplierQuotation');
 const Vendor = require('../models/Vendor'); 
 
-// 1. CREATE PO (Procurement)
 exports.createPO = async (req, res) => {
   try {
     const { poNumber, quotationId, shippingAddress } = req.body; 
@@ -10,7 +9,6 @@ exports.createPO = async (req, res) => {
     const quote = await SupplierQuotation.findById(quotationId);
     if (!quote) return res.status(404).json({ msg: 'Quotation dasar tidak ditemukan!' });
 
-    // CARI OBJECT ID ASLI DARI VENDOR
     let realVendorObjectId = null;
     if (quote.vendorId) {
         const vendorData = await Vendor.findOne({ vendorId: quote.vendorId });
@@ -19,13 +17,11 @@ exports.createPO = async (req, res) => {
         }
     }
 
-    // HITUNG SUBTOTAL BARANG
     let subTotal = 0;
     if (quote.items && quote.items.length > 0) {
        subTotal = quote.items.reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 1)), 0);
     }
     
-    // AMBIL ADDITIONAL FEE & PAJAK DARI QUOTATION & HITUNG GRAND TOTAL
     const addFee = quote.additionalFee || 0;
     const taxAmt = quote.taxAmount || 0;
     const grandTotal = subTotal + addFee + taxAmt;
@@ -37,11 +33,11 @@ exports.createPO = async (req, res) => {
       vendorId: realVendorObjectId, 
       items: quote.items, 
       additionalFee: addFee,
-      additionalFeeRemarks: quote.additionalFeeRemarks, // <-- Warisan Keterangan Fee
-      isTaxIncluded: quote.isTaxIncluded,               // <-- Warisan PPN Status
-      taxPercentage: quote.taxPercentage,               // <-- Warisan Persentase PPN
-      taxAmount: taxAmt,                                // <-- Warisan Nominal PPN
-      totalAmount: grandTotal,                          // <-- Simpan hasil akhir
+      additionalFeeRemarks: quote.additionalFeeRemarks, 
+      isTaxIncluded: quote.isTaxIncluded,             
+      taxPercentage: quote.taxPercentage,             
+      taxAmount: taxAmt,                             
+      totalAmount: grandTotal,                          
       shippingAddress
     });
 
@@ -53,7 +49,6 @@ exports.createPO = async (req, res) => {
   }
 };
 
-// 2. GET ALL POs
 exports.getAllPOs = async (req, res) => {
   try {
     const pos = await PurchaseOrder.find()
@@ -66,7 +61,6 @@ exports.getAllPOs = async (req, res) => {
   }
 };
 
-// 3. FINANCE APPROVAL
 exports.financeApprovePO = async (req, res) => {
   try {
     const po = await PurchaseOrder.findById(req.params.id);
@@ -81,7 +75,6 @@ exports.financeApprovePO = async (req, res) => {
   }
 };
 
-// 4. QC CHECK / RETURN GOODS (Procurement/Gudang)
 exports.qcCheckPO = async (req, res) => {
   try {
     const { status, qcRemarks } = req.body; 
@@ -106,7 +99,6 @@ exports.qcCheckPO = async (req, res) => {
   }
 };
 
-// 5. UPDATE DELIVERY STATUS (Logistics)
 exports.updateDelivery = async (req, res) => {
   try {
     const { status, deliveryDate, courierName, trackingNumber } = req.body;

@@ -11,7 +11,6 @@ exports.getSupplierPayments = async (req, res) => {
   }
 };
 
-// Update status menjadi Paid
 exports.updateToPaid = async (req, res) => {
   try {
     const updatedInvoice = await SupplierInvoice.findByIdAndUpdate(

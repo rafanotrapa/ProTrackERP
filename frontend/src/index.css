@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-/* Tambahan styling body lo tadi */
 body {
   margin: 0;
   padding: 0;
@@ -8,9 +7,6 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* ===== SEAMLESS OVERLAY SCROLLBAR ===== */
-
-/* Untuk Chrome, Edge, Safari */
 * {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
@@ -38,12 +34,10 @@ body {
   background-clip: padding-box;
 }
 
-/* Biar scrollbar floating di atas konten */
 body {
   overflow-y: overlay;
 }
 
-/* Fallback untuk browser yang ga support overlay */
 @supports not (overflow-y: overlay) {
   body {
     overflow-y: auto;
@@ -53,9 +47,6 @@ body {
   }
 }
 
-/* ===== RESPONSIVE GLOBAL - TANPA UBAH JSX ===== */
-
-/* --- Base responsive --- */
 html {
   font-size: 14px;
 }
@@ -72,13 +63,11 @@ html {
   }
 }
 
-/* --- Container otomatis --- */
 body > div:first-child {
   max-width: 100%;
   overflow-x: hidden;
 }
 
-/* --- Grid otomatis untuk card-grid --- */
 [class*="grid"] {
   gap: 0.75rem;
 }
@@ -95,7 +84,6 @@ body > div:first-child {
   }
 }
 
-/* --- Padding/margin auto --- */
 [class*="p-"],
 [class*="px-"],
 [class*="py-"],
@@ -127,7 +115,6 @@ body > div:first-child {
   .text-5xl { font-size: 2.5rem !important; }
 }
 
-/* --- Tabel responsive (scroll horizontal) --- */
 table {
   display: block;
   overflow-x: auto;
@@ -143,7 +130,6 @@ table {
   }
 }
 
-/* --- Grid card auto-fit --- */
 .grid[class*="grid-cols-"] {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -161,18 +147,15 @@ table {
   }
 }
 
-/* --- Flex wrap otomatis --- */
 [class*="flex-row"] {
   flex-wrap: wrap;
 }
 
-/* --- Image responsive --- */
 img {
   max-width: 100%;
   height: auto;
 }
 
-/* --- Touch friendly untuk mobile --- */
 button, 
 a,
 [role="button"],
@@ -182,7 +165,6 @@ input[type="submit"] {
   min-height: 44px;
 }
 
-/* --- Modal/dialog responsive --- */
 [class*="fixed"][class*="inset-0"] > div {
   max-width: 95vw;
   margin: 1rem;
@@ -201,7 +183,6 @@ input[type="submit"] {
   }
 }
 
-/* --- Typography clamp --- */
 h1, .text-4xl, .text-5xl, .text-6xl {
   font-size: clamp(1.5rem, 5vw, 3rem);
   line-height: 1.2;

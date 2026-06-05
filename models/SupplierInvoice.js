@@ -1,6 +1,4 @@
 const mongoose = require('mongoose');
-
-// Skema untuk log riwayat status
 const StatusHistorySchema = new mongoose.Schema({
   status: { type: String, required: true },
   changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -20,12 +18,10 @@ const SupplierInvoiceSchema = new mongoose.Schema({
   
   currency: { type: String, default: 'IDR' },
   terminName: { type: String, default: 'Full Payment' }, 
-  
-  // --- NOMINAL TAGIHAN ---
-  amount: { type: Number, required: true }, // Base amount
-  totalAmount: { type: Number, default: 0 }, // Grand total (Base + Tax + Import Duty)
 
-  // --- FITUR BARU: PAJAK & BEA CUKAI ---
+  amount: { type: Number, required: true }, 
+  totalAmount: { type: Number, default: 0 }, 
+
   isTaxEnabled: { type: Boolean, default: false },
   taxAmount: { type: Number, default: 0 },
   isImportEnabled: { type: Boolean, default: false },
@@ -39,8 +35,7 @@ const SupplierInvoiceSchema = new mongoose.Schema({
   invoiceDate: { type: Date, default: Date.now },
   dueDate: { type: Date },
   status: { type: String, default: 'Pending Verification' }, 
-  
-  // Array untuk menyimpan track record / log
+
   statusHistory: [StatusHistorySchema],
 
   paymentDate: { type: Date },

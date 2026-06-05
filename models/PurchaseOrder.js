@@ -15,11 +15,11 @@ const PurchaseOrderSchema = new mongoose.Schema({
   
   // --- WARISAN DARI QUOTATION ---
   additionalFee: { type: Number, default: 0 },
-  additionalFeeRemarks: { type: String }, // NEW
-  isTaxIncluded: { type: Boolean, default: false }, // NEW
-  taxPercentage: { type: Number, default: 0 }, // NEW
-  taxAmount: { type: Number, default: 0 }, // NEW
-  totalAmount: { type: Number, default: 0 }, // Grand Total (Items + Fee + Tax)
+  additionalFeeRemarks: { type: String },
+  isTaxIncluded: { type: Boolean, default: false },
+  taxPercentage: { type: Number, default: 0 },
+  taxAmount: { type: Number, default: 0 },
+  totalAmount: { type: Number, default: 0 },
   
   paymentStatus: { type: String, enum: ['Pending', 'Approved'], default: 'Pending' }, 
   qcStatus: { type: String, enum: ['Waiting Delivery', 'Passed', 'Returned'], default: 'Waiting Delivery' }, 

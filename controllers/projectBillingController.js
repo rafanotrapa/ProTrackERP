@@ -1,18 +1,14 @@
 const CreateInvoice = require('../models/CreateInvoice');
 const Payment = require('../models/Payment');
 const ClientQuotation = require('../models/ClientQuotation');
-
-// Helper: Get payment status for an invoice
 const getInvoicePaymentStatus = async (invoiceId) => {
   const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
   return payment ? 'Paid' : 'Unpaid';
 };
 
-// Helper: Parse TOP to get stages count and percentages
 const parseTopOption = (topOption, totalContractValue) => {
   const topText = topOption?.toUpperCase() || '';
   
-  // Check for DP X% pattern (e.g., "DP 30%", "DP 50%")
   const dpMatch = topText.match(/DP\s*(\d+)%/i);
   if (dpMatch) {
     const dpPercent = parseInt(dpMatch[1]);
@@ -26,7 +22,6 @@ const parseTopOption = (topOption, totalContractValue) => {
     };
   }
   
-  // Check for "Termin X% + Y%" pattern
   const terminMatches = [...topText.matchAll(/(\d+)%/g)];
   if (terminMatches.length === 2) {
     const p1 = parseInt(terminMatches[0][1]);
@@ -40,7 +35,6 @@ const parseTopOption = (topOption, totalContractValue) => {
     };
   }
   
-  // Check for single percentage (e.g., just "30%")
   const singlePercentMatch = topText.match(/(\d+)%/);
   if (singlePercentMatch && !topText.includes('DP') && !topText.includes('TERMIN')) {
     const percent = parseInt(singlePercentMatch[1]);
@@ -54,7 +48,6 @@ const parseTopOption = (topOption, totalContractValue) => {
     };
   }
   
-  // Default: Single payment (Net, COD, CBD, etc)
   return {
     type: 'full',
     stages: [
@@ -63,7 +56,6 @@ const parseTopOption = (topOption, totalContractValue) => {
   };
 };
 
-// 1. GET ALL PROJECTS WITH BILLING INFO
 exports.getAllProjectsBilling = async (req, res) => {
   try {
     const quotations = await ClientQuotation.find({ approvalStatus: 'Approved' });
@@ -106,8 +98,6 @@ exports.getAllProjectsBilling = async (req, res) => {
       const totalContract = project.totalContractValue || 0;
       const totalPaid = project.totalPaid || 0;
       const remainingAmount = totalContract - totalPaid;
-      
-      // 🔥 PROGRESS BERDASARKAN STAGES (TERMIN), BUKAN NOMINAL
       const stages = parseTopOption(project.topOption, totalContract);
       const totalStages = stages.stages.length;
       const paidStages = project.invoices.filter(inv => inv.status === 'Paid').length;
@@ -130,7 +120,6 @@ exports.getAllProjectsBilling = async (req, res) => {
   }
 };
 
-// 2. GET PROJECT BILLING DETAIL
 exports.getProjectBillingDetail = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -184,7 +173,6 @@ exports.getProjectBillingDetail = async (req, res) => {
       .filter(inv => inv.status === 'Paid')
       .reduce((sum, inv) => sum + inv.amount, 0);
     
-    // 🔥 PROGRESS BERDASARKAN STAGES (TERMIN)
     const totalStages = expectedStages.stages.length;
     const paidStages = stagesWithStatus.filter(s => s.status === 'Paid').length;
     const progressPercent = totalStages > 0 ? (paidStages / totalStages) * 100 : 0;
@@ -211,7 +199,6 @@ exports.getProjectBillingDetail = async (req, res) => {
   }
 };
 
-// 3. GENERATE NEXT INVOICE
 exports.generateNextInvoice = async (req, res) => {
   try {
     const { projectId } = req.params;

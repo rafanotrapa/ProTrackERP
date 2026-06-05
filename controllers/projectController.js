@@ -1,7 +1,6 @@
 const Project = require('../models/Project');
 const Log = require('../models/Log');
 
-// 1. ADD NEW PROJECT (Marketing Action)
 exports.addProject = async (req, res) => {
   try {
 
@@ -55,7 +54,6 @@ exports.addProject = async (req, res) => {
   }
 };
 
-// 2. GET ALL PROJECTS
 exports.getAllProjects = async (req, res) => {
   try {
     const projects = await Project.find().sort({ createdAt: -1 });
@@ -66,7 +64,6 @@ exports.getAllProjects = async (req, res) => {
   }
 };
 
-// 3. GET PROJECT BY ID
 exports.getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -80,7 +77,6 @@ exports.getProjectById = async (req, res) => {
   }
 };
 
-// 4. GET PROJECT BY PROJECT ID (BJK-xxx)
 exports.getProjectByProjectId = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -95,7 +91,6 @@ exports.getProjectByProjectId = async (req, res) => {
   }
 };
 
-// 5. UPDATE PROJECT
 exports.updateProject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -120,7 +115,6 @@ exports.updateProject = async (req, res) => {
   }
 };
 
-// 6. DELETE PROJECT
 exports.deleteProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
@@ -145,7 +139,6 @@ exports.deleteProject = async (req, res) => {
   }
 };
 
-// 7. UPDATE PROJECT PROGRESS (DP, Received, Delivered, Final)
 exports.updateProjectProgress = async (req, res) => {
   try {
     const { id } = req.params;

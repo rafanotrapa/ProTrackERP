@@ -23,7 +23,8 @@ const Dashboard = () => {
       { title: 'Create Quotation', icon: FileText, desc: 'Buat penawaran harga detail', path: '/quotation-center' },
       { title: 'Create Invoice', icon: Receipt, desc: 'Buat invoice untuk customer', path: '/invoice-center' },
       { title: 'Input Payment', icon: CreditCard, desc: 'Upload bukti transfer client', path: '/input-payment' },
-      { title: 'Project Timeline', icon: Calendar, desc: 'Monitor progress & milestones', path: '/timeline' }
+      { title: 'Project Timeline', icon: Calendar, desc: 'Monitor progress & milestones', path: '/timeline' },
+      { title: 'Expense Submission', icon: FileText, desc: 'Ajukan biaya meeting/entertainment ke Finance', path: '/expense-submission-menu' }
     ],
     Procurement: [
       { title: 'Vendor Directory', icon: Package, desc: 'Kelola Master Supplier', path: '/vendor' },
@@ -31,14 +32,16 @@ const Dashboard = () => {
       { title: 'Purchase Order', icon: ClipboardCheck, desc: 'Kelola & Histori PO', path: '/po-menu' },
       { title: 'Receive & QC Goods', icon: '🔍', desc: 'Terima, cek barang & proses retur.', path: '/receive-qc', color: 'border-amber-500' },
       { title: 'Invoice Submission', icon: FileText, desc: 'Kirim tagihan vendor ke Finance', path: '/supplier-invoice-menu' },
-      { title: 'Delivery Management', icon: Truck, desc: 'Jadwal pengiriman ke klien', path: '/delivery-management' }
+      { title: 'Delivery Management', icon: Truck, desc: 'Jadwal pengiriman ke klien', path: '/delivery-management' },
+      { title: 'Expense Submission', icon: FileText, desc: 'Ajukan biaya operasional ke Finance', path: '/expense-submission-menu' }
     ],
     Finance: [
       { title: 'Project Billing', icon: Receipt, desc: 'Generate tagihan dari Quotation', path: '/project-billing' },
       { title: 'Input Payment', icon: CreditCard, desc: 'Input pembayaran masuk', path: '/finance-input-payment' },
       { title: 'Payment Verification', icon: Shield, desc: 'Verifikasi bukti bayar', path: '/verify-payment' },
       { title: 'Supplier Payment', icon: DollarSign, desc: 'Proses pembayaran vendor', path: '/supplier-payment' },
-      { title: 'Financial Report', icon: BarChart3, desc: 'Laporan laba rugi', path: '/financial-report' }
+      { title: 'Financial Report', icon: BarChart3, desc: 'Laporan laba rugi', path: '/financial-report' },
+      { title: 'Expense Submission', icon: FileText, desc: 'Ajukan & verifikasi biaya tambahan project', path: '/expense-submission-menu' }
     ],
     Admin: [
       { title: 'User Management', icon: Users, desc: 'Atur akun karyawan', path: '/manage-users' },

@@ -59,6 +59,11 @@ import SupplierPaymentDetail from './pages/SupplierPaymentDetail';
 import ProjectList from './pages/ProjectList';
 import ProjectTimeline from './pages/ProjectTimeline';
 
+// --- EXPENSE SUBMISSION MODULE (NEW) ---
+import ExpenseSubmissionMenu from './pages/ExpenseSubmissionMenu';
+import AddExpenseSubmission from './pages/AddExpenseSubmission';
+import ExpenseSubmissionLog from './pages/ExpenseSubmissionLog';
+
 // --- MANAGEMENT MODULE (NEW) ---
 import QuotationApproval from './pages/QuotationApproval';
 import QuotationDetailReview from './pages/QuotationDetailReview';
@@ -139,7 +144,12 @@ function App() {
           <Route path="/finance-input-payment" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><FinanceInputPayment /></ProtectedRoute>} />
           <Route path="/supplier-payment-detail/:id" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><SupplierPaymentDetail /></ProtectedRoute>} />
 
-          {/* 9. CATCH-ALL */}
+          {/* 9. EXPENSE SUBMISSION MODULE — accessible semua role (semua boleh submit) */}
+          <Route path="/expense-submission-menu" element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Owner', 'Management']}><ExpenseSubmissionMenu /></ProtectedRoute>} />
+          <Route path="/add-expense-submission" element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Owner', 'Management']}><AddExpenseSubmission /></ProtectedRoute>} />
+          <Route path="/expense-submission-log" element={<ProtectedRoute allowRoles={['Marketing', 'Procurement', 'Finance', 'Admin', 'Owner', 'Management']}><ExpenseSubmissionLog /></ProtectedRoute>} />
+
+          {/* 10. CATCH-ALL */}
           <Route path="*" element={<Login />} />
 
         </Routes>

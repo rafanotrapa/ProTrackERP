@@ -77,6 +77,25 @@ const PTRow = ({ label, value }) => (
 
 // ─────────────────────────────────────────────────────────────
 //  MAIN
+//
+//  ⚠️ FIX UTAMA: field name disesuaikan persis dengan response
+//  dari controllers/financialController.js (getProjectProfitability,
+//  getCashFlow, getReceivables, getMonthlyTrend).
+//
+//  Mapping field LAMA (salah) → BARU (sesuai controller):
+//    p.revenueItems     → p.clientRevenue
+//    p.revenueShipping  → p.clientShipping
+//    p.revenueTax       → p.clientTax
+//    p.grandTotal       → p.grandTotalBilled
+//    p.cogs             → p.supplierCOGS
+//    p.importDuty       → p.supplierImportDuty
+//    p.supplierTax      → p.supplierTaxPassThru
+//    p.cashIn           → p.cashReceived
+//    cashFlow.cashIn/cashOut (per entry) → cashFlow.entries[].amount
+//    trend.cashIn/cashOut → trend.revenue / trend.expense
+//
+//  Plus: otherExpenseTotal (biaya reimburse/meeting dari ExpenseSubmission)
+//  ditambahkan sebagai breakdown baru di Expense Detail.
 // ─────────────────────────────────────────────────────────────
 const FinancialReport = () => {
   const navigate = useNavigate();
@@ -100,28 +119,36 @@ const FinancialReport = () => {
           axios.get('http://localhost:5000/api/financial/monthly-trend',  h),
         ]);
         if (pRes.status === 'fulfilled') setProjects(pRes.value.data   || []);
+        else console.error('project-report failed:', pRes.reason?.response?.data || pRes.reason);
+
         if (cRes.status === 'fulfilled') setCashFlow(cRes.value.data   || null);
+        else console.error('cash-flow failed:', cRes.reason?.response?.data || cRes.reason);
+
         if (rRes.status === 'fulfilled') setReceivables(rRes.value.data|| null);
+        else console.error('receivables failed:', rRes.reason?.response?.data || rRes.reason);
+
         if (tRes.status === 'fulfilled') setTrend(tRes.value.data      || []);
+        else console.error('monthly-trend failed:', tRes.reason?.response?.data || tRes.reason);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     };
     load();
   }, []);
 
-  // ── Derived totals ─────────────────────────────────────────
-  const totalRevenue    = projects.reduce((s, p) => s + (p.revenueItems    || 0), 0);
-  const totalShipping   = projects.reduce((s, p) => s + (p.revenueShipping || 0), 0);
-  const totalClientTax  = projects.reduce((s, p) => s + (p.revenueTax      || 0), 0);
-  const totalBilled     = projects.reduce((s, p) => s + (p.grandTotal      || 0), 0);
-  const totalCOGS       = projects.reduce((s, p) => s + (p.cogs            || 0), 0);
-  const totalDuty       = projects.reduce((s, p) => s + (p.importDuty      || 0), 0);
-  const totalSupTax     = projects.reduce((s, p) => s + (p.supplierTax     || 0), 0);
-  const totalExpense    = totalCOGS + totalDuty;
-  const totalNetProfit  = totalRevenue - totalExpense;
-  const totalCashIn     = projects.reduce((s, p) => s + (p.cashIn          || 0), 0);
-  const totalOutstanding= projects.reduce((s, p) => s + (p.outstanding     || 0), 0);
-  const netMargin       = totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0;
+  // ── Derived totals — FIELD NAME SUDAH DISESUAIKAN KE CONTROLLER ──
+  const totalRevenue     = projects.reduce((s, p) => s + (p.clientRevenue      || 0), 0);
+  const totalShipping    = projects.reduce((s, p) => s + (p.clientShipping     || 0), 0);
+  const totalClientTax   = projects.reduce((s, p) => s + (p.clientTax          || 0), 0);
+  const totalBilled      = projects.reduce((s, p) => s + (p.grandTotalBilled   || 0), 0);
+  const totalCOGS        = projects.reduce((s, p) => s + (p.supplierCOGS       || 0), 0);
+  const totalDuty         = projects.reduce((s, p) => s + (p.supplierImportDuty || 0), 0);
+  const totalSupTax       = projects.reduce((s, p) => s + (p.supplierTaxPassThru|| 0), 0);
+  const totalOtherExpense = projects.reduce((s, p) => s + (p.otherExpenseTotal  || 0), 0);
+  const totalExpense      = projects.reduce((s, p) => s + (p.totalExpense       || 0), 0);
+  const totalNetProfit    = projects.reduce((s, p) => s + (p.netProfit          || 0), 0);
+  const totalCashIn       = projects.reduce((s, p) => s + (p.cashReceived       || 0), 0);
+  const totalOutstanding  = projects.reduce((s, p) => s + (p.outstanding        || 0), 0);
+  const netMargin         = totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0;
 
   // ── PDF ────────────────────────────────────────────────────
   const exportPDF = () => {
@@ -139,6 +166,7 @@ const FinancialReport = () => {
         ['Total Ditagihkan ke Client', rp(totalBilled)],
         ['COGS', rp(totalCOGS)],
         ['Bea Masuk / Import Duty', rp(totalDuty)],
+        ['Biaya Lain (Reimburse/Meeting/dll)', rp(totalOtherExpense)],
         ['Total Expense', rp(totalExpense)],
         ['Net Profit', rp(totalNetProfit)],
         ['Net Margin', pct(totalNetProfit, totalRevenue)],
@@ -153,14 +181,15 @@ const FinancialReport = () => {
 
     autoTable(doc, {
       startY: doc.lastAutoTable.finalY + 10,
-      head: [['Project', 'Revenue', 'COGS', 'Bea Masuk', 'Net Profit', 'Margin']],
+      head: [['Project', 'Revenue', 'COGS', 'Bea Masuk', 'Biaya Lain', 'Net Profit', 'Margin']],
       body: projects.map(p => [
         p.projectName || p.projectId,
-        rp(p.revenueItems),
-        rp(p.cogs),
-        rp(p.importDuty),
+        rp(p.clientRevenue),
+        rp(p.supplierCOGS),
+        rp(p.supplierImportDuty),
+        rp(p.otherExpenseTotal),
         rp(p.netProfit),
-        pct(p.netProfit, p.revenueItems),
+        pct(p.netProfit, p.clientRevenue),
       ]),
       theme: 'striped',
       headStyles: { fillColor: [15,23,42], textColor: 255, fontSize: 7 },
@@ -189,7 +218,9 @@ const FinancialReport = () => {
     </div>
   );
 
-  const maxTrend = Math.max(...trend.map(m => Math.max(m.cashIn || 0, m.cashOut || 0)), 1);
+  // Monthly trend di controller pakai field: revenue, expense, netProfit
+  // (bukan cashIn/cashOut — itu untuk getCashFlow, bukan getMonthlyTrend)
+  const maxTrend = Math.max(...trend.map(m => Math.max(m.revenue || 0, m.expense || 0)), 1);
 
   return (
     <div className="min-h-screen bg-[#f8f8f7] flex flex-col font-sans">
@@ -227,10 +258,9 @@ const FinancialReport = () => {
         <section>
           <SectionHead title="Ringkasan Laba Rugi" />
 
-          {/* 2-column: left = P&L statement, right = pass-throughs */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* P&L Statement (left, 2 cols) */}
+            {/* P&L Statement */}
             <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-slate-900 text-white">
                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Income Statement</p>
@@ -278,6 +308,15 @@ const FinancialReport = () => {
                   <p className="text-sm font-black text-amber-600">({rp(totalDuty)})</p>
                 </div>
 
+                {/* Biaya Lain — dari ExpenseSubmission */}
+                <div className="flex justify-between items-center py-3">
+                  <div>
+                    <p className="text-xs font-black text-slate-800">Biaya Lain (Reimburse / Meeting / dll)</p>
+                    <p className="text-[9px] text-slate-400">expense submission yang sudah Approved</p>
+                  </div>
+                  <p className="text-sm font-black text-orange-600">({rp(totalOtherExpense)})</p>
+                </div>
+
                 {/* Total Expense */}
                 <div className="flex justify-between items-center py-3">
                   <p className="text-xs font-black text-slate-700">Total Expense</p>
@@ -290,7 +329,7 @@ const FinancialReport = () => {
                 }`}>
                   <div>
                     <p className="text-sm font-black text-slate-900">NET PROFIT</p>
-                    <p className="text-[9px] text-slate-500">Revenue − COGS − Bea Masuk</p>
+                    <p className="text-[9px] text-slate-500">Revenue − COGS − Bea Masuk − Biaya Lain</p>
                   </div>
                   <div className="text-right">
                     <p className={`text-xl font-black ${totalNetProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
@@ -306,7 +345,6 @@ const FinancialReport = () => {
 
             {/* Right: pass-throughs + cash status */}
             <div className="space-y-4">
-              {/* Pass-throughs */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">
                   Pass-Through (bukan pendapatan bisnis)
@@ -325,7 +363,6 @@ const FinancialReport = () => {
                 </div>
               </div>
 
-              {/* Cash Status */}
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">
                   Status Penerimaan
@@ -379,7 +416,7 @@ const FinancialReport = () => {
             <KPI
               label="Outstanding"
               value={rp(totalOutstanding)}
-              sub={`${((receivables?.count) || 0)} invoice belum dibayar`}
+              sub={`${((receivables?.invoices?.length) || 0)} invoice belum dibayar`}
               tone={totalOutstanding > 0 ? 'amber' : 'green'}
             />
             <KPI
@@ -406,6 +443,7 @@ const FinancialReport = () => {
                     <th className="px-4 py-3 text-right">Revenue</th>
                     <th className="px-4 py-3 text-right">COGS</th>
                     <th className="px-4 py-3 text-right">Bea Masuk</th>
+                    <th className="px-4 py-3 text-right">Biaya Lain</th>
                     <th className="px-4 py-3 text-right">Net Profit</th>
                     <th className="px-4 py-3 text-right">Margin</th>
                     <th className="px-4 py-3 text-right">Outstanding</th>
@@ -415,7 +453,7 @@ const FinancialReport = () => {
                 <tbody className="divide-y divide-slate-50">
                   {projects.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-5 py-12 text-center text-slate-400 italic text-sm">
+                      <td colSpan={9} className="px-5 py-12 text-center text-slate-400 italic text-sm">
                         Belum ada data project
                       </td>
                     </tr>
@@ -428,16 +466,18 @@ const FinancialReport = () => {
                           <td className="px-5 py-4">
                             <p className="font-black text-slate-900 text-xs">{p.projectName || p.projectId}</p>
                             <p className="text-[8px] text-slate-400 font-mono mt-0.5">{p.projectId}</p>
-                            <p className="text-[8px] text-slate-400 mt-0.5">{p.clientName}</p>
                           </td>
                           <td className="px-4 py-4 text-right font-black text-emerald-600 text-xs whitespace-nowrap">
-                            {rp(p.revenueItems)}
+                            {rp(p.clientRevenue)}
                           </td>
                           <td className="px-4 py-4 text-right text-rose-500 font-bold text-xs whitespace-nowrap">
-                            {rp(p.cogs)}
+                            {rp(p.supplierCOGS)}
                           </td>
                           <td className="px-4 py-4 text-right text-amber-600 font-bold text-xs whitespace-nowrap">
-                            {p.importDuty > 0 ? rp(p.importDuty) : <span className="text-slate-300">—</span>}
+                            {p.supplierImportDuty > 0 ? rp(p.supplierImportDuty) : <span className="text-slate-300">—</span>}
+                          </td>
+                          <td className="px-4 py-4 text-right text-orange-600 font-bold text-xs whitespace-nowrap">
+                            {p.otherExpenseTotal > 0 ? rp(p.otherExpenseTotal) : <span className="text-slate-300">—</span>}
                           </td>
                           <td className={`px-4 py-4 text-right font-black text-sm whitespace-nowrap ${profit >= 0 ? 'text-indigo-600' : 'text-rose-600'}`}>
                             {rp(profit)}
@@ -448,7 +488,7 @@ const FinancialReport = () => {
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : 'bg-rose-100 text-rose-700'
                             }`}>
-                              {pct(profit, p.revenueItems)}
+                              {pct(profit, p.clientRevenue)}
                             </span>
                           </td>
                           <td className="px-4 py-4 text-right text-xs whitespace-nowrap">
@@ -470,7 +510,7 @@ const FinancialReport = () => {
                         {/* Expanded row */}
                         {isOpen && (
                           <tr className="bg-slate-50/50">
-                            <td colSpan={8} className="px-6 py-5">
+                            <td colSpan={9} className="px-6 py-5">
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                                 {/* Revenue breakdown */}
@@ -478,10 +518,10 @@ const FinancialReport = () => {
                                   <p className="text-[8px] font-black uppercase tracking-widest text-emerald-600 mb-3">Revenue Detail</p>
                                   <div className="space-y-2">
                                     {[
-                                      { l: 'Revenue Bisnis (item)', v: rp(p.revenueItems), bold: true },
-                                      { l: 'Ongkir Client (pass-through)', v: rp(p.revenueShipping), muted: true },
-                                      { l: 'PPN Client (pass-through)', v: rp(p.revenueTax), muted: true },
-                                      { l: 'Total Ditagihkan', v: rp(p.grandTotal) },
+                                      { l: 'Revenue Bisnis (item)', v: rp(p.clientRevenue), bold: true },
+                                      { l: 'Ongkir Client (pass-through)', v: rp(p.clientShipping), muted: true },
+                                      { l: 'PPN Client (pass-through)', v: rp(p.clientTax), muted: true },
+                                      { l: 'Total Ditagihkan', v: rp(p.grandTotalBilled) },
                                     ].map(({ l, v, bold, muted }) => (
                                       <div key={l} className="flex justify-between gap-4">
                                         <span className={`text-[9px] ${muted ? 'text-slate-400 italic' : 'text-slate-600'}`}>{l}</span>
@@ -490,7 +530,7 @@ const FinancialReport = () => {
                                     ))}
                                     <div className="pt-2 border-t border-slate-100 flex justify-between">
                                       <span className="text-[9px] text-slate-500">Cash Diterima</span>
-                                      <span className="text-[9px] font-black text-emerald-600">{rp(p.cashIn)}</span>
+                                      <span className="text-[9px] font-black text-emerald-600">{rp(p.cashReceived)}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -500,10 +540,11 @@ const FinancialReport = () => {
                                   <p className="text-[8px] font-black uppercase tracking-widest text-rose-600 mb-3">Expense Detail</p>
                                   <div className="space-y-2">
                                     {[
-                                      { l: 'COGS (harga beli vendor)', v: rp(p.cogs), bold: true },
-                                      { l: 'Bea Masuk / Import Duty', v: rp(p.importDuty) },
+                                      { l: 'COGS (harga beli vendor)', v: rp(p.supplierCOGS), bold: true },
+                                      { l: 'Bea Masuk / Import Duty', v: rp(p.supplierImportDuty) },
+                                      { l: 'Biaya Lain (Reimburse/Meeting/dll)', v: rp(p.otherExpenseTotal) },
                                       { l: 'Total Expense Bisnis', v: rp(p.totalExpense), bold: true },
-                                      { l: 'PPN Vendor (pass-through)', v: rp(p.supplierTax), muted: true },
+                                      { l: 'PPN Vendor (pass-through)', v: rp(p.supplierTaxPassThru), muted: true },
                                     ].map(({ l, v, bold, muted }) => (
                                       <div key={l} className="flex justify-between gap-4">
                                         <span className={`text-[9px] ${muted ? 'text-slate-400 italic' : 'text-slate-600'}`}>{l}</span>
@@ -517,20 +558,24 @@ const FinancialReport = () => {
                                   </div>
                                 </div>
 
-                                {/* Quick stats */}
+                                {/* Other expense breakdown detail */}
                                 <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3">
-                                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-3">Ringkasan</p>
-                                  {[
-                                    { l: 'Net Margin', v: pct(profit, p.revenueItems) },
-                                    { l: 'Gross Margin', v: pct(p.grossProfit, p.revenueItems) },
-                                    { l: 'Collection Rate', v: pct(p.cashIn, p.grandTotal) },
-                                    { l: 'Outstanding', v: p.outstanding > 0 ? rp(p.outstanding) : '✓ Lunas' },
-                                  ].map(({ l, v }) => (
-                                    <div key={l} className="flex justify-between gap-4 py-1.5 border-b border-slate-50 last:border-0">
-                                      <span className="text-[9px] text-slate-500">{l}</span>
-                                      <span className="text-[9px] font-black text-slate-800">{v}</span>
-                                    </div>
-                                  ))}
+                                  <p className="text-[8px] font-black uppercase tracking-widest text-orange-500 mb-3">
+                                    Detail Biaya Lain ({(p.otherExpenseBreakdown || []).length})
+                                  </p>
+                                  {(p.otherExpenseBreakdown || []).length === 0 ? (
+                                    <p className="text-[9px] text-slate-400 italic">Tidak ada submission biaya lain</p>
+                                  ) : (
+                                    p.otherExpenseBreakdown.map((e, idx) => (
+                                      <div key={idx} className="flex justify-between gap-4 py-1.5 border-b border-slate-50 last:border-0">
+                                        <div>
+                                          <p className="text-[9px] font-bold text-slate-700">{e.category}</p>
+                                          <p className="text-[8px] text-slate-400">{e.submittedBy || '-'}</p>
+                                        </div>
+                                        <span className="text-[9px] font-black text-orange-600">{rp(e.amount)}</span>
+                                      </div>
+                                    ))
+                                  )}
                                 </div>
                               </div>
                             </td>
@@ -549,6 +594,7 @@ const FinancialReport = () => {
                       <td className="px-4 py-3 text-right text-emerald-400">{rp(totalRevenue)}</td>
                       <td className="px-4 py-3 text-right text-rose-400">{rp(totalCOGS)}</td>
                       <td className="px-4 py-3 text-right text-amber-300">{rp(totalDuty)}</td>
+                      <td className="px-4 py-3 text-right text-orange-300">{rp(totalOtherExpense)}</td>
                       <td className="px-4 py-3 text-right text-indigo-300">{rp(totalNetProfit)}</td>
                       <td className="px-4 py-3 text-right text-slate-300">{pct(totalNetProfit, totalRevenue)}</td>
                       <td className="px-4 py-3 text-right text-amber-300">{rp(totalOutstanding)}</td>
@@ -562,7 +608,9 @@ const FinancialReport = () => {
         </section>
 
         {/* ════════════════════════════════════════════════
-            SECTION 4 — MONTHLY TREND (mini bar chart)
+            SECTION 4 — MONTHLY TREND
+            (controller getMonthlyTrend mengembalikan: revenue, expense, netProfit
+             — bukan cashIn/cashOut)
             ════════════════════════════════════════════════ */}
         {trend.length > 0 && (
           <section>
@@ -570,9 +618,9 @@ const FinancialReport = () => {
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
               <div className="space-y-3">
                 {trend.map((m, i) => {
-                  const inPct  = Math.round((m.cashIn  || 0) / maxTrend * 100);
-                  const outPct = Math.round((m.cashOut || 0) / maxTrend * 100);
-                  const net    = (m.cashIn || 0) - (m.cashOut || 0);
+                  const inPct  = Math.round((m.revenue || 0) / maxTrend * 100);
+                  const outPct = Math.round((m.expense || 0) / maxTrend * 100);
+                  const net    = m.netProfit || 0;
                   return (
                     <div key={i} className="flex items-center gap-3">
                       <span className="text-[8px] font-black text-slate-400 w-12 shrink-0 text-right">
@@ -580,25 +628,25 @@ const FinancialReport = () => {
                       </span>
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 text-[7px] text-slate-400 font-bold text-right shrink-0">IN</div>
+                          <div className="w-10 text-[7px] text-slate-400 font-bold text-right shrink-0">REV</div>
                           <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
                             <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${inPct}%` }} />
                           </div>
-                          <span className="w-24 text-[8px] font-black text-emerald-600 text-right whitespace-nowrap shrink-0">
-                            {rp(m.cashIn)}
+                          <span className="w-28 text-[8px] font-black text-emerald-600 text-right whitespace-nowrap shrink-0">
+                            {rp(m.revenue)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-6 text-[7px] text-slate-400 font-bold text-right shrink-0">OUT</div>
+                          <div className="w-10 text-[7px] text-slate-400 font-bold text-right shrink-0">EXP</div>
                           <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
                             <div className="h-full bg-rose-400 rounded-full" style={{ width: `${outPct}%` }} />
                           </div>
-                          <span className="w-24 text-[8px] font-black text-rose-500 text-right whitespace-nowrap shrink-0">
-                            {rp(m.cashOut)}
+                          <span className="w-28 text-[8px] font-black text-rose-500 text-right whitespace-nowrap shrink-0">
+                            {rp(m.expense)}
                           </span>
                         </div>
                       </div>
-                      <span className={`text-[8px] font-black w-24 text-right shrink-0 whitespace-nowrap ${net >= 0 ? 'text-indigo-600' : 'text-amber-600'}`}>
+                      <span className={`text-[8px] font-black w-28 text-right shrink-0 whitespace-nowrap ${net >= 0 ? 'text-indigo-600' : 'text-amber-600'}`}>
                         {net >= 0 ? '+' : ''}{rp(net)}
                       </span>
                     </div>
@@ -607,9 +655,9 @@ const FinancialReport = () => {
               </div>
               <div className="flex gap-5 mt-5 pt-4 border-t border-slate-100">
                 {[
-                  { dot: 'bg-emerald-400', label: 'Cash In' },
-                  { dot: 'bg-rose-400',    label: 'Cash Out' },
-                  { dot: 'bg-indigo-500',  label: 'Net' },
+                  { dot: 'bg-emerald-400', label: 'Revenue' },
+                  { dot: 'bg-rose-400',    label: 'Expense' },
+                  { dot: 'bg-indigo-500',  label: 'Net Profit' },
                 ].map(l => (
                   <div key={l.label} className="flex items-center gap-1.5">
                     <div className={`w-2 h-2 rounded-full ${l.dot}`} />
@@ -628,7 +676,7 @@ const FinancialReport = () => {
           <section>
             <SectionHead
               title="Piutang Belum Dibayar"
-              badge={`${receivables.count || receivables.invoices.length} invoice`}
+              badge={`${receivables.invoices.length} invoice`}
             />
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-5 py-3 bg-amber-50 border-b border-amber-100 flex justify-between items-center">
@@ -636,7 +684,7 @@ const FinancialReport = () => {
                   Total Outstanding
                 </p>
                 <p className="text-sm font-black text-amber-700">
-                  {rp(receivables.totalReceivables || 0)}
+                  {rp(receivables.totalOutstanding || 0)}
                 </p>
               </div>
               <div className="overflow-x-auto">
@@ -652,35 +700,32 @@ const FinancialReport = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    {receivables.invoices.map(inv => {
-                      const overdue = inv.dueDate && new Date(inv.dueDate) < new Date();
-                      return (
-                        <tr key={inv._id} className="hover:bg-slate-50/50 transition-all">
-                          <td className="px-5 py-3 font-mono font-black text-indigo-600 text-xs">{inv.invoiceNumber}</td>
-                          <td className="px-4 py-3">
-                            <p className="font-bold text-slate-800 text-xs">{inv.projectName}</p>
-                            <p className="text-[8px] text-slate-400">{inv.projectId}</p>
-                          </td>
-                          <td className="px-4 py-3 text-slate-600 text-xs">{inv.clientName}</td>
-                          <td className="px-4 py-3 text-right font-black text-emerald-600 whitespace-nowrap">
-                            {rp(inv.amount)}
-                          </td>
-                          <td className="px-4 py-3 text-center text-[10px] text-slate-500">
-                            {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('id-ID') : '—'}
-                            {overdue && <span className="ml-1 text-rose-500 font-black">⚠</span>}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`text-[8px] font-black px-2 py-0.5 rounded-full ${
-                              overdue
-                                ? 'bg-rose-100 text-rose-700'
-                                : 'bg-amber-100 text-amber-700'
-                            }`}>
-                              {overdue ? 'Overdue' : inv.paymentStatus || 'Pending'}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {receivables.invoices.map(inv => (
+                      <tr key={inv._id} className="hover:bg-slate-50/50 transition-all">
+                        <td className="px-5 py-3 font-mono font-black text-indigo-600 text-xs">{inv.invoiceNumber}</td>
+                        <td className="px-4 py-3">
+                          <p className="font-bold text-slate-800 text-xs">{inv.projectName}</p>
+                          <p className="text-[8px] text-slate-400">{inv.projectId}</p>
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 text-xs">{inv.clientName}</td>
+                        <td className="px-4 py-3 text-right font-black text-emerald-600 whitespace-nowrap">
+                          {rp(inv.amount)}
+                        </td>
+                        <td className="px-4 py-3 text-center text-[10px] text-slate-500">
+                          {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('id-ID') : '—'}
+                          {inv.isOverdue && <span className="ml-1 text-rose-500 font-black">⚠</span>}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`text-[8px] font-black px-2 py-0.5 rounded-full ${
+                            inv.isOverdue
+                              ? 'bg-rose-100 text-rose-700'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {inv.isOverdue ? `Overdue ${inv.overdueDays}d` : 'Pending'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
@@ -694,10 +739,10 @@ const FinancialReport = () => {
         <div className="bg-slate-100 rounded-2xl p-5 text-[9px] text-slate-500 leading-relaxed">
           <p className="font-black text-slate-600 uppercase tracking-wider mb-1">Catatan Metodologi</p>
           <p>
-            <strong>Revenue Bisnis</strong> = <code>clientPrice</code> (subtotal item saja, tidak termasuk PPN & ongkir client).
+            <strong>Revenue Bisnis</strong> = clientPrice (subtotal item saja, tidak termasuk PPN & ongkir client).
             {' '}<strong>Pass-through</strong> = uang yang diterima dari client lalu diteruskan ke pihak ketiga (negara / ekspedisi) — tidak masuk P&L.
-            {' '}<strong>Expense</strong> = COGS dari supplier + Bea Masuk. PPN vendor adalah pass-through, tidak masuk expense bisnis.
-            {' '}<strong>Net Profit</strong> = Revenue Bisnis − COGS − Bea Masuk.
+            {' '}<strong>Expense</strong> = COGS dari supplier + Bea Masuk + Biaya Lain (reimburse/meeting yang sudah disetujui Finance).
+            {' '}<strong>Net Profit</strong> = Revenue Bisnis − COGS − Bea Masuk − Biaya Lain.
           </p>
         </div>
 

@@ -1,23 +1,29 @@
-const ClientInvoice = require('../models/CreateInvoice');
-const ClientQuotation = require('../models/ClientQuotation');
-const SupplierInvoice = require('../models/SupplierInvoice');
-const Payment = require('../models/Payment');
-const Project = require('../models/Project');
+const ClientInvoice      = require('../models/CreateInvoice');
+const ClientQuotation    = require('../models/ClientQuotation');
+const SupplierInvoice    = require('../models/SupplierInvoice');
+const Payment            = require('../models/Payment');
+const Project            = require('../models/Project');
+const ExpenseSubmission  = require('../models/ExpenseSubmission');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER: normalize projectId string
 // ─────────────────────────────────────────────────────────────────────────────
 const norm = (id) => String(id || '').trim().toLowerCase();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. FINANCIAL SUMMARY (global, semua project digabung)
+// ─────────────────────────────────────────────────────────────────────────────
 exports.getFinancialSummary = async (req, res) => {
   try {
-    const quotations = await ClientQuotation.find({ approvalStatus: 'Approved' });
+    const quotations       = await ClientQuotation.find({ approvalStatus: 'Approved' });
     const supplierInvoices = await SupplierInvoice.find({ status: 'Paid' });
-    const payments = await Payment.find({ status: 'Verified' }).populate('invoiceId');
+    const payments         = await Payment.find({ status: 'Verified' }).populate('invoiceId');
+    const otherExpenses    = await ExpenseSubmission.find({ status: 'Approved' });
 
-    let totalClientRevenue   = 0; 
-    let totalClientTax       = 0; 
-    let totalClientShipping  = 0; 
-    let totalCashReceived    = 0; 
+    let totalClientRevenue   = 0;
+    let totalClientTax       = 0;
+    let totalClientShipping  = 0;
+    let totalCashReceived    = 0;
 
     quotations.forEach(q => {
       totalClientRevenue  += Number(q.clientPrice  || 0);
@@ -29,41 +35,43 @@ exports.getFinancialSummary = async (req, res) => {
       totalCashReceived += Number(p.amountPaid || 0);
     });
 
-    let totalCOGS               = 0;
-    let totalImportDuty         = 0; 
-    let totalSupplierTaxPassThru = 0; 
+    let totalCOGS                = 0;
+    let totalImportDuty          = 0;
+    let totalSupplierTaxPassThru = 0;
 
     supplierInvoices.forEach(si => {
-      totalCOGS               += Number(si.amount           || 0);
-      totalImportDuty         += Number(si.importDutyAmount || 0);
-      totalSupplierTaxPassThru += Number(si.taxAmount       || 0);
+      totalCOGS                += Number(si.amount           || 0);
+      totalImportDuty          += Number(si.importDutyAmount || 0);
+      totalSupplierTaxPassThru += Number(si.taxAmount        || 0);
     });
 
+    // ── Expense lain di luar supplier (meeting, entertainment, dll) ──
+    // amount di sini adalah total dari items[] (dihitung saat submit)
+    const totalOtherExpense = otherExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
-    const totalExpense  = totalCOGS + totalImportDuty;
+    const totalExpense = totalCOGS + totalImportDuty + totalOtherExpense;
     const netProfit     = totalClientRevenue - totalExpense;
     const grossMargin   = totalClientRevenue > 0
       ? ((netProfit / totalClientRevenue) * 100).toFixed(2)
       : '0.00';
 
-    const totalBilled       = totalClientRevenue + totalClientTax + totalClientShipping;
-    const totalOutstanding  = totalBilled - totalCashReceived;
+    const totalBilled      = totalClientRevenue + totalClientTax + totalClientShipping;
+    const totalOutstanding = totalBilled - totalCashReceived;
 
     res.status(200).json({
-      // --- Revenue breakdown ---
-      totalClientRevenue,       
-      totalClientTax,           
-      totalClientShipping,      
-      totalBilled,              
+      totalClientRevenue,
+      totalClientTax,
+      totalClientShipping,
+      totalBilled,
 
-      totalCashReceived,        
-      totalOutstanding,         
+      totalCashReceived,
+      totalOutstanding,
 
-
-      totalCOGS,                
-      totalImportDuty,          
-      totalSupplierTaxPassThru, 
-      totalExpense,             
+      totalCOGS,
+      totalImportDuty,
+      totalSupplierTaxPassThru,
+      totalOtherExpense,
+      totalExpense,
       netProfit,
       grossMargin: parseFloat(grossMargin),
     });
@@ -73,17 +81,20 @@ exports.getFinancialSummary = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. PROJECT PROFITABILITY (per project)
+// ─────────────────────────────────────────────────────────────────────────────
 exports.getProjectProfitability = async (req, res) => {
   try {
-    const [quotations, supplierInvoices, clientInvoices, payments, projects] =
+    const [quotations, supplierInvoices, clientInvoices, payments, projects, otherExpenses] =
       await Promise.all([
         ClientQuotation.find({ approvalStatus: 'Approved' }),
         SupplierInvoice.find(),
         ClientInvoice.find(),
         Payment.find({ status: 'Verified' }).populate('invoiceId'),
         Project.find(),
+        ExpenseSubmission.find({ status: 'Approved' }),
       ]);
-
 
     const projectNameMap = {};
     projects.forEach(p => { projectNameMap[norm(p.projectId)] = p.projectName; });
@@ -98,11 +109,17 @@ exports.getProjectProfitability = async (req, res) => {
         projectNameMap[norm(si.projectId)] = si.projectId;
       }
     });
+    otherExpenses.forEach(e => {
+      if (e.projectId && !projectNameMap[norm(e.projectId)]) {
+        projectNameMap[norm(e.projectId)] = e.projectName || e.projectId;
+      }
+    });
 
     const allIds = new Set([
       ...quotations.map(q => norm(q.projectId)),
       ...supplierInvoices.map(si => norm(si.projectId)),
       ...clientInvoices.map(i => norm(i.projectId)),
+      ...otherExpenses.map(e => norm(e.projectId)),
     ]);
     allIds.delete('');
     allIds.delete('undefined');
@@ -119,11 +136,11 @@ exports.getProjectProfitability = async (req, res) => {
       const pQuotations       = quotations.filter(q  => norm(q.projectId)  === pid);
       const pSupplierInvoices = supplierInvoices.filter(si => norm(si.projectId) === pid);
       const pClientInvoices   = clientInvoices.filter(i  => norm(i.projectId)   === pid);
+      const pOtherExpenses    = otherExpenses.filter(e  => norm(e.projectId)   === pid);
 
-
-      let clientRevenue  = 0; 
-      let clientTax      = 0; 
-      let clientShipping = 0; 
+      let clientRevenue  = 0;
+      let clientTax      = 0;
+      let clientShipping = 0;
 
       if (pQuotations.length > 0) {
         pQuotations.forEach(q => {
@@ -132,7 +149,6 @@ exports.getProjectProfitability = async (req, res) => {
           clientShipping += Number(q.shippingFee   || 0);
         });
       } else {
-
         pClientInvoices.forEach(inv => {
           clientRevenue += Number(inv.amount || 0);
         });
@@ -151,10 +167,10 @@ exports.getProjectProfitability = async (req, res) => {
         }))
       );
 
-      let supplierCOGS               = 0; 
-      let supplierImportDuty         = 0; 
-      let supplierTaxPassThru        = 0; 
-      let supplierTotalPaid          = 0;
+      let supplierCOGS        = 0;
+      let supplierImportDuty  = 0;
+      let supplierTaxPassThru = 0;
+      let supplierTotalPaid   = 0;
 
       const supplierBreakdown = pSupplierInvoices.map(si => {
         const cogs       = Number(si.amount           || 0);
@@ -168,28 +184,45 @@ exports.getProjectProfitability = async (req, res) => {
         supplierTotalPaid   += total;
 
         return {
-          invoiceNumber: si.invoiceNumber,
-          vendorName:    si.vendorName,
-          status:        si.status,
+          invoiceNumber:    si.invoiceNumber,
+          vendorName:       si.vendorName,
+          status:           si.status,
           cogs,
-          taxAmount:     tax,
+          taxAmount:        tax,
           importDuty,
-          totalPaid:     total,
-          isTaxEnabled:      si.isTaxEnabled,
-          isImportEnabled:   si.isImportEnabled,
-          customsDutyNote:   si.customsDutyNote,
-          invoiceDate:       si.invoiceDate,
+          totalPaid:        total,
+          isTaxEnabled:     si.isTaxEnabled,
+          isImportEnabled:  si.isImportEnabled,
+          customsDutyNote:  si.customsDutyNote,
+          invoiceDate:      si.invoiceDate,
         };
       });
 
-      const totalExpense = supplierCOGS + supplierImportDuty;
-      const netProfit    = clientRevenue - totalExpense;
-      const margin       = clientRevenue > 0
+      // ── Other expenses (meeting, entertainment, reimburse, dll) ──
+      // Sekarang multi-item: setiap submission punya items[], breakdown
+      // di-flatten per item supaya detail di Financial Report tetap rapi.
+      const otherExpenseTotal = pOtherExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      const otherExpenseBreakdown = pOtherExpenses.map(e => ({
+        submissionId: e.submissionId,
+        items:        (e.items || []).map(it => ({
+          name:        it.name,
+          description: it.description || '',
+          amount:      it.amount,
+        })),
+        amount:       Number(e.amount || 0),
+        submittedBy:  e.submittedByName,
+        approvedAt:   e.reviewDate,
+        createdAt:    e.createdAt,
+      }));
+
+      const totalExpense = supplierCOGS + supplierImportDuty + otherExpenseTotal;
+      const netProfit     = clientRevenue - totalExpense;
+      const margin        = clientRevenue > 0
         ? parseFloat(((netProfit / clientRevenue) * 100).toFixed(2))
         : 0;
 
-      const cashReceived  = cashReceivedByProject[pid] || 0;
-      const outstanding   = grandTotalBilled - cashReceived;
+      const cashReceived = cashReceivedByProject[pid] || 0;
+      const outstanding  = grandTotalBilled - cashReceived;
 
       const paidInvoices   = pClientInvoices.filter(i => i.status === 'Paid');
       const unpaidInvoices = pClientInvoices.filter(i => i.status === 'Unpaid');
@@ -198,19 +231,25 @@ exports.getProjectProfitability = async (req, res) => {
         projectId:   pid,
         projectName: projectNameMap[pid] || pid,
 
-        clientRevenue,      
-        clientTax,          
-        clientShipping,     
-        grandTotalBilled,   
+        clientRevenue,
+        clientTax,
+        clientShipping,
+        grandTotalBilled,
         cashReceived,
         outstanding,
-        supplierCOGS,        
-        supplierImportDuty,  
-        supplierTaxPassThru, 
-        supplierTotalPaid,   
-        totalExpense,        
+
+        supplierCOGS,
+        supplierImportDuty,
+        supplierTaxPassThru,
+        supplierTotalPaid,
+
+        otherExpenseTotal,
+        otherExpenseBreakdown,
+
+        totalExpense,
         netProfit,
         margin,
+
         itemsDetail,
         supplierBreakdown,
         invoiceSummary: {
@@ -221,7 +260,6 @@ exports.getProjectProfitability = async (req, res) => {
       };
     });
 
-
     report.sort((a, b) => b.netProfit - a.netProfit);
 
     res.status(200).json(report);
@@ -231,6 +269,9 @@ exports.getProjectProfitability = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. CASH FLOW
+// ─────────────────────────────────────────────────────────────────────────────
 exports.getCashFlow = async (req, res) => {
   try {
     const payments = await Payment.find({ status: 'Verified' })
@@ -240,13 +281,16 @@ exports.getCashFlow = async (req, res) => {
     const supplierInvoices = await SupplierInvoice.find({ status: 'Paid' })
       .sort({ paymentDate: -1 });
 
+    const otherExpenses = await ExpenseSubmission.find({ status: 'Approved' })
+      .sort({ reviewDate: -1 });
+
     const cashInEntries = payments.map(p => ({
-      date:          p.paymentDate || p.createdAt,
-      type:          'Cash In',
-      description:   `Payment – ${p.invoiceId?.invoiceNumber || 'INV'}`,
-      projectName:   p.invoiceId?.projectName || '-',
-      clientName:    p.invoiceId?.clientName  || '-',
-      amount:        Number(p.amountPaid || 0),
+      date:        p.paymentDate || p.createdAt,
+      type:        'Cash In',
+      description: `Payment – ${p.invoiceId?.invoiceNumber || 'INV'}`,
+      projectName: p.invoiceId?.projectName || '-',
+      clientName:  p.invoiceId?.clientName  || '-',
+      amount:      Number(p.amountPaid || 0),
       breakdown: {
         grossAmount: Number(p.amountPaid || 0),
       },
@@ -266,18 +310,39 @@ exports.getCashFlow = async (req, res) => {
       },
     }));
 
+    // ── Other expense entries — deskripsi gabungan nama item ──
+    const otherExpenseEntries = otherExpenses.map(e => {
+      const itemNames = (e.items || []).map(it => it.name).join(', ');
+      return {
+        date:        e.reviewDate || e.updatedAt,
+        type:        'Cash Out',
+        description: `Expense – ${itemNames || e.submissionId} (${e.submissionId})`,
+        projectName: e.projectName || e.projectId || '-',
+        vendorName:  e.submittedByName || '-',
+        amount:      Number(e.amount || 0),
+        breakdown: {
+          otherExpense: Number(e.amount || 0),
+        },
+      };
+    });
+
     const allEntries = [
       ...cashInEntries.map(e => ({ ...e, direction: 1  })),
       ...cashOutEntries.map(e => ({ ...e, direction: -1 })),
+      ...otherExpenseEntries.map(e => ({ ...e, direction: -1 })),
     ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    const totalCashIn  = cashInEntries.reduce((s, e)  => s + e.amount, 0);
-    const totalCashOut = cashOutEntries.reduce((s, e) => s + e.amount, 0);
-    const netBalance   = totalCashIn - totalCashOut;
+    const totalCashIn          = cashInEntries.reduce((s, e)  => s + e.amount, 0);
+    const totalCashOutSupplier = cashOutEntries.reduce((s, e) => s + e.amount, 0);
+    const totalCashOutOther    = otherExpenseEntries.reduce((s, e) => s + e.amount, 0);
+    const totalCashOut         = totalCashOutSupplier + totalCashOutOther;
+    const netBalance           = totalCashIn - totalCashOut;
 
     res.status(200).json({
       totalCashIn,
       totalCashOut,
+      totalCashOutSupplier,
+      totalCashOutOther,
       netBalance,
       entries: allEntries,
     });
@@ -287,6 +352,9 @@ exports.getCashFlow = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. RECEIVABLES
+// ─────────────────────────────────────────────────────────────────────────────
 exports.getReceivables = async (req, res) => {
   try {
     const unpaidInvoices = await ClientInvoice.find({ status: 'Unpaid' })
@@ -294,8 +362,8 @@ exports.getReceivables = async (req, res) => {
 
     const now = new Date();
     const enriched = unpaidInvoices.map(inv => {
-      const due          = inv.dueDate ? new Date(inv.dueDate) : null;
-      const overdueDays  = due ? Math.max(0, Math.floor((now - due) / 86400000)) : null;
+      const due         = inv.dueDate ? new Date(inv.dueDate) : null;
+      const overdueDays = due ? Math.max(0, Math.floor((now - due) / 86400000)) : null;
       return {
         _id:           inv._id,
         invoiceNumber: inv.invoiceNumber,
@@ -324,10 +392,14 @@ exports.getReceivables = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. MONTHLY TREND
+// ─────────────────────────────────────────────────────────────────────────────
 exports.getMonthlyTrend = async (req, res) => {
   try {
     const quotations       = await ClientQuotation.find({ approvalStatus: 'Approved' });
     const supplierInvoices = await SupplierInvoice.find({ status: 'Paid' });
+    const otherExpenses    = await ExpenseSubmission.find({ status: 'Approved' });
 
     const monthlyMap = {};
 
@@ -336,26 +408,42 @@ exports.getMonthlyTrend = async (req, res) => {
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     };
 
+    const ensureMonth = (key) => {
+      if (!monthlyMap[key]) {
+        monthlyMap[key] = {
+          month: key, revenue: 0, clientTax: 0, clientShipping: 0,
+          cogs: 0, importDuty: 0, otherExpense: 0,
+        };
+      }
+      return monthlyMap[key];
+    };
+
     quotations.forEach(q => {
       const key = getKey(q.approvalDate || q.updatedAt || q.timestamp);
-      if (!monthlyMap[key]) monthlyMap[key] = { month: key, revenue: 0, clientTax: 0, clientShipping: 0, cogs: 0, importDuty: 0 };
-      monthlyMap[key].revenue        += Number(q.clientPrice  || 0);
-      monthlyMap[key].clientTax      += Number(q.taxAmount     || 0);
-      monthlyMap[key].clientShipping += Number(q.shippingFee   || 0);
+      const m = ensureMonth(key);
+      m.revenue        += Number(q.clientPrice  || 0);
+      m.clientTax      += Number(q.taxAmount     || 0);
+      m.clientShipping += Number(q.shippingFee   || 0);
     });
 
     supplierInvoices.forEach(si => {
       const key = getKey(si.paymentDate || si.updatedAt);
-      if (!monthlyMap[key]) monthlyMap[key] = { month: key, revenue: 0, clientTax: 0, clientShipping: 0, cogs: 0, importDuty: 0 };
-      monthlyMap[key].cogs       += Number(si.amount           || 0);
-      monthlyMap[key].importDuty += Number(si.importDutyAmount || 0);
+      const m = ensureMonth(key);
+      m.cogs       += Number(si.amount           || 0);
+      m.importDuty += Number(si.importDutyAmount || 0);
+    });
+
+    otherExpenses.forEach(e => {
+      const key = getKey(e.reviewDate || e.updatedAt);
+      const m = ensureMonth(key);
+      m.otherExpense += Number(e.amount || 0);
     });
 
     const result = Object.values(monthlyMap)
       .map(m => ({
         ...m,
-        expense:   m.cogs + m.importDuty,
-        netProfit: m.revenue - m.cogs - m.importDuty,
+        expense:   m.cogs + m.importDuty + m.otherExpense,
+        netProfit: m.revenue - m.cogs - m.importDuty - m.otherExpense,
       }))
       .sort((a, b) => a.month.localeCompare(b.month))
       .slice(-12);

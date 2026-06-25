@@ -1,10 +1,11 @@
-const Project = require('../models/Project');
-const ClientQuotation = require('../models/ClientQuotation');
-const CreateInvoice = require('../models/CreateInvoice');
-const Payment = require('../models/Payment');
-const PurchaseOrder = require('../models/PurchaseOrder');
-const SupplierQuotation = require('../models/SupplierQuotation');
-const SupplierInvoice = require('../models/SupplierInvoice');
+const Project            = require('../models/Project');
+const ClientQuotation    = require('../models/ClientQuotation');
+const CreateInvoice      = require('../models/CreateInvoice');
+const Payment            = require('../models/Payment');
+const PurchaseOrder      = require('../models/PurchaseOrder');
+const SupplierQuotation  = require('../models/SupplierQuotation');
+const SupplierInvoice    = require('../models/SupplierInvoice');
+const ExpenseSubmission  = require('../models/ExpenseSubmission'); // ← baru
 
 const getInvoicePaymentStatus = async (invoiceId) => {
   const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
@@ -50,13 +51,13 @@ exports.getProjectTimeline = async (req, res) => {
       approvalStatus: 'Approved'
     }).sort({ createdAt: -1 });
 
-    const clientPrice = clientQuotation?.clientPrice || project.amount || 0;
-    const shippingFee = clientQuotation?.shippingFee || 0;
-    const taxAmount = clientQuotation?.taxAmount || 0;
-    const taxPercentage = clientQuotation?.taxPercentage || 0;
-    const grandTotal = clientPrice + shippingFee + taxAmount;
-    const topOption = clientQuotation?.topOption || '—';
-    const rawInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
+    const clientPrice    = clientQuotation?.clientPrice || project.amount || 0;
+    const shippingFee    = clientQuotation?.shippingFee || 0;
+    const taxAmount      = clientQuotation?.taxAmount || 0;
+    const taxPercentage  = clientQuotation?.taxPercentage || 0;
+    const grandTotal     = clientPrice + shippingFee + taxAmount;
+    const topOption      = clientQuotation?.topOption || '—';
+    const rawInvoices    = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
 
     const clientInvoices = await Promise.all(
       rawInvoices.map(async (inv) => {
@@ -68,7 +69,7 @@ exports.getProjectTimeline = async (req, res) => {
           amount: inv.amount,
           dueDate: inv.dueDate,
           createdAt: inv.createdAt,
-          status: payStatus, 
+          status: payStatus,
           topOption: inv.topOption
         };
       })
@@ -102,10 +103,11 @@ exports.getProjectTimeline = async (req, res) => {
       };
     });
 
-    const totalStages = paymentStages.length;
-    const paidStages = paymentStages.filter(s => s.status === 'Paid').length;
-    const progressPercent = totalStages > 0 ? Math.round((paidStages / totalStages) * 100) : 0;
-    const isComplete = paidStages >= totalStages && totalStages > 0;
+    const totalStages       = paymentStages.length;
+    const paidStages        = paymentStages.filter(s => s.status === 'Paid').length;
+    const progressPercent   = totalStages > 0 ? Math.round((paidStages / totalStages) * 100) : 0;
+    const isComplete        = paidStages >= totalStages && totalStages > 0;
+
     const purchaseOrders = await PurchaseOrder.find({ projectId })
       .populate('vendorId', 'vendorName vendorContact vendorAddress')
       .sort({ timestamp: -1 });
@@ -119,10 +121,10 @@ exports.getProjectTimeline = async (req, res) => {
       totalAmount: po.totalAmount || 0,
       additionalFee: po.additionalFee || 0,
       taxAmount: po.taxAmount || 0,
-      paymentStatus: po.paymentStatus,   
-      qcStatus: po.qcStatus,           
+      paymentStatus: po.paymentStatus,
+      qcStatus: po.qcStatus,
       qcRemarks: po.qcRemarks || '',
-      deliveryStatus: po.deliveryStatus, 
+      deliveryStatus: po.deliveryStatus,
       deliveryDate: po.deliveryDate || null,
       courierName: po.courierName || '—',
       trackingNumber: po.trackingNumber || '—',
@@ -181,9 +183,52 @@ exports.getProjectTimeline = async (req, res) => {
       paymentDate: si.paymentDate || null
     }));
 
+    // ─────────────────────────────────────────────────────────────────────
+    // EXPENSE SUBMISSION (Reimburse / Meeting / Entertainment dll)
+    // Ambil SEMUA status (Pending, Approved, Rejected) supaya tim project
+    // bisa lihat histori lengkap di timeline — bukan cuma yang Approved.
+    // Hanya yang Approved yang dihitung sebagai pengurang profit.
+    // ─────────────────────────────────────────────────────────────────────
+    const expenseSubmissions = await ExpenseSubmission.find({ projectId })
+      .sort({ createdAt: -1 });
+
+    const expenseSummary = expenseSubmissions.map(e => ({
+      _id:             e._id,
+      submissionId:    e.submissionId,
+      items:           (e.items || []).map(it => ({
+        name:        it.name,
+        description: it.description || '',
+        amount:      it.amount,
+      })),
+      amount:          e.amount,
+      currency:        e.currency || 'IDR',
+      status:          e.status,
+      submittedByName: e.submittedByName || '—',
+      reviewedByName:  e.reviewedByName || null,
+      reviewDate:      e.reviewDate || null,
+      rejectionReason: e.rejectionReason || null,
+      file:            e.file || null,
+      createdAt:       e.createdAt
+    }));
+
+    const totalOtherExpenseApproved = expenseSubmissions
+      .filter(e => e.status === 'Approved')
+      .reduce((sum, e) => sum + (e.amount || 0), 0);
+
+    const totalOtherExpensePending = expenseSubmissions
+      .filter(e => e.status === 'Pending Verification')
+      .reduce((sum, e) => sum + (e.amount || 0), 0);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // PROFIT MARGIN — sekarang ikut mengurangi biaya reimburse Approved
+    // ─────────────────────────────────────────────────────────────────────
     const grossProfit = clientPrice - totalCOGS;
+    const netProfit    = grossProfit - totalOtherExpenseApproved; // ← baru
     const profitMarginPct = clientPrice > 0
       ? parseFloat(((grossProfit / clientPrice) * 100).toFixed(2))
+      : 0;
+    const netMarginPct = clientPrice > 0
+      ? parseFloat(((netProfit / clientPrice) * 100).toFixed(2))
       : 0;
 
     const milestones = {
@@ -207,11 +252,11 @@ exports.getProjectTimeline = async (req, res) => {
       },
 
       financial: {
-        clientPrice,       
+        clientPrice,
         shippingFee,
         taxPercentage,
         taxAmount,
-        grandTotal,        
+        grandTotal,
         totalPaid: totalPaidFromInvoices,
         totalUnpaid: totalUnpaidFromInvoices,
         remaining: grandTotal - totalPaidFromInvoices,
@@ -241,11 +286,22 @@ exports.getProjectTimeline = async (req, res) => {
         total: totalSupplierPaid + totalSupplierPending
       },
 
+      // ── Baru: Expense Submission ──────────────────────────────────────
+      expenses: {
+        items:           expenseSummary,
+        totalApproved:   totalOtherExpenseApproved,
+        totalPending:    totalOtherExpensePending,
+        count:           expenseSummary.length
+      },
+
       profitMargin: {
-        salesPrice: clientPrice,
-        cogs: totalCOGS,
+        salesPrice:    clientPrice,
+        cogs:          totalCOGS,
+        otherExpense:  totalOtherExpenseApproved,  // ← baru
         grossProfit,
-        marginPercent: profitMarginPct
+        netProfit,                                  // ← baru
+        marginPercent: profitMarginPct,
+        netMarginPercent: netMarginPct               // ← baru
       }
     });
 

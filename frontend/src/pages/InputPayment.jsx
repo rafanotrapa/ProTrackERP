@@ -86,7 +86,7 @@ const InputPayment = () => {
         text: 'Data forwarded to Finance verification.',
         confirmButtonColor: '#0f172a'
       });
-      navigate('/dashboard');
+      navigate('/input-payment-log');
     } catch (err) {
       Swal.fire('Error', 'Failed to submit payment.', 'error');
     } finally {

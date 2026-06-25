@@ -23,6 +23,7 @@ const Dashboard = () => {
       { title: 'Create Quotation', icon: FileText, desc: 'Buat penawaran harga detail', path: '/quotation-center' },
       { title: 'Create Invoice', icon: Receipt, desc: 'Buat invoice untuk customer', path: '/invoice-center' },
       { title: 'Input Payment', icon: CreditCard, desc: 'Upload bukti transfer client', path: '/input-payment' },
+      { title: 'Payment Log', icon: Logs, desc: 'Histori bukti pembayaran yang diupload', path: '/input-payment-log' },
       { title: 'Project Timeline', icon: Calendar, desc: 'Monitor progress & milestones', path: '/timeline' },
       { title: 'Expense Submission', icon: FileText, desc: 'Ajukan biaya meeting/entertainment ke Finance', path: '/expense-submission-menu' }
     ],
@@ -37,7 +38,8 @@ const Dashboard = () => {
     ],
     Finance: [
       { title: 'Project Billing', icon: Receipt, desc: 'Generate tagihan dari Quotation', path: '/project-billing' },
-      { title: 'Client Payment', icon: CreditCard, desc: 'Input & verifikasi pembayaran client', path: '/finance-payment-center' },
+      { title: 'Client Payment', icon: CreditCard, desc: 'Input pembayaran masuk', path: '/finance-payment-center' },
+      { title: 'Payment Verification', icon: Shield, desc: 'Verifikasi bukti bayar client', path: '/verify-payment' },
       { title: 'Supplier Payment', icon: DollarSign, desc: 'Proses pembayaran vendor', path: '/supplier-payment' },
       { title: 'Financial Report', icon: BarChart3, desc: 'Laporan laba rugi', path: '/financial-report' },
       { title: 'Expense Submission', icon: FileText, desc: 'Ajukan & verifikasi biaya tambahan project', path: '/expense-submission-menu' }

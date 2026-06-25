@@ -183,7 +183,7 @@ const ProjectTimeline = () => {
         </div>
       </div>
 
-      <main className="flex-1 p-6 md:p-10 max-w-6xl mx-auto w-full space-y-5">
+      <main className="flex-1 p-6 md:p-10 w-full space-y-5">
 
         {/* ── 1. PROJECT IDENTITY ─────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">

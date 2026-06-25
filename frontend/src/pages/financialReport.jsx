@@ -250,7 +250,7 @@ const FinancialReport = () => {
         </button>
       </div>
 
-      <main className="flex-1 px-6 md:px-10 py-8 space-y-10 max-w-7xl mx-auto w-full">
+      <main className="flex-1 px-6 md:px-10 py-8 space-y-10 w-full">
 
         {/* ════════════════════════════════════════════════
             SECTION 1 — P&L SUMMARY (angka utama)

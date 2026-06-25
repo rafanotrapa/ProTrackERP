@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import {
   CheckCircle, Clock, XCircle, Eye, Pencil, Trash2,
-  FileText, Download,
+  FileText, Search, Plus,
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -36,7 +36,7 @@ const ExpenseSubmissionLog = () => {
 
   // ── Edit modal state ────────────────────────────────────
   const [editTarget, setEditTarget] = useState(null);
-  const [editForm, setEditForm]     = useState({ category: '', description: '', amount: '', remarks: '' });
+  const [editForm, setEditForm]     = useState({ items: [], remarks: '' });
   const [savingEdit, setSavingEdit] = useState(false);
 
   const fetchExpenses = async () => {
@@ -60,11 +60,12 @@ const ExpenseSubmissionLog = () => {
   // ── Filter ───────────────────────────────────────────────
   const filtered = expenses.filter((e) => {
     const q = searchTerm.toLowerCase();
+    const itemNames = (e.items || []).map((it) => it.name).join(' ');
     const matchSearch =
       (e.submissionId || '').toLowerCase().includes(q) ||
       (e.projectId    || '').toLowerCase().includes(q) ||
       (e.projectName  || '').toLowerCase().includes(q) ||
-      (e.category     || '').toLowerCase().includes(q);
+      itemNames.toLowerCase().includes(q);
     const matchStatus = statusFilter === 'all' ? true : e.status === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -88,12 +89,12 @@ const ExpenseSubmissionLog = () => {
         confirmButtonColor: '#dc2626',
         confirmButtonText: 'Tolak Submission',
       });
-      if (value === undefined) return; // dibatalkan
+      if (value === undefined) return;
       rejectionReason = value;
     } else {
       const result = await Swal.fire({
         title: 'Setujui Submission?',
-        html: `<strong>${exp.category}</strong> sebesar <strong class="text-emerald-600">Rp ${formatRupiah(exp.amount)}</strong> akan masuk sebagai beban project <strong>${exp.projectId}</strong>.`,
+        html: `<strong>${exp.items?.length || 0} item</strong> total <strong class="text-emerald-600">Rp ${formatRupiah(exp.amount)}</strong> akan masuk sebagai beban project <strong>${exp.projectId}</strong>.`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#16a34a',
@@ -109,12 +110,7 @@ const ExpenseSubmissionLog = () => {
         { status, rejectionReason },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      Swal.fire({
-        icon: 'success',
-        title: status === 'Approved' ? 'DISETUJUI' : 'DITOLAK',
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      Swal.fire({ icon: 'success', title: status === 'Approved' ? 'DISETUJUI' : 'DITOLAK', timer: 1500, showConfirmButton: false });
       fetchExpenses();
     } catch (err) {
       Swal.fire('GAGAL', err.response?.data?.msg || 'Gagal memproses review', 'error');
@@ -125,19 +121,48 @@ const ExpenseSubmissionLog = () => {
   const openEdit = (exp) => {
     setEditTarget(exp);
     setEditForm({
-      category:    exp.category    || '',
-      description: exp.description || '',
-      amount:      exp.amount      || '',
-      remarks:     exp.remarks     || '',
+      items: (exp.items || []).map((it, idx) => ({
+        id: idx,
+        name: it.name || '',
+        description: it.description || '',
+        amount: it.amount || '',
+      })),
+      remarks: exp.remarks || '',
     });
   };
 
+  const updateEditItem = (id, field, value) => {
+    setEditForm((prev) => ({
+      ...prev,
+      items: prev.items.map((it) => {
+        if (it.id !== id) return it;
+        if (field === 'amount') {
+          const raw = stripNonNumeric(value);
+          return { ...it, amount: raw ? Number(raw) : '' };
+        }
+        return { ...it, [field]: value };
+      }),
+    }));
+  };
+
+  const addEditItem = () => {
+    setEditForm((prev) => ({
+      ...prev,
+      items: [...prev.items, { id: Date.now(), name: '', description: '', amount: '' }],
+    }));
+  };
+
+  const removeEditItem = (id) => {
+    setEditForm((prev) => ({
+      ...prev,
+      items: prev.items.length > 1 ? prev.items.filter((it) => it.id !== id) : prev.items,
+    }));
+  };
+
   const handleSaveEdit = async () => {
-    if (!editForm.category.trim()) {
-      return Swal.fire('KATEGORI KOSONG', 'Kategori biaya wajib diisi!', 'warning');
-    }
-    if (!editForm.amount || Number(editForm.amount) <= 0) {
-      return Swal.fire('NOMINAL TIDAK VALID', 'Nominal harus lebih dari 0!', 'warning');
+    const validItems = editForm.items.filter((it) => it.name.trim() && Number(it.amount) > 0);
+    if (validItems.length === 0) {
+      return Swal.fire('ITEM TIDAK VALID', 'Minimal satu item dengan nama & nominal wajib diisi!', 'warning');
     }
 
     setSavingEdit(true);
@@ -145,7 +170,12 @@ const ExpenseSubmissionLog = () => {
       const token = localStorage.getItem('token');
       await axios.patch(
         `http://localhost:5000/api/expense-submission/${editTarget._id}`,
-        editForm,
+        {
+          items: JSON.stringify(validItems.map((it) => ({
+            name: it.name, description: it.description, amount: Number(it.amount),
+          }))),
+          remarks: editForm.remarks,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       Swal.fire({ icon: 'success', title: 'TERSIMPAN', timer: 1200, showConfirmButton: false });
@@ -229,7 +259,7 @@ const ExpenseSubmissionLog = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter & Search */}
+        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -253,19 +283,19 @@ const ExpenseSubmissionLog = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari ID, Project, Kategori..."
+              placeholder="Cari ID, Project, Nama Biaya..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-amber-500"
             />
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">🔍</span>
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           </div>
         </div>
 
         {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
-            <ReceiptIcon />
+            <FileText size={48} className="text-slate-300 mx-auto" />
             <p className="text-slate-400 font-black text-lg uppercase tracking-tighter italic mt-3">No submissions found</p>
           </div>
         ) : (
@@ -274,8 +304,8 @@ const ExpenseSubmissionLog = () => {
               <thead className="bg-slate-50">
                 <tr className="text-[9px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">Submission</th>
-                  <th className="px-6 py-4">Project / Kategori</th>
-                  <th className="px-6 py-4 text-right">Nominal</th>
+                  <th className="px-6 py-4">Project / Items</th>
+                  <th className="px-6 py-4 text-right">Total</th>
                   <th className="px-6 py-4 text-center">Status</th>
                   <th className="px-6 py-4 text-center">Submitted</th>
                   <th className="px-6 py-4 text-center">Action</th>
@@ -289,14 +319,23 @@ const ExpenseSubmissionLog = () => {
                       <p className="text-[9px] text-slate-400 mt-0.5">{exp.submittedBy?.name || exp.submittedByName || '-'}</p>
                     </td>
                     <td className="px-6 py-5">
-                      <p className="font-black text-slate-800 text-sm">{exp.category}</p>
-                      <p className="text-[9px] text-slate-400 mt-0.5">
+                      <p className="text-[9px] text-slate-400 mb-1">
                         {exp.projectName || exp.projectId} <span className="text-slate-300">({exp.projectId})</span>
                       </p>
+                      <div className="flex flex-wrap gap-1">
+                        {(exp.items || []).slice(0, 3).map((it, idx) => (
+                          <span key={idx} className="text-[9px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                            {it.name}
+                          </span>
+                        ))}
+                        {(exp.items || []).length > 3 && (
+                          <span className="text-[9px] font-bold text-slate-400">+{exp.items.length - 3} lagi</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-5 text-right">
                       <p className="font-black text-amber-600">Rp {formatRupiah(exp.amount)}</p>
-                      <p className="text-[8px] text-slate-400">{exp.currency}</p>
+                      <p className="text-[8px] text-slate-400">{exp.currency} &bull; {(exp.items || []).length} item</p>
                     </td>
                     <td className="px-6 py-5 text-center">{getStatusBadge(exp.status)}</td>
                     <td className="px-6 py-5 text-center">
@@ -318,7 +357,6 @@ const ExpenseSubmissionLog = () => {
                           </a>
                         )}
 
-                        {/* Edit & Delete hanya jika belum Approved */}
                         {exp.status !== 'Approved' && (
                           <>
                             <button
@@ -338,7 +376,6 @@ const ExpenseSubmissionLog = () => {
                           </>
                         )}
 
-                        {/* Approve/Reject hanya untuk Finance & status Pending */}
                         {isFinance && exp.status === 'Pending Verification' && (
                           <>
                             <button
@@ -365,54 +402,72 @@ const ExpenseSubmissionLog = () => {
         )}
       </main>
 
-      {/* ── EDIT MODAL ─────────────────────────────────────── */}
+      {/* ── EDIT MODAL (multi-item) ──────────────────────────── */}
       {editTarget && (
-        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-4 my-8">
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter">
-                Edit Submission
+                Edit Submission — {editTarget.submissionId}
               </h3>
               <button onClick={() => setEditTarget(null)} className="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Kategori</label>
-                <input
-                  type="text"
-                  value={editForm.category}
-                  onChange={(e) => setEditForm((p) => ({ ...p, category: e.target.value }))}
-                  className="w-full p-2.5 mt-1 bg-white border border-slate-300 rounded-lg font-bold text-sm outline-none focus:border-amber-500"
-                />
-              </div>
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Nominal</label>
-                <input
-                  type="text"
-                  value={formatRupiah(editForm.amount)}
-                  onChange={(e) => setEditForm((p) => ({ ...p, amount: stripNonNumeric(e.target.value) }))}
-                  className="w-full p-2.5 mt-1 bg-white border border-slate-300 rounded-lg font-black text-sm text-amber-600 outline-none focus:border-amber-500"
-                />
-              </div>
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Deskripsi</label>
-                <textarea
-                  rows="2"
-                  value={editForm.description}
-                  onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
-                  className="w-full p-2.5 mt-1 bg-white border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500 resize-none"
-                />
-              </div>
-              <div>
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Catatan</label>
-                <textarea
-                  rows="2"
-                  value={editForm.remarks}
-                  onChange={(e) => setEditForm((p) => ({ ...p, remarks: e.target.value }))}
-                  className="w-full p-2.5 mt-1 bg-white border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500 resize-none"
-                />
-              </div>
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+              {editForm.items.map((it) => (
+                <div key={it.id} className="grid grid-cols-12 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <div className="col-span-4">
+                    <label className="text-[8px] font-black text-slate-400 uppercase">Nama Biaya</label>
+                    <input
+                      type="text"
+                      value={it.name}
+                      onChange={(e) => updateEditItem(it.id, 'name', e.target.value)}
+                      className="w-full p-2 mt-0.5 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div className="col-span-5">
+                    <label className="text-[8px] font-black text-slate-400 uppercase">Deskripsi</label>
+                    <input
+                      type="text"
+                      value={it.description}
+                      onChange={(e) => updateEditItem(it.id, 'description', e.target.value)}
+                      className="w-full p-2 mt-0.5 bg-white border border-slate-300 rounded-lg text-xs outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="text-[8px] font-black text-slate-400 uppercase">Nominal</label>
+                    <input
+                      type="text"
+                      value={formatRupiah(it.amount)}
+                      onChange={(e) => updateEditItem(it.id, 'amount', e.target.value)}
+                      className="w-full p-2 mt-0.5 bg-white border border-slate-300 rounded-lg text-xs font-black text-amber-600 text-right outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div className="col-span-1 flex items-end justify-center pb-1">
+                    {editForm.items.length > 1 && (
+                      <button onClick={() => removeEditItem(it.id)} className="text-red-400 hover:text-red-600">
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <button
+                onClick={addEditItem}
+                className="flex items-center gap-1.5 text-amber-600 font-black text-[9px] uppercase tracking-widest hover:text-amber-800"
+              >
+                <Plus size={12} /> Tambah Item
+              </button>
+            </div>
+
+            <div>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Catatan</label>
+              <textarea
+                rows="2"
+                value={editForm.remarks}
+                onChange={(e) => setEditForm((p) => ({ ...p, remarks: e.target.value }))}
+                className="w-full p-2.5 mt-1 bg-white border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500 resize-none"
+              />
             </div>
 
             {editTarget.status === 'Rejected' && (
@@ -444,9 +499,5 @@ const ExpenseSubmissionLog = () => {
     </div>
   );
 };
-
-const ReceiptIcon = () => (
-  <FileText size={48} className="text-slate-300 mx-auto" />
-);
 
 export default ExpenseSubmissionLog;

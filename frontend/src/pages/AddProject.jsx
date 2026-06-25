@@ -122,7 +122,7 @@ const AddProject = () => {
         text: `Project ${formData.projectId} Recorded.`, 
         confirmButtonColor: '#0f172a' 
       });
-      navigate('/dashboard');
+      navigate('/project-log');
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'ERROR', text: 'Database sync failed.' });
     } finally { setLoading(false); }
@@ -136,7 +136,7 @@ const AddProject = () => {
       {/* SUB-HEADER */}
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6">
         <button 
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/project-center')}
           className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
         >
           <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>

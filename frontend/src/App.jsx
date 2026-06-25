@@ -13,7 +13,9 @@ import UserManagement from './pages/UserManagement';
 import SystemLogs from './pages/SystemLogs';
 
 // --- MARKETING MODULE ---
+import ProjectCenter from './pages/ProjectCenter';
 import AddProject from './pages/AddProject';
+import ProjectLog from './pages/ProjectLog';
 import AddClientQuotation from './pages/AddClientQuotation';
 import AddClientInvoice from './pages/AddClientInvoice';
 import InputPayment from './pages/InputPayment';
@@ -49,6 +51,7 @@ import DeliveryManagement from './pages/DeliveryManagement';
 import SupplierPayment from './pages/SupplierPayment';
 import FinancialReport from './pages/financialReport';
 import PaymentVerification from './pages/PaymentVerification';
+import FinancePaymentCenter from './pages/FinancePaymentCenter';
 import PaymentVerifyDetail from './pages/PaymentVerifyDetail';
 import ProjectBilling from './pages/ProjectBilling';
 import ProjectBillingDetail from './pages/ProjectBillingDetail';
@@ -90,7 +93,9 @@ function App() {
           <Route path="/logs" element={<ProtectedRoute allowRoles={['Admin', 'Management', 'Owner']}><SystemLogs /></ProtectedRoute>} />
 
           {/* 4. MARKETING & FINANCE MODULE (COMBINED ACCESS) */}
+          <Route path="/project-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><ProjectCenter /></ProtectedRoute>} />
           <Route path="/add-project" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><AddProject /></ProtectedRoute>} />
+          <Route path="/project-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><ProjectLog /></ProtectedRoute>} />
           <Route path="/client-quote" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><AddClientQuotation /></ProtectedRoute>} />
           <Route path="/create-invoice" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><AddClientInvoice /></ProtectedRoute>} />
           <Route path="/input-payment" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><InputPayment /></ProtectedRoute>} />
@@ -131,6 +136,7 @@ function App() {
           <Route path="/owner-insight" element={<ProtectedRoute allowRoles={['Owner', 'Admin']}><div className="p-20 text-center font-black italic uppercase text-slate-300">Executive Summary Insight Module</div></ProtectedRoute>} />
           <Route path="/supplier-payment" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><SupplierPayment /></ProtectedRoute>} />
           <Route path="/financial-report" element={<ProtectedRoute allowRoles={['Finance', 'Owner', 'Admin']}><FinancialReport /></ProtectedRoute>} />
+          <Route path="/finance-payment-center" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><FinancePaymentCenter /></ProtectedRoute>} />
           <Route path="/verify-payment" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><PaymentVerification /></ProtectedRoute>} />
           <Route path="/verify-payment/:id" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><PaymentVerifyDetail /></ProtectedRoute>} />
 

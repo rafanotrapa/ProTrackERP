@@ -19,7 +19,7 @@ const Dashboard = () => {
 
   const allModules = {
     Marketing: [
-      { title: 'Add Project', icon: FolderPlus, desc: 'Input data project baru', path: '/add-project' },
+      { title: 'Project Center', icon: FolderPlus, desc: 'Tambah project baru & lihat log', path: '/project-center' },
       { title: 'Create Quotation', icon: FileText, desc: 'Buat penawaran harga detail', path: '/quotation-center' },
       { title: 'Create Invoice', icon: Receipt, desc: 'Buat invoice untuk customer', path: '/invoice-center' },
       { title: 'Input Payment', icon: CreditCard, desc: 'Upload bukti transfer client', path: '/input-payment' },
@@ -37,8 +37,7 @@ const Dashboard = () => {
     ],
     Finance: [
       { title: 'Project Billing', icon: Receipt, desc: 'Generate tagihan dari Quotation', path: '/project-billing' },
-      { title: 'Input Payment', icon: CreditCard, desc: 'Input pembayaran masuk', path: '/finance-input-payment' },
-      { title: 'Payment Verification', icon: Shield, desc: 'Verifikasi bukti bayar', path: '/verify-payment' },
+      { title: 'Client Payment', icon: CreditCard, desc: 'Input & verifikasi pembayaran client', path: '/finance-payment-center' },
       { title: 'Supplier Payment', icon: DollarSign, desc: 'Proses pembayaran vendor', path: '/supplier-payment' },
       { title: 'Financial Report', icon: BarChart3, desc: 'Laporan laba rugi', path: '/financial-report' },
       { title: 'Expense Submission', icon: FileText, desc: 'Ajukan & verifikasi biaya tambahan project', path: '/expense-submission-menu' }

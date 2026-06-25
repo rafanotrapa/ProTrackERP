@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { Upload, Search, ReceiptText } from 'lucide-react';
+import { Upload, Search, ReceiptText, Plus, Trash2 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -16,6 +16,13 @@ const formatRupiah = (value) => {
   return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 };
 const stripNonNumeric = (str) => str.toString().replace(/[^0-9]/g, '');
+
+const emptyItem = () => ({
+  id: Date.now() + Math.random(),
+  name: '',
+  description: '',
+  amount: '',
+});
 
 const AddExpenseSubmission = () => {
   const navigate = useNavigate();
@@ -31,13 +38,18 @@ const AddExpenseSubmission = () => {
     submissionId: `EXP-${Date.now()}`,
     projectId:    '',
     projectName:  '',
-    category:     '',
-    description:  '',
-    amount:       '',
     currency:     'IDR',
     remarks:      '',
     file:         null,
   });
+
+  // ── Multi-item — mirip konsep ClientQuotation/SupplierQuotation ──
+  const [items, setItems] = useState([emptyItem()]);
+
+  const totalAmount = useMemo(
+    () => items.reduce((sum, it) => sum + (Number(it.amount) || 0), 0),
+    [items]
+  );
 
   // ── Load project list (semua project — fleksibel, tidak terikat status) ──
   useEffect(() => {
@@ -84,11 +96,6 @@ const AddExpenseSubmission = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAmountChange = (e) => {
-    const raw = stripNonNumeric(e.target.value);
-    setFormData((prev) => ({ ...prev, amount: raw }));
-  };
-
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -100,6 +107,26 @@ const AddExpenseSubmission = () => {
     }
   };
 
+  // ── CRUD items ────────────────────────────────────────────
+  const addItem = () => setItems((prev) => [...prev, emptyItem()]);
+
+  const removeItem = (id) => {
+    setItems((prev) => (prev.length > 1 ? prev.filter((it) => it.id !== id) : prev));
+  };
+
+  const updateItem = (id, field, value) => {
+    setItems((prev) =>
+      prev.map((it) => {
+        if (it.id !== id) return it;
+        if (field === 'amount') {
+          const raw = stripNonNumeric(value);
+          return { ...it, amount: raw ? Number(raw) : '' };
+        }
+        return { ...it, [field]: value };
+      })
+    );
+  };
+
   // ── Submit ────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -107,11 +134,10 @@ const AddExpenseSubmission = () => {
     if (!formData.projectId) {
       return Swal.fire('PILIH PROJECT', 'Silakan pilih project terlebih dahulu!', 'warning');
     }
-    if (!formData.category.trim()) {
-      return Swal.fire('KATEGORI KOSONG', 'Kategori biaya wajib diisi!', 'warning');
-    }
-    if (!formData.amount || Number(formData.amount) <= 0) {
-      return Swal.fire('NOMINAL TIDAK VALID', 'Nominal biaya harus lebih dari 0!', 'warning');
+
+    const validItems = items.filter((it) => it.name.trim() && Number(it.amount) > 0);
+    if (validItems.length === 0) {
+      return Swal.fire('ITEM TIDAK VALID', 'Minimal satu item dengan nama & nominal wajib diisi!', 'warning');
     }
     if (!formData.file) {
       return Swal.fire('LAMPIRAN WAJIB', 'Upload bukti / lampiran pendukung dulu!', 'warning');
@@ -119,13 +145,19 @@ const AddExpenseSubmission = () => {
 
     setLoading(true);
     const data = new FormData();
-    Object.keys(formData).forEach((key) => {
-      if (key === 'file') {
-        data.append(key, formData[key]);
-      } else {
-        data.append(key, formData[key] || '');
-      }
-    });
+    data.append('submissionId', formData.submissionId);
+    data.append('projectId', formData.projectId);
+    data.append('projectName', formData.projectName);
+    data.append('currency', formData.currency);
+    data.append('remarks', formData.remarks);
+    data.append('file', formData.file);
+    data.append('items', JSON.stringify(
+      validItems.map((it) => ({
+        name: it.name,
+        description: it.description,
+        amount: Number(it.amount),
+      }))
+    ));
 
     try {
       const token = localStorage.getItem('token');
@@ -172,7 +204,7 @@ const AddExpenseSubmission = () => {
       </div>
 
       <main className="flex-1 p-8 md:p-12">
-        <form onSubmit={handleSubmit} className="max-w-3xl space-y-10">
+        <form onSubmit={handleSubmit} className="max-w-4xl space-y-10">
 
           {/* ── SECTION 1: PROJECT ─────────────────────────── */}
           <div className="space-y-6">
@@ -232,77 +264,105 @@ const AddExpenseSubmission = () => {
                 Project boleh dalam status apa saja — aktif maupun sudah selesai.
               </p>
             </div>
+
+            <div className="space-y-1 max-w-xs">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
+                Currency
+              </label>
+              <select
+                name="currency"
+                value={formData.currency}
+                onChange={handleChange}
+                className="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-amber-600 outline-none cursor-pointer"
+              >
+                <option value="IDR">IDR (Indonesian Rupiah)</option>
+                <option value="USD">USD (US Dollar)</option>
+                <option value="SGD">SGD (Singapore Dollar)</option>
+              </select>
+            </div>
           </div>
 
-          {/* ── SECTION 2: DETAIL BIAYA ────────────────────── */}
+          {/* ── SECTION 2: DAFTAR BIAYA (MULTI-ITEM) ───────── */}
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
-              <span className="w-8 h-1 bg-amber-600" /> 02. Detail Biaya
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
-                  Kategori Biaya <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  placeholder="e.g Meeting"
-                  className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:border-amber-500 outline-none shadow-sm"
-                  required
-                />
-                <p className="text-[9px] text-slate-400 ml-1">Bebas teks — contoh: Meeting, Entertainment Client, Transport, dll</p>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
-                  Currency
-                </label>
-                <select
-                  name="currency"
-                  value={formData.currency}
-                  onChange={handleChange}
-                  className="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-amber-600 outline-none cursor-pointer"
-                >
-                  <option value="IDR">IDR (Indonesian Rupiah)</option>
-                  <option value="USD">USD (US Dollar)</option>
-                  <option value="SGD">SGD (Singapore Dollar)</option>
-                </select>
-              </div>
+            <div className="flex items-center justify-between">
+              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+                <span className="w-8 h-1 bg-amber-600" /> 02. Daftar Biaya
+              </h3>
+              <span className="text-[9px] font-black text-slate-400 uppercase">{items.length} item</span>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
-                Nominal <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">Rp</span>
-                <input
-                  type="text"
-                  value={formatRupiah(formData.amount)}
-                  onChange={handleAmountChange}
-                  placeholder="0"
-                  className="w-full p-3 pl-10 bg-white border border-slate-300 rounded-xl font-black text-lg text-amber-600 focus:border-amber-500 outline-none shadow-sm"
-                  required
-                />
-              </div>
+            <div className="space-y-4">
+              {items.map((item, index) => (
+                <div key={item.id} className="grid grid-cols-12 gap-3 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-start">
+                  <div className="col-span-12 md:col-span-4 space-y-1">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                      Nama Biaya {index === 0 && <span className="text-red-500">*</span>}
+                    </label>
+                    <input
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => updateItem(item.id, 'name', e.target.value)}
+                      placeholder="e.g Meeting"
+                      className="w-full p-2 bg-white border border-slate-300 rounded-lg font-bold text-sm outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div className="col-span-12 md:col-span-5 space-y-1">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Deskripsi</label>
+                    <input
+                      type="text"
+                      value={item.description}
+                      onChange={(e) => updateItem(item.id, 'description', e.target.value)}
+                      placeholder="Detail singkat (optional)"
+                      className="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500"
+                    />
+                  </div>
+                  <div className="col-span-9 md:col-span-2 space-y-1">
+                    <label className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Nominal *</label>
+                    <div className="relative">
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[10px]">Rp</span>
+                      <input
+                        type="text"
+                        value={formatRupiah(item.amount)}
+                        onChange={(e) => updateItem(item.id, 'amount', e.target.value)}
+                        placeholder="0"
+                        className={`w-full p-2 pl-7 bg-white border rounded-lg font-black text-right text-sm outline-none ${
+                          item.amount > 0 ? 'border-amber-300 text-amber-600' : 'border-slate-300 text-slate-700'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-span-3 md:col-span-1 flex items-end justify-center pb-1">
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.id)}
+                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Hapus item"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={addItem}
+                className="flex items-center gap-2 text-amber-600 font-black text-[10px] uppercase tracking-widest hover:text-amber-800 transition-colors"
+              >
+                <Plus size={14} /> Tambah Item Biaya
+              </button>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
-                Deskripsi
-              </label>
-              <textarea
-                name="description"
-                rows="3"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Jelaskan detail pengeluaran ini..."
-                className="w-full p-4 bg-white border border-slate-300 rounded-2xl outline-none font-medium text-slate-700 focus:border-amber-500 shadow-sm transition-all resize-none"
-              />
+            {/* Total Summary */}
+            <div className="flex justify-end pt-4 border-t border-slate-200">
+              <div className="text-right w-72">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Pengajuan</p>
+                <p className="text-2xl font-black text-amber-600 tracking-tighter">
+                  Rp {formatRupiah(totalAmount)}
+                </p>
+              </div>
             </div>
           </div>
 
@@ -325,7 +385,7 @@ const AddExpenseSubmission = () => {
                   <p className="text-xs font-black text-amber-700">
                     {formData.file ? formData.file.name : 'Klik untuk upload file'}
                   </p>
-                  <p className="text-[9px] text-amber-500">JPG, PNG, atau PDF — maks 5MB</p>
+                  <p className="text-[9px] text-amber-500">JPG, PNG, atau PDF — maks 5MB. Satu file untuk semua item di atas.</p>
                 </div>
               </label>
               <input

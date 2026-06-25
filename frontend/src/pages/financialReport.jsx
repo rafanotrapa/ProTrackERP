@@ -558,21 +558,27 @@ const FinancialReport = () => {
                                   </div>
                                 </div>
 
-                                {/* Other expense breakdown detail */}
-                                <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3">
+                                {/* Other expense breakdown detail — multi-item per submission */}
+                                <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3 max-h-64 overflow-y-auto">
                                   <p className="text-[8px] font-black uppercase tracking-widest text-orange-500 mb-3">
-                                    Detail Biaya Lain ({(p.otherExpenseBreakdown || []).length})
+                                    Detail Biaya Lain ({(p.otherExpenseBreakdown || []).length} submission)
                                   </p>
                                   {(p.otherExpenseBreakdown || []).length === 0 ? (
                                     <p className="text-[9px] text-slate-400 italic">Tidak ada submission biaya lain</p>
                                   ) : (
-                                    p.otherExpenseBreakdown.map((e, idx) => (
-                                      <div key={idx} className="flex justify-between gap-4 py-1.5 border-b border-slate-50 last:border-0">
-                                        <div>
-                                          <p className="text-[9px] font-bold text-slate-700">{e.category}</p>
-                                          <p className="text-[8px] text-slate-400">{e.submittedBy || '-'}</p>
+                                    p.otherExpenseBreakdown.map((sub, idx) => (
+                                      <div key={idx} className="pb-2 border-b border-slate-50 last:border-0">
+                                        <div className="flex justify-between gap-4 mb-1">
+                                          <p className="text-[8px] font-black text-slate-400 uppercase">{sub.submissionId}</p>
+                                          <span className="text-[9px] font-black text-orange-600">{rp(sub.amount)}</span>
                                         </div>
-                                        <span className="text-[9px] font-black text-orange-600">{rp(e.amount)}</span>
+                                        {(sub.items || []).map((it, i2) => (
+                                          <div key={i2} className="flex justify-between gap-4 pl-2">
+                                            <span className="text-[9px] text-slate-600">• {it.name}</span>
+                                            <span className="text-[9px] font-bold text-slate-500">{rp(it.amount)}</span>
+                                          </div>
+                                        ))}
+                                        <p className="text-[8px] text-slate-400 pl-2 mt-0.5">{sub.submittedBy || '-'}</p>
                                       </div>
                                     ))
                                   )}

@@ -283,6 +283,7 @@ const ProjectBillingDetail = () => {
                 <th className="py-4 px-4 text-[9px] font-black text-slate-500 uppercase">Description</th>
                 <th className="py-4 px-4 text-[9px] font-black text-slate-500 uppercase text-right">Amount</th>
                 <th className="py-4 px-4 text-[9px] font-black text-slate-500 uppercase text-center">Status</th>
+                <th className="py-4 px-4 text-[9px] font-black text-slate-500 uppercase text-center">Tgl Bayar</th>
                 <th className="py-4 px-4 text-[9px] font-black text-slate-500 uppercase text-right">Action</th>
               </tr>
             </thead>
@@ -299,6 +300,15 @@ const ProjectBillingDetail = () => {
                       <span className="px-3 py-1 rounded-full text-[9px] font-black bg-amber-100 text-amber-600">⏳ UNPAID</span>
                     ) : (
                       <span className="px-3 py-1 rounded-full text-[9px] font-black bg-slate-100 text-slate-500">NOT GENERATED</span>
+                    )}
+                  </td>
+                  <td className="py-4 px-4 text-center">
+                    {stage.invoice?.paymentDate ? (
+                      <span className="text-[10px] font-bold text-slate-600">
+                        {new Date(stage.invoice.paymentDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-300">-</span>
                     )}
                   </td>
                   <td className="py-4 px-4 text-right">

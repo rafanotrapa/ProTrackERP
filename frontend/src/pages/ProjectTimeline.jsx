@@ -688,10 +688,38 @@ const ProjectTimeline = () => {
               </div>
               {profitMargin.cogs === 0 && (
                 <p className="text-[9px] text-slate-400 mt-2 text-center italic">
-                  COGS akan muncul setelah supplier quotation di-approve
+                  COGS akan muncul setelah supplier invoice dibayar (Paid)
                 </p>
               )}
             </div>
+
+            {/* Estimasi vs Aktual — budget Supplier Quotation vs realisasi Supplier Invoice */}
+            {profitMargin.estimatedCOGS !== undefined && (
+              <div className="bg-indigo-50 rounded-xl p-4 mt-4">
+                <p className="text-[9px] font-black text-indigo-500 uppercase tracking-wider mb-3">
+                  Estimasi (Supplier Quotation) vs Aktual (Supplier Invoice Paid)
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-white rounded-lg p-3">
+                    <p className="text-[8px] font-black text-slate-400 uppercase">Estimasi COGS</p>
+                    <p className="text-sm font-black text-slate-700">{fmt(profitMargin.estimatedCOGS)}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3">
+                    <p className="text-[8px] font-black text-slate-400 uppercase">Aktual COGS</p>
+                    <p className="text-sm font-black text-red-600">{fmt(profitMargin.cogs)}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-3">
+                    <p className="text-[8px] font-black text-slate-400 uppercase">Selisih</p>
+                    <p className={`text-sm font-black ${(profitMargin.cogs - profitMargin.estimatedCOGS) > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                      {(profitMargin.cogs - profitMargin.estimatedCOGS) > 0 ? '+' : ''}{fmt(profitMargin.cogs - profitMargin.estimatedCOGS)}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-[8px] text-indigo-400 italic mt-2">
+                  Bea cukai & PPN vendor baru terhitung di Aktual — belum diketahui saat quotation dibuat.
+                </p>
+              </div>
+            )}
           </div>
         </Section>
 

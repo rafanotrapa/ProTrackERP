@@ -511,7 +511,7 @@ const FinancialReport = () => {
                         {isOpen && (
                           <tr className="bg-slate-50/50">
                             <td colSpan={9} className="px-6 py-5">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
                                 {/* Revenue breakdown */}
                                 <div className="bg-white rounded-xl border border-slate-100 p-4">
@@ -582,6 +582,44 @@ const FinancialReport = () => {
                                       </div>
                                     ))
                                   )}
+                                </div>
+                                {/* Estimasi vs Aktual — pembanding budget Supplier Quotation
+                                    vs realisasi Supplier Invoice yang sudah Paid */}
+                                <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3">
+                                  <p className="text-[8px] font-black uppercase tracking-widest text-indigo-500 mb-3">
+                                    Estimasi vs Aktual
+                                  </p>
+                                  <div className="space-y-2">
+                                    <div className="flex justify-between gap-4">
+                                      <span className="text-[9px] text-slate-500">Estimasi COGS (SQ)</span>
+                                      <span className="text-[9px] font-bold text-slate-600">{rp(p.estimatedCOGS)}</span>
+                                    </div>
+                                    <div className="flex justify-between gap-4">
+                                      <span className="text-[9px] text-slate-500">Aktual COGS (SI Paid)</span>
+                                      <span className="text-[9px] font-black text-rose-600">{rp(p.supplierCOGS)}</span>
+                                    </div>
+                                    <div className="flex justify-between gap-4 pt-2 border-t border-slate-100">
+                                      <span className="text-[9px] font-bold text-slate-600">Selisih</span>
+                                      <span className={`text-[9px] font-black ${
+                                        (p.supplierCOGS - p.estimatedCOGS) > 0 ? 'text-rose-600' : 'text-emerald-600'
+                                      }`}>
+                                        {(p.supplierCOGS - p.estimatedCOGS) > 0 ? '+' : ''}{rp(p.supplierCOGS - p.estimatedCOGS)}
+                                      </span>
+                                    </div>
+                                    <p className="text-[8px] text-slate-400 italic pt-1">
+                                      Bea cukai & PPN vendor belum terhitung di estimasi — baru diketahui saat Supplier Invoice masuk.
+                                    </p>
+                                    <div className="pt-2 border-t border-slate-100">
+                                      <div className="flex justify-between gap-4">
+                                        <span className="text-[9px] text-slate-500">Est. Net Profit</span>
+                                        <span className="text-[9px] font-bold text-slate-600">{rp(p.estimatedNetProfit)}</span>
+                                      </div>
+                                      <div className="flex justify-between gap-4">
+                                        <span className="text-[9px] text-slate-500">Est. Margin</span>
+                                        <span className="text-[9px] font-bold text-slate-600">{(p.estimatedMargin ?? 0).toFixed(1)}%</span>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
                             </td>

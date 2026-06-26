@@ -176,7 +176,7 @@ const PaymentVerification = () => {
                     </td>
                     <td className="px-6 py-5 text-center">
                       <button
-                        onClick={() => navigate(`/payment-verify-detail/${p._id}`)}
+                        onClick={() => navigate(`/verify-payment/${p._id}`)}
                         className="p-2 text-slate-500 hover:text-indigo-600 transition-all"
                         title="Lihat Detail & Verifikasi"
                       >

@@ -2,42 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { CheckCircle, XCircle, ArrowLeft, Paperclip, FileText, Download, Eye } from 'lucide-react';
+import { CheckCircle, XCircle, ArrowLeft, DollarSign, Package, Clock, User, FileText, Truck, Receipt } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-const QuotationDetailReview = () => {
+const ClientQuotationDetailReview = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [quo, setQuo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     const fetchDetail = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`http://localhost:5000/api/supplier_quotation/${id}`, {
+        const res = await axios.get(`http://localhost:5000/api/client_quotation/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setQuo(res.data);
       } catch (err) {
         console.error("Gagal tarik detail", err);
-        Swal.fire('ERROR', 'Failed to load quotation details', 'error');
-        navigate('/quotation-approval');
       } finally {
         setLoading(false);
       }
     };
     fetchDetail();
-  }, [id, navigate]);
+  }, [id]);
 
   const handleAction = async (action) => {
     const isApprove = action === 'Approved';
     const result = await Swal.fire({
       title: `${isApprove ? 'APPROVE' : 'REJECT'} QUOTATION?`,
       html: isApprove 
-        ? 'This supplier quotation will be available for <strong>Client Quotation</strong> creation.'
+        ? 'This quotation will be available for <strong>Client Invoice</strong> creation.'
         : 'Please provide a reason for rejection:',
       icon: 'warning',
       showCancelButton: true,
@@ -55,17 +52,17 @@ const QuotationDetailReview = () => {
           payload.rejectionReason = result.value;
         }
         
-        await axios.patch(`http://localhost:5000/api/supplier_quotation/${id}/approve`, payload, {
+        await axios.patch(`http://localhost:5000/api/client_quotation/${id}/approve`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
         
         Swal.fire({
           icon: 'success',
           title: 'PROCESSED',
-          text: `Supplier quotation has been ${action.toLowerCase()}`,
+          text: `Quotation has been ${action.toLowerCase()}`,
           confirmButtonColor: '#0f172a'
         });
-        navigate('/quotation-approval');
+        navigate('/client-quotation-approval');
       } catch (err) {
         Swal.fire({
           icon: 'error',
@@ -91,23 +88,41 @@ const QuotationDetailReview = () => {
       <div className="text-center">
         <FileText size={48} className="text-slate-300 mx-auto mb-4" />
         <p className="font-black text-slate-600 text-lg">Quotation not found</p>
-        <button onClick={() => navigate('/quotation-approval')} className="mt-4 text-indigo-600 underline text-sm">Back to Queue</button>
+        <button onClick={() => navigate('/client-quotation-approval')} className="mt-4 text-indigo-600 underline text-sm">Back to Approval</button>
       </div>
     </div>
   );
 
-  const totalCOGS = (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
-  const additionalFee = quo.additionalFee || 0;
+  // --- LOGIKA KALKULASI YANG BENAR & STERIL DARI BUG ---
+  const totalSales = quo.clientPrice || 0;
+  const shippingFee = quo.shippingFee || 0;
   const taxAmount = quo.taxAmount || 0;
-  const grandTotal = totalCOGS + additionalFee + taxAmount;
+  const taxPercentage = quo.taxPercentage || 0; // <-- INI YANG BIKIN WHITE SCREEN TADI!
+
+  // 1. REVENUE KLIEN MURNI (Harga Jual Barang Saja, Tanpa Ongkir & Pajak)
+  //    FIX: shippingFee adalah pass-through ke ekspedisi, BUKAN pendapatan
+  //    bisnis — sebelumnya ikut ditambahkan ke netRevenue sehingga Gross
+  //    Profit jadi lebih besar dari seharusnya (selisih = nilai shippingFee).
+  //    Sekarang konsisten dengan financialController.js: Gross Profit =
+  //    clientPrice (item sales price) − totalModal (COGS), TANPA shipping.
+  const netRevenue = totalSales;
+
+  // 2. MODAL MURNI (Didapat dari Backend, sudah All-in barang & ongkir supplier tanpa PPN supplier)
+  const totalModal = quo.totalModal || (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
+
+  // 3. GROSS PROFIT & MARGIN ASLI
+  const grossProfit = netRevenue - totalModal;
+  const marginPercent = netRevenue > 0 ? ((grossProfit / netRevenue) * 100).toFixed(1) : 0;
+
+  // 4. GRAND TOTAL TAGIHAN KE KLIEN (Termasuk Ongkir & Pajak — pass-through)
+  const grandTotal = totalSales + shippingFee + taxAmount;
+
+  // Subtotal COGS Items murni (untuk tabel breakdown)
+  const totalItemsCOGS = (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
 
   const isPending = quo.approvalStatus === 'Pending';
   const isApproved = quo.approvalStatus === 'Approved';
-  const isRejected = quo.approvalStatus === 'Rejected';
-
-  const documentUrl = quo.documentUrl ? `http://localhost:5000${quo.documentUrl}` : null;
-  const isImage = documentUrl && /\.(jpg|jpeg|png|gif|webp)$/i.test(documentUrl);
-  const isPdf = documentUrl && /\.pdf$/i.test(documentUrl);
+  const isManualMode = quo.quotationMode === 'manual';
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
@@ -116,7 +131,7 @@ const QuotationDetailReview = () => {
       <div className="p-6 md:p-10 lg:p-12">
         {/* BACK BUTTON */}
         <button 
-          onClick={() => navigate('/quotation-approval')} 
+          onClick={() => navigate('/client-quotation-approval')} 
           className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[10px] uppercase tracking-widest mb-6 transition-all group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform"/> Back to Approval Queue
@@ -135,7 +150,7 @@ const QuotationDetailReview = () => {
                 </p>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-1">
                   {isApproved 
-                    ? 'This quotation is now available for Client Quotation creation' 
+                    ? 'This quotation is now available for Client Invoice creation' 
                     : `Reason: ${quo.rejectionReason || 'No reason provided'}`}
                 </p>
               </div>
@@ -157,18 +172,26 @@ const QuotationDetailReview = () => {
                 <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-full">
                   {quo.quotationId}
                 </span>
+                <span className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider ${
+                  isManualMode ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {isManualMode ? 'MANUAL MODE' : 'AUTO MODE'}
+                </span>
               </div>
               <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tighter leading-none">
-                {quo.projectId}
+                {quo.projectName || quo.projectId}
               </h1>
               <div className="flex flex-wrap gap-4 mt-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                <span className="flex items-center gap-1">🏢 Vendor: {quo.vendorId || 'N/A'}</span>
-                <span className="flex items-center gap-1">📅 {new Date(quo.timestamp).toLocaleDateString('id-ID')}</span>
+                <span className="flex items-center gap-1"><User size={12}/> {quo.clientName || 'N/A'}</span>
+                <span className="flex items-center gap-1"><Clock size={12}/> {new Date(quo.timestamp).toLocaleDateString('id-ID')}</span>
+                {isManualMode && (
+                  <span className="flex items-center gap-1 text-purple-500"><Package size={12}/> Manual Input</span>
+                )}
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Grand Total (COGS + Fee + Tax)</p>
-              <p className="text-3xl font-black text-emerald-600 tracking-tighter">Rp {grandTotal.toLocaleString()}</p>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Grand Total</p>
+              <p className="text-3xl font-black text-emerald-600 tracking-tighter">Rp {grandTotal.toLocaleString('id-ID')}</p>
             </div>
           </div>
 
@@ -179,30 +202,30 @@ const QuotationDetailReview = () => {
             <div className="lg:col-span-2 space-y-8">
               {/* INFO CARDS */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">TOP</label>
-                  <p className="text-sm font-black text-amber-600 uppercase">{quo.topOption || 'N/A'}</p>
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Term of Payment</label>
+                  <p className="text-base font-black text-amber-600 uppercase">{quo.topOption || 'N/A'}</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Additional Fee</label>
-                  <p className="text-sm font-black text-slate-800">Rp {additionalFee.toLocaleString()}</p>
-                  {quo.additionalFeeRemarks && <p className="text-[8px] text-slate-400">{quo.additionalFeeRemarks}</p>}
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Currency</label>
+                  <p className="text-base font-black text-slate-800 uppercase">{quo.currency || 'IDR'}</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tax</label>
-                  <p className="text-sm font-black text-slate-800">{quo.isTaxIncluded ? `${quo.taxPercentage}%` : 'No Tax'}</p>
-                  {quo.isTaxIncluded && <p className="text-[8px] text-slate-400">Rp {taxAmount.toLocaleString()}</p>}
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Items Count</label>
+                  <p className="text-base font-black text-slate-800">{quo.items?.length || 0} item(s)</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Items</label>
-                  <p className="text-sm font-black text-slate-800">{quo.items?.length || 0} item(s)</p>
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Mode</label>
+                  <p className={`text-base font-black uppercase ${isManualMode ? 'text-purple-600' : 'text-blue-600'}`}>
+                    {isManualMode ? 'Manual' : 'Auto'}
+                  </p>
                 </div>
               </div>
 
               {/* ITEMS TABLE */}
               <div>
                 <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2 mb-5">
-                  <span className="w-6 h-0.5 bg-indigo-600"></span> Itemized COGS (Supplier Price)
+                  <span className="w-6 h-0.5 bg-indigo-600"></span> Itemized Price Breakdown
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
@@ -211,26 +234,67 @@ const QuotationDetailReview = () => {
                         <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest rounded-l-xl">Item</th>
                         <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Qty</th>
                         <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Unit</th>
-                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right rounded-r-xl">Unit Price (COGS)</th>
-                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right rounded-r-xl">Subtotal</th>
+                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">COGS (Modal)</th>
+                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Sales Price</th>
+                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right rounded-r-xl">Margin</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(quo.items || []).map((item, index) => (
-                        <tr key={index} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-                          <td className="py-4 px-3 font-bold text-slate-800 text-sm uppercase">{item.itemName}</td>
-                          <td className="py-4 px-3 text-center font-bold text-slate-600">{item.quantity}</td>
-                          <td className="py-4 px-3 text-center font-bold text-slate-600">{item.unit}</td>
-                          <td className="py-4 px-3 text-right font-bold text-indigo-600">Rp {item.cogs?.toLocaleString()}</td>
-                          <td className="py-4 px-3 text-right font-bold text-slate-700">Rp {((item.cogs || 0) * (item.quantity || 0)).toLocaleString()}</td>
-                        </tr>
-                      ))}
+                      {(quo.items || []).map((item, index) => {
+                        const itemCOGS = (item.cogs || 0) * (item.quantity || 0);
+                        const itemSales = (item.salesPrice || 0) * (item.quantity || 0);
+                        const itemMargin = itemSales - itemCOGS;
+                        const itemMarginPercent = itemSales > 0 ? ((itemMargin / itemSales) * 100).toFixed(0) : 0;
+                        return (
+                          <tr key={index} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+                            <td className="py-4 px-3 font-bold text-slate-800 text-sm uppercase">{item.itemName}</td>
+                            <td className="py-4 px-3 text-center font-bold text-slate-600">{item.quantity}</td>
+                            <td className="py-4 px-3 text-center font-bold text-slate-600">{item.unit}</td>
+                            <td className="py-4 px-3 text-right font-bold text-slate-400">Rp {itemCOGS.toLocaleString('id-ID')}</td>
+                            <td className="py-4 px-3 text-right font-black text-emerald-600">Rp {itemSales.toLocaleString('id-ID')}</td>
+                            <td className="py-4 px-3 text-right">
+                              <span className={`text-[9px] font-black px-2 py-1 rounded-full ${itemMargin >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                                {itemMarginPercent}%
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                     <tfoot className="bg-slate-100">
-                      <tr>
-                        <td colSpan="3" className="py-4 px-3 text-right font-black text-slate-800 uppercase tracking-wider">TOTAL COGS</td>
-                        <td className="py-4 px-3 text-right font-black text-indigo-600">Rp {totalCOGS.toLocaleString()}</td>
+                      <tr className="border-t-2 border-slate-200">
+                        <td colSpan="3" className="py-4 px-3 text-right font-black text-slate-800 uppercase tracking-wider">SUBTOTAL</td>
+                        <td className="py-4 px-3 text-right font-bold text-slate-600">Rp {totalItemsCOGS.toLocaleString('id-ID')}</td>
+                        <td className="py-4 px-3 text-right font-black text-emerald-600">Rp {totalSales.toLocaleString('id-ID')}</td>
+                        <td className="py-4 px-3 text-right"></td>
                       </tr>
+                      {(shippingFee > 0 || taxAmount > 0) && (
+                        <>
+                          {shippingFee > 0 && (
+                            <tr className="bg-slate-50">
+                              <td colSpan="4" className="py-3 px-3 text-right font-bold text-slate-600 flex items-center justify-end gap-2">
+                                <Truck size={12}/> Shipping Fee
+                              </td>
+                              <td className="py-3 px-3 text-right font-bold text-slate-700">Rp {shippingFee.toLocaleString('id-ID')}</td>
+                              <td className="py-3 px-3"></td>
+                            </tr>
+                          )}
+                          {taxAmount > 0 && (
+                            <tr className="bg-slate-50">
+                              <td colSpan="4" className="py-3 px-3 text-right font-bold text-slate-600 flex items-center justify-end gap-2">
+                                <Receipt size={12}/> PPN {taxPercentage}%
+                              </td>
+                              <td className="py-3 px-3 text-right font-bold text-slate-700">Rp {taxAmount.toLocaleString('id-ID')}</td>
+                              <td className="py-3 px-3"></td>
+                            </tr>
+                          )}
+                          <tr className="bg-indigo-50">
+                            <td colSpan="4" className="py-4 px-3 text-right font-black text-indigo-800 uppercase tracking-wider">GRAND TOTAL</td>
+                            <td className="py-4 px-3 text-right font-black text-indigo-700 text-lg">Rp {grandTotal.toLocaleString('id-ID')}</td>
+                            <td className="py-4 px-3 text-right"></td>
+                          </tr>
+                        </>
+                      )}
                     </tfoot>
                   </table>
                 </div>
@@ -239,87 +303,65 @@ const QuotationDetailReview = () => {
               {/* REMARKS */}
               {quo.remarks && (
                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Remarks / Notes</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                    <Package size={12}/> Remarks / Notes
+                  </label>
                   <p className="text-sm text-slate-600 italic">{quo.remarks}</p>
                 </div>
               )}
             </div>
 
-            {/* RIGHT COLUMN - DOCUMENT PREVIEW & ACTION */}
+            {/* RIGHT COLUMN - SUMMARY & ACTION */}
             <div className="space-y-6">
-              {/* DOCUMENT PREVIEW CARD */}
-              <div className="bg-white border-2 border-slate-100 rounded-3xl overflow-hidden shadow-lg">
-                <div className="p-4 bg-slate-50 border-b border-slate-100">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <Paperclip size={14}/> Attached Document
-                  </h3>
-                </div>
-                <div className="p-4">
-                  {documentUrl ? (
-                    <div>
-                      {/* IMAGE PREVIEW */}
-                      {isImage && (
-                        <div className="relative group">
-                          <img 
-                            src={documentUrl} 
-                            alt="Quotation Document" 
-                            className="w-full h-auto rounded-xl border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity"
-                            onClick={() => window.open(documentUrl, '_blank')}
-                          />
-                          <button
-                            onClick={() => window.open(documentUrl, '_blank')}
-                            className="absolute bottom-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white p-2 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                          >
-                            <Eye size={16} />
-                          </button>
-                        </div>
-                      )}
-                      
-                      {/* PDF PREVIEW - tampilkan thumbnail/icon + link */}
-                      {isPdf && (
-                        <div className="text-center">
-                          <div className="bg-slate-100 rounded-2xl p-8 mb-4">
-                            <FileText size={64} className="text-red-500 mx-auto mb-3" />
-                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">PDF Document</p>
-                          </div>
-                          <button
-                            onClick={() => window.open(documentUrl, '_blank')}
-                            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-black text-white text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-                          >
-                            <Download size={14}/> Open PDF Document
-                          </button>
-                        </div>
-                      )}
-                      
-                      {!isImage && !isPdf && (
-                        <div className="text-center py-8">
-                          <FileText size={48} className="text-slate-300 mx-auto mb-3" />
-                          <a 
-                            href={documentUrl} 
-                            target="_blank" 
-                            rel="noreferrer"
-                            className="text-indigo-600 text-xs font-bold underline"
-                          >
-                            View Document
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="text-5xl mb-3">📄</div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No Document Attached</p>
-                      <p className="text-[8px] text-slate-400 mt-1">Supplier did not upload any file</p>
+              {/* FINANCIAL SUMMARY CARD - UPDATED WITH EXACT MARGIN LOGIC */}
+              <div className="bg-linear-to-r from-slate-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <DollarSign size={14}/> Financial Summary
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                    <span className="text-xs text-slate-300">Total COGS (Modal)</span>
+                    <span className="font-bold text-white">Rp {totalModal.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                    <span className="text-xs text-slate-300">Subtotal (Sales Price)</span>
+                    <span className="font-bold text-emerald-300">Rp {totalSales.toLocaleString('id-ID')}</span>
+                  </div>
+                  {shippingFee > 0 && (
+                    <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                      <span className="text-xs text-slate-300 flex items-center gap-1"><Truck size={10}/> Shipping Fee</span>
+                      <span className="font-bold text-white">Rp {shippingFee.toLocaleString('id-ID')}</span>
                     </div>
                   )}
+                  {taxAmount > 0 && (
+                    <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                      <span className="text-xs text-slate-300 flex items-center gap-1"><Receipt size={10}/> PPN {taxPercentage}%</span>
+                      <span className="font-bold text-white">Rp {taxAmount.toLocaleString('id-ID')}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-2 border-t border-white/20">
+                    <span className="text-xs font-black text-slate-300 uppercase tracking-wider">Grand Total</span>
+                    <span className="text-xl font-black text-emerald-400">Rp {grandTotal.toLocaleString('id-ID')}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-xs font-black text-slate-300 uppercase tracking-wider">Gross Margin</span>
+                    <div className="text-right">
+                      <span className={`text-xl font-black ${grossProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        Rp {grossProfit.toLocaleString('id-ID')}
+                      </span>
+                      <span className={`text-[10px] font-black ml-2 px-2 py-0.5 rounded-full ${grossProfit >= 0 ? 'bg-emerald-500/30 text-emerald-300' : 'bg-red-500/30 text-red-300'}`}>
+                        {marginPercent}%
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* ACTION BUTTONS (HANYA UNTUK PENDING) */}
+              {/* ACTION BUTTONS */}
               {isPending && (
                 <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 shadow-lg sticky top-6">
                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <CheckCircle size={14}/> Management Action
+                    <FileText size={14}/> Management Action
                   </h3>
                   <div className="space-y-3">
                     <button 
@@ -336,7 +378,7 @@ const QuotationDetailReview = () => {
                     </button>
                   </div>
                   <p className="text-[8px] text-slate-400 text-center mt-4 uppercase tracking-widest">
-                    Approval will make this quotation available for Client Quotation
+                    Approval will make this quotation available for Client Invoice
                   </p>
                 </div>
               )}
@@ -357,10 +399,10 @@ const QuotationDetailReview = () => {
                     <div className="flex justify-between">
                       <span className="text-slate-500">Approval Date</span>
                       <span className="font-bold text-slate-700">
-                        {quo.approvalDate ? new Date(quo.approvalDate).toLocaleString() : '-'}
+                        {quo.approvalDate ? new Date(quo.approvalDate).toLocaleString('id-ID') : '-'}
                       </span>
                     </div>
-                    {isRejected && quo.rejectionReason && (
+                    {quo.approvalStatus === 'Rejected' && quo.rejectionReason && (
                       <div className="mt-3 pt-3 border-t border-slate-200">
                         <span className="text-slate-500 block mb-1 text-[9px] font-black uppercase tracking-widest">Rejection Reason</span>
                         <p className="text-slate-700 italic text-xs bg-white p-2 rounded-lg">{quo.rejectionReason}</p>
@@ -372,7 +414,7 @@ const QuotationDetailReview = () => {
 
               {/* BACK BUTTON */}
               <button
-                onClick={() => navigate('/quotation-approval')}
+                onClick={() => navigate('/client-quotation-approval')}
                 className="w-full py-4 border-2 border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all active:scale-95"
               >
                 ← Back to Approval List
@@ -386,4 +428,4 @@ const QuotationDetailReview = () => {
   );
 };
 
-export default QuotationDetailReview;
+export default ClientQuotationDetailReview;

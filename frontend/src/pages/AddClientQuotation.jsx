@@ -26,7 +26,7 @@ const stripNonNumeric = (str) => str.toString().replace(/[^0-9]/g, '');
 const AddClientQuotation = () => {
   const navigate = useNavigate();
 
-  // ── State ────────────────────────────────────────────────
+  
   const [projects, setProjects]           = useState([]);
   const [loading, setLoading]             = useState(false);
   const [fetching, setFetching]           = useState(false);
@@ -35,10 +35,10 @@ const AddClientQuotation = () => {
   const [manualItems, setManualItems]     = useState([]);
   const [shippingFee, setShippingFee]     = useState(0);
 
-  // TAX: input nominal langsung (bukan persentase)
+  
   const [taxAmount, setTaxAmount]         = useState(0);
 
-  // ── Form ─────────────────────────────────────────────────
+  
   const [formData, setFormData] = useState({
     quotationId:    `CQ-${Date.now()}`,
     projectId:      '',
@@ -56,26 +56,22 @@ const AddClientQuotation = () => {
     approvalStatus: 'Draft',
   });
 
-  // ── Refs — mencegah infinite loop ───────────────────────
+  
   const lastProjectIdRef = useRef(null);
   const isFetchingRef    = useRef(false);
 
-  // ─────────────────────────────────────────────────────────
-  //  DERIVED VALUES
-  // ─────────────────────────────────────────────────────────
+
   const activeItems = quotationMode === 'auto' ? formData.items : manualItems;
   const subtotal    = activeItems.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.salesPrice) || 0), 0
   );
-  // taxAmount sekarang input nominal langsung
+  
   const grandTotal  = subtotal + (Number(shippingFee) || 0) + (Number(taxAmount) || 0);
 
-  // Apakah quotation ini kena pajak?
+  
   const isPPN = Number(taxAmount) > 0;
 
-  // ─────────────────────────────────────────────────────────
-  //  LOAD PROJECTS LIST
-  // ─────────────────────────────────────────────────────────
+
   useEffect(() => {
     const fetchProjectsList = async () => {
       try {

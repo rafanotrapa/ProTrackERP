@@ -1,9 +1,31 @@
 const CreateInvoice = require('../models/CreateInvoice');
 const Payment = require('../models/Payment');
 const ClientQuotation = require('../models/ClientQuotation');
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER: cek status pembayaran invoice + ambil tanggal bayar (Verified)
+// ─────────────────────────────────────────────────────────────────────────────
 const getInvoicePaymentStatus = async (invoiceId) => {
   const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
   return payment ? 'Paid' : 'Unpaid';
+};
+
+const getVerifiedPayment = async (invoiceId) => {
+  return Payment.findOne({ invoiceId, status: 'Verified' }).sort({ paymentDate: -1 });
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER: hitung Grand Total kontrak — HARUS konsisten dengan
+// projectTimelineController.js (clientPrice + shippingFee + taxAmount).
+// SEBELUMNYA: fungsi ini hanya pakai clientPrice saja, sehingga payment
+// stages (DP/Termin) di Project Billing tidak sinkron dengan Project Timeline
+// ketika project punya shippingFee atau taxAmount.
+// ─────────────────────────────────────────────────────────────────────────────
+const getContractGrandTotal = (quotation) => {
+  const clientPrice = Number(quotation?.clientPrice || 0);
+  const shippingFee = Number(quotation?.shippingFee || 0);
+  const taxAmount   = Number(quotation?.taxAmount   || 0);
+  return clientPrice + shippingFee + taxAmount;
 };
 
 const parseTopOption = (topOption, totalContractValue) => {
@@ -56,6 +78,11 @@ const parseTopOption = (topOption, totalContractValue) => {
   };
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. GET ALL PROJECTS BILLING (list)
+//    FIX: totalContractValue sekarang grand total (clientPrice + shippingFee
+//    + taxAmount), bukan clientPrice saja. Konsisten dengan Project Timeline.
+// ─────────────────────────────────────────────────────────────────────────────
 exports.getAllProjectsBilling = async (req, res) => {
   try {
     const quotations = await ClientQuotation.find({ approvalStatus: 'Approved' });
@@ -68,7 +95,7 @@ exports.getAllProjectsBilling = async (req, res) => {
           projectId: quote.projectId,
           projectName: quote.projectName,
           clientName: quote.clientName,
-          totalContractValue: quote.clientPrice,
+          totalContractValue: getContractGrandTotal(quote), // ← FIX: grand total
           topOption: quote.topOption,
           invoices: [],
           totalPaid: 0
@@ -98,6 +125,7 @@ exports.getAllProjectsBilling = async (req, res) => {
       const totalContract = project.totalContractValue || 0;
       const totalPaid = project.totalPaid || 0;
       const remainingAmount = totalContract - totalPaid;
+      
       const stages = parseTopOption(project.topOption, totalContract);
       const totalStages = stages.stages.length;
       const paidStages = project.invoices.filter(inv => inv.status === 'Paid').length;
@@ -120,6 +148,12 @@ exports.getAllProjectsBilling = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. GET PROJECT BILLING DETAIL
+//    FIX 1: totalContractValue = grand total (sama seperti di atas).
+//    FIX 2: invoiceData sekarang menyertakan paymentDate dari Payment
+//    Verified, sehingga kolom "Tanggal Bayar" bisa ditampilkan di frontend.
+// ─────────────────────────────────────────────────────────────────────────────
 exports.getProjectBillingDetail = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -133,7 +167,7 @@ exports.getProjectBillingDetail = async (req, res) => {
       return res.status(404).json({ msg: 'No approved quotation found for this project' });
     }
     
-    const totalContractValue = quotation.clientPrice;
+    const totalContractValue = getContractGrandTotal(quotation); // ← FIX: grand total
     const topOption = quotation.topOption;
     
     const invoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
@@ -148,12 +182,21 @@ exports.getProjectBillingDetail = async (req, res) => {
       if (invoice) {
         const paymentStatus = await getInvoicePaymentStatus(invoice._id);
         status = paymentStatus;
+
+        // ── FIX: ambil paymentDate dari Payment Verified ──
+        let paymentDate = null;
+        if (paymentStatus === 'Paid') {
+          const verifiedPayment = await getVerifiedPayment(invoice._id);
+          paymentDate = verifiedPayment?.paymentDate || null;
+        }
+
         invoiceData = {
           id: invoice._id,
           invoiceNumber: invoice.invoiceNumber,
           amount: invoice.amount,
           dueDate: invoice.dueDate,
-          createdAt: invoice.createdAt
+          createdAt: invoice.createdAt,
+          paymentDate
         };
       }
       
@@ -182,6 +225,10 @@ exports.getProjectBillingDetail = async (req, res) => {
       projectName: quotation.projectName,
       clientName: quotation.clientName,
       totalContractValue,
+      // ── Breakdown agar frontend bisa tampilkan rincian, bukan hanya total ──
+      clientPrice: Number(quotation.clientPrice || 0),
+      shippingFee: Number(quotation.shippingFee || 0),
+      taxAmount:   Number(quotation.taxAmount   || 0),
       topOption,
       stages: stagesWithStatus,
       summary: {
@@ -199,6 +246,12 @@ exports.getProjectBillingDetail = async (req, res) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. GENERATE NEXT INVOICE
+//    FIX: totalContractValue = grand total (sama seperti di atas), agar
+//    nominal invoice yang digenerate konsisten dengan Project Timeline
+//    dan Project Billing Detail.
+// ─────────────────────────────────────────────────────────────────────────────
 exports.generateNextInvoice = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -212,7 +265,7 @@ exports.generateNextInvoice = async (req, res) => {
       return res.status(404).json({ msg: 'No approved quotation found for this project' });
     }
     
-    const totalContractValue = quotation.clientPrice;
+    const totalContractValue = getContractGrandTotal(quotation); // ← FIX: grand total
     const topOption = quotation.topOption;
     
     const existingInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });

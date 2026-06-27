@@ -1,9 +1,10 @@
-const ClientInvoice      = require('../models/CreateInvoice');
-const ClientQuotation    = require('../models/ClientQuotation');
-const SupplierInvoice    = require('../models/SupplierInvoice');
-const Payment            = require('../models/Payment');
-const Project            = require('../models/Project');
-const ExpenseSubmission  = require('../models/ExpenseSubmission');
+const ClientInvoice     = require('../models/CreateInvoice');
+const ClientQuotation   = require('../models/ClientQuotation');
+const SupplierQuotation = require('../models/SupplierQuotation');
+const SupplierInvoice   = require('../models/SupplierInvoice');
+const Payment           = require('../models/Payment');
+const Project           = require('../models/Project');
+const ExpenseSubmission = require('../models/ExpenseSubmission');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER: normalize projectId string
@@ -11,14 +12,35 @@ const ExpenseSubmission  = require('../models/ExpenseSubmission');
 const norm = (id) => String(id || '').trim().toLowerCase();
 
 // ─────────────────────────────────────────────────────────────────────────────
+// HELPER: hitung Grand Total kontrak — SAMA PERSIS dengan helper di
+// projectBillingController.js & projectTimelineController.js.
+// clientPrice + shippingFee + taxAmount.
+// ─────────────────────────────────────────────────────────────────────────────
+const getContractGrandTotal = (q) =>
+  Number(q?.clientPrice || 0) + Number(q?.shippingFee || 0) + Number(q?.taxAmount || 0);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER: estimasi COGS dari Supplier Quotation Approved (budget, BUKAN
+// uang yang sudah riil keluar). Dipakai sebagai pembanding "Estimasi vs
+// Aktual" — bukan untuk hitung Net Profit (itu pakai SupplierInvoice Paid).
+// ─────────────────────────────────────────────────────────────────────────────
+const getEstimatedCOGS = (sq) => {
+  const itemsCost = (sq.items || []).reduce(
+    (s, it) => s + (it.cogs || 0) * (it.quantity || 1), 0
+  );
+  return itemsCost + Number(sq.additionalFee || 0) + Number(sq.taxAmount || 0);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // 1. FINANCIAL SUMMARY (global, semua project digabung)
 // ─────────────────────────────────────────────────────────────────────────────
 exports.getFinancialSummary = async (req, res) => {
   try {
     const quotations       = await ClientQuotation.find({ approvalStatus: 'Approved' });
+    // FIX: filter status Paid sudah benar di sini (tidak berubah)
     const supplierInvoices = await SupplierInvoice.find({ status: 'Paid' });
     const payments         = await Payment.find({ status: 'Verified' }).populate('invoiceId');
-    const otherExpenses    = await ExpenseSubmission.find({ status: 'Approved' });
+    const otherExpenses     = await ExpenseSubmission.find({ status: 'Approved' });
 
     let totalClientRevenue   = 0;
     let totalClientTax       = 0;
@@ -45,8 +67,6 @@ exports.getFinancialSummary = async (req, res) => {
       totalSupplierTaxPassThru += Number(si.taxAmount        || 0);
     });
 
-    // ── Expense lain di luar supplier (meeting, entertainment, dll) ──
-    // amount di sini adalah total dari items[] (dihitung saat submit)
     const totalOtherExpense = otherExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
 
     const totalExpense = totalCOGS + totalImportDuty + totalOtherExpense;
@@ -83,13 +103,22 @@ exports.getFinancialSummary = async (req, res) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 2. PROJECT PROFITABILITY (per project)
+//    FIX KRITIS: SupplierInvoice.find() SEBELUMNYA tanpa filter status,
+//    sehingga invoice yang masih Pending Verification / Rejected ikut
+//    dihitung sebagai COGS riil. Sekarang difilter { status: 'Paid' }
+//    — sama seperti getFinancialSummary — supaya hanya uang yang BENAR-
+//    BENAR sudah keluar dari kas yang mengurangi profit.
+//
+//    Juga ditambahkan: estimatedCOGS dari SupplierQuotation Approved
+//    sebagai breakdown "Estimasi vs Aktual", dan integrasi ExpenseSubmission.
 // ─────────────────────────────────────────────────────────────────────────────
 exports.getProjectProfitability = async (req, res) => {
   try {
-    const [quotations, supplierInvoices, clientInvoices, payments, projects, otherExpenses] =
+    const [quotations, supplierQuotations, supplierInvoicesPaid, clientInvoices, payments, projects, otherExpenses] =
       await Promise.all([
         ClientQuotation.find({ approvalStatus: 'Approved' }),
-        SupplierInvoice.find(),
+        SupplierQuotation.find({ approvalStatus: 'Approved' }),
+        SupplierInvoice.find({ status: 'Paid' }), // ← FIX: filter status
         ClientInvoice.find(),
         Payment.find({ status: 'Verified' }).populate('invoiceId'),
         Project.find(),
@@ -104,7 +133,7 @@ exports.getProjectProfitability = async (req, res) => {
     quotations.forEach(q => {
       if (q.projectName) projectNameMap[norm(q.projectId)] = q.projectName;
     });
-    supplierInvoices.forEach(si => {
+    supplierInvoicesPaid.forEach(si => {
       if (si.projectId && !projectNameMap[norm(si.projectId)]) {
         projectNameMap[norm(si.projectId)] = si.projectId;
       }
@@ -117,7 +146,7 @@ exports.getProjectProfitability = async (req, res) => {
 
     const allIds = new Set([
       ...quotations.map(q => norm(q.projectId)),
-      ...supplierInvoices.map(si => norm(si.projectId)),
+      ...supplierInvoicesPaid.map(si => norm(si.projectId)),
       ...clientInvoices.map(i => norm(i.projectId)),
       ...otherExpenses.map(e => norm(e.projectId)),
     ]);
@@ -133,10 +162,11 @@ exports.getProjectProfitability = async (req, res) => {
     });
 
     const report = Array.from(allIds).map(pid => {
-      const pQuotations       = quotations.filter(q  => norm(q.projectId)  === pid);
-      const pSupplierInvoices = supplierInvoices.filter(si => norm(si.projectId) === pid);
-      const pClientInvoices   = clientInvoices.filter(i  => norm(i.projectId)   === pid);
-      const pOtherExpenses    = otherExpenses.filter(e  => norm(e.projectId)   === pid);
+      const pQuotations          = quotations.filter(q  => norm(q.projectId)  === pid);
+      const pSupplierQuotations  = supplierQuotations.filter(sq => norm(sq.projectId) === pid);
+      const pSupplierInvoices    = supplierInvoicesPaid.filter(si => norm(si.projectId) === pid);
+      const pClientInvoices      = clientInvoices.filter(i  => norm(i.projectId)   === pid);
+      const pOtherExpenses       = otherExpenses.filter(e  => norm(e.projectId)   === pid);
 
       let clientRevenue  = 0;
       let clientTax      = 0;
@@ -167,6 +197,10 @@ exports.getProjectProfitability = async (req, res) => {
         }))
       );
 
+      // ── Estimasi COGS dari Supplier Quotation Approved (budget) ──
+      const estimatedCOGS = pSupplierQuotations.reduce((sum, sq) => sum + getEstimatedCOGS(sq), 0);
+
+      // ── COGS AKTUAL dari Supplier Invoice yang sudah Paid (riil keluar kas) ──
       let supplierCOGS        = 0;
       let supplierImportDuty  = 0;
       let supplierTaxPassThru = 0;
@@ -199,8 +233,6 @@ exports.getProjectProfitability = async (req, res) => {
       });
 
       // ── Other expenses (meeting, entertainment, reimburse, dll) ──
-      // Sekarang multi-item: setiap submission punya items[], breakdown
-      // di-flatten per item supaya detail di Financial Report tetap rapi.
       const otherExpenseTotal = pOtherExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
       const otherExpenseBreakdown = pOtherExpenses.map(e => ({
         submissionId: e.submissionId,
@@ -215,10 +247,17 @@ exports.getProjectProfitability = async (req, res) => {
         createdAt:    e.createdAt,
       }));
 
+      // ── Net Profit pakai COGS AKTUAL (Paid), bukan estimasi ──
       const totalExpense = supplierCOGS + supplierImportDuty + otherExpenseTotal;
       const netProfit     = clientRevenue - totalExpense;
       const margin        = clientRevenue > 0
         ? parseFloat(((netProfit / clientRevenue) * 100).toFixed(2))
+        : 0;
+
+      // ── Estimasi margin (pakai estimatedCOGS) untuk pembanding ──
+      const estimatedNetProfit = clientRevenue - estimatedCOGS - otherExpenseTotal;
+      const estimatedMargin    = clientRevenue > 0
+        ? parseFloat(((estimatedNetProfit / clientRevenue) * 100).toFixed(2))
         : 0;
 
       const cashReceived = cashReceivedByProject[pid] || 0;
@@ -238,10 +277,16 @@ exports.getProjectProfitability = async (req, res) => {
         cashReceived,
         outstanding,
 
+        // Aktual (dari Supplier Invoice Paid)
         supplierCOGS,
         supplierImportDuty,
         supplierTaxPassThru,
         supplierTotalPaid,
+
+        // Estimasi (dari Supplier Quotation Approved) — untuk pembanding
+        estimatedCOGS,
+        estimatedNetProfit,
+        estimatedMargin,
 
         otherExpenseTotal,
         otherExpenseBreakdown,
@@ -310,7 +355,6 @@ exports.getCashFlow = async (req, res) => {
       },
     }));
 
-    // ── Other expense entries — deskripsi gabungan nama item ──
     const otherExpenseEntries = otherExpenses.map(e => {
       const itemNames = (e.items || []).map(it => it.name).join(', ');
       return {

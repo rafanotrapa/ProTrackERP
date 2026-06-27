@@ -99,8 +99,13 @@ const ClientQuotationDetailReview = () => {
   const taxAmount = quo.taxAmount || 0;
   const taxPercentage = quo.taxPercentage || 0; // <-- INI YANG BIKIN WHITE SCREEN TADI!
 
-  // 1. REVENUE KLIEN MURNI (Harga Jual Barang + Ongkir, Tanpa Pajak)
-  const netRevenue = totalSales + shippingFee;
+  // 1. REVENUE KLIEN MURNI (Harga Jual Barang Saja, Tanpa Ongkir & Pajak)
+  //    FIX: shippingFee adalah pass-through ke ekspedisi, BUKAN pendapatan
+  //    bisnis — sebelumnya ikut ditambahkan ke netRevenue sehingga Gross
+  //    Profit jadi lebih besar dari seharusnya (selisih = nilai shippingFee).
+  //    Sekarang konsisten dengan financialController.js: Gross Profit =
+  //    clientPrice (item sales price) − totalModal (COGS), TANPA shipping.
+  const netRevenue = totalSales;
 
   // 2. MODAL MURNI (Didapat dari Backend, sudah All-in barang & ongkir supplier tanpa PPN supplier)
   const totalModal = quo.totalModal || (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
@@ -109,8 +114,8 @@ const ClientQuotationDetailReview = () => {
   const grossProfit = netRevenue - totalModal;
   const marginPercent = netRevenue > 0 ? ((grossProfit / netRevenue) * 100).toFixed(1) : 0;
 
-  // 4. GRAND TOTAL TAGIHAN KE KLIEN (Termasuk Pajak)
-  const grandTotal = netRevenue + taxAmount;
+  // 4. GRAND TOTAL TAGIHAN KE KLIEN (Termasuk Ongkir & Pajak — pass-through)
+  const grandTotal = totalSales + shippingFee + taxAmount;
 
   // Subtotal COGS Items murni (untuk tabel breakdown)
   const totalItemsCOGS = (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);

@@ -166,6 +166,17 @@ const SupplierInvoiceRecord = () => {
                         }`}>
                           {currentStatus}
                         </span>
+                        {currentStatus === 'Paid' && inv.paymentProof && (
+                          <a
+                            href={`http://localhost:5000/uploads/documents/${inv.paymentProof}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Download bukti transfer untuk diteruskan ke vendor"
+                            className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase bg-indigo-100 text-indigo-600 hover:bg-indigo-200 transition-all"
+                          >
+                            ⬇ Bukti TF
+                          </a>
+                        )}
                       </td>
                       <td className="px-6 py-5 text-center">
                         <p className="text-[9px] font-bold text-slate-500">

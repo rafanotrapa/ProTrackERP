@@ -40,19 +40,28 @@ const SupplierPaymentDetail = () => {
   const handleConfirmPayment = async () => {
     const result = await Swal.fire({
       title: 'Confirm Payment?',
-      html: `You are about to mark <strong>${invoice?.invoiceNumber}</strong> as <strong class="text-emerald-600">PAID</strong>.`,
+      html: `
+        <p class="text-sm mb-4">You are about to mark <strong>${invoice?.invoiceNumber}</strong> as <strong class="text-emerald-600">PAID</strong>.</p>
+        <div style="text-align:left;">
+          <label style="font-size:11px; font-weight:700; color:#64748b; display:block; margin-bottom:4px;">Bukti Transfer (Opsional) — akan tampil di record Procurement untuk diteruskan ke vendor</label>
+          <input id="swal-proof" type="file" accept="image/*,.pdf" style="width:100%; font-size:12px;" />
+        </div>
+      `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#1e293b',
       confirmButtonText: 'Yes, Confirm Payment',
-      cancelButtonText: 'Cancel'
+      cancelButtonText: 'Cancel',
+      preConfirm: () => document.getElementById('swal-proof')?.files[0] || null
     });
 
     if (result.isConfirmed) {
       try {
         const token = localStorage.getItem('token');
-        await axios.patch(`http://localhost:5000/api/supplier_invoices/${id}/confirm`, {}, {
+        const fd = new FormData();
+        if (result.value) fd.append('paymentProof', result.value);
+        await axios.patch(`http://localhost:5000/api/supplier_invoices/${id}/confirm`, fd, {
           headers: { Authorization: `Bearer ${token}` }
         });
         Swal.fire({

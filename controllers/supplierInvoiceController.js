@@ -148,7 +148,12 @@ exports.confirmPayment = async (req, res) => {
 
     const invoice = await SupplierInvoice.findByIdAndUpdate(
       req.params.id,
-      { status: 'Paid', paymentDate: new Date(), $push: { statusHistory: historyEntry } },
+      {
+        status: 'Paid',
+        paymentDate: new Date(),
+        ...(req.file && { paymentProof: req.file.filename }),
+        $push: { statusHistory: historyEntry }
+      },
       { new: true }
     );
 

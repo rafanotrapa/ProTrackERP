@@ -22,6 +22,6 @@ router.route('/:id').patch(protect, updateStatus);
 // --- ROUTE UNTUK SUPPLIER PAYMENT ---
 router.get('/pending', protect, getPendingPayments);
 router.get('/:id', protect, getInvoiceById);
-router.patch('/:id/confirm', protect, confirmPayment);
+router.patch('/:id/confirm', protect, upload.single('paymentProof'), confirmPayment);
 
 module.exports = router;

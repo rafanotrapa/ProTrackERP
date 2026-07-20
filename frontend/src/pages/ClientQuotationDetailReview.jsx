@@ -282,7 +282,7 @@ const ClientQuotationDetailReview = () => {
                           {taxAmount > 0 && (
                             <tr className="bg-slate-50">
                               <td colSpan="4" className="py-3 px-3 text-right font-bold text-slate-600 flex items-center justify-end gap-2">
-                                <Receipt size={12}/> PPN {taxPercentage}%
+                                <Receipt size={12}/> PPN
                               </td>
                               <td className="py-3 px-3 text-right font-bold text-slate-700">Rp {taxAmount.toLocaleString('id-ID')}</td>
                               <td className="py-3 px-3"></td>
@@ -335,7 +335,7 @@ const ClientQuotationDetailReview = () => {
                   )}
                   {taxAmount > 0 && (
                     <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                      <span className="text-xs text-slate-300 flex items-center gap-1"><Receipt size={10}/> PPN {taxPercentage}%</span>
+                      <span className="text-xs text-slate-300 flex items-center gap-1"><Receipt size={10}/> PPN</span>
                       <span className="font-bold text-white">Rp {taxAmount.toLocaleString('id-ID')}</span>
                     </div>
                   )}

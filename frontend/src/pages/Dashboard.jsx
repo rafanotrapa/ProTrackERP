@@ -52,8 +52,7 @@ const Dashboard = () => {
       { title: 'Project Center', icon: FolderPlus, desc: 'Tambah project baru & lihat log', descEn: 'Add new projects & view logs', path: '/project-center' },
       { title: 'Create Quotation', icon: FileText, desc: 'Buat quotation harga untuk client', descEn: 'Create detailed price quotations', path: '/quotation-center' },
       { title: 'Create Invoice', icon: Receipt, desc: 'Buat invoice untuk client', descEn: 'Create invoices for customers', path: '/invoice-center' },
-      { title: 'Input Payment', icon: CreditCard, desc: 'Upload bukti transfer client', descEn: 'Upload client transfer proof', path: '/input-payment' },
-      { title: 'Payment Log', icon: Logs, desc: 'Riwayat bukti pembayaran yang diupload', descEn: 'History of uploaded payment proofs', path: '/input-payment-log' },
+      { title: 'Input Payment', icon: CreditCard, desc: 'Upload bukti transfer client & riwayatnya', descEn: 'Upload client transfer proof & view log', path: '/input-payment-center' },
       { title: 'Project Timeline', icon: Calendar, desc: 'Pantau progress & milestone project', descEn: 'Monitor progress & milestones', path: '/timeline' },
       { title: 'Expense Submission', icon: FileText, desc: 'Ajukan biaya meeting/entertainment ke Finance', descEn: 'Submit meeting/entertainment expenses to Finance', path: '/expense-submission-menu' }
     ],

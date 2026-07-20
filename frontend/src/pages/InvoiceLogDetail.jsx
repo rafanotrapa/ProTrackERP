@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { 
-  ArrowLeft, CheckCircle, XCircle, Clock, FileText, 
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import autoTable from 'jspdf-autotable';
+import {
+  ArrowLeft, CheckCircle, XCircle, Clock, FileText,
   Truck, Receipt, User, Building2, DollarSign, Calendar,
   Printer, Download
 } from 'lucide-react';
@@ -59,8 +62,118 @@ const InvoiceLogDetail = () => {
     return value.toLocaleString();
   };
 
+  // Template sama dengan invoice di Project Billing
   const handleDownloadPDF = () => {
-    Swal.fire('Info', 'PDF download feature coming soon', 'info');
+    try {
+      const doc = new jsPDF();
+
+      try {
+        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
+      } catch {
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PT. BATAVIA JAYA KREASI', 105, 13, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+      }
+
+      doc.setFontSize(26);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text("INVOICE", 105, 55, { align: 'center' });
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text("To :", 14, 65);
+      doc.setFont('helvetica', 'bold');
+      doc.text((invoice.clientName || '').toUpperCase(), 14, 71);
+
+      doc.setFont('helvetica', 'normal');
+      doc.text("Date", 120, 65);
+      doc.text(`: ${new Date(invoice.createdAt).toLocaleDateString('en-GB')}`, 150, 65);
+      doc.text("INVOICE #", 120, 71);
+      doc.text(`: ${invoice.invoiceNumber}`, 150, 71);
+      doc.text("Due Date", 120, 77);
+      doc.text(`: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : '-'}`, 150, 77);
+      doc.text("TOP", 120, 83);
+      doc.text(`: ${invoice.topOption || 'COD'}`, 150, 83);
+
+      const tableRows = (invoice.items || []).map(item => [
+        item.quantity || 0,
+        (item.itemName || '').toUpperCase(),
+        (item.unit || '').toUpperCase(),
+        `Rp ${Number(item.price || 0).toLocaleString()}`,
+        `Rp ${(Number(item.quantity || 0) * Number(item.price || 0)).toLocaleString()}`
+      ]);
+
+      autoTable(doc, {
+        startY: 92,
+        head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Total (IDR)']],
+        body: tableRows,
+        theme: 'plain',
+        margin: { left: 5 }, // tabel 200mm di halaman 210mm → center
+        headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+        bodyStyles: { halign: 'center' },
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 15 },
+          1: { halign: 'left', cellWidth: 75 },
+          2: { halign: 'center', cellWidth: 20 },
+          3: { halign: 'right', cellWidth: 45 },
+          4: { halign: 'right', cellWidth: 45 },
+        },
+        didDrawCell: (data) => {
+          if (data.section === 'body') {
+            doc.setDrawColor(230);
+            doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+          }
+        }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 15;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text("Total", 130, finalY);
+      doc.text(`Rp ${Number(invoice.amount || 0).toLocaleString()}`, 196, finalY, { align: 'right' });
+
+      doc.setTextColor(0);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text("PAYMENT & DELIVERY INFO :", 14, finalY + 25);
+
+      doc.setFont('helvetica', 'normal');
+      const infoList = [
+        "Pembayaran melalui Cash / Transfer",
+        "Bank Mandiri : 1170011046968",
+        "A.n : BATAVIA JAYA KREASINDO",
+        `Term of Payment : ${invoice.topOption || '-'}`,
+        `Delivery Time   : 7 Working Days after PO / DP Received`,
+        "Warranty        : 1 Year"
+      ];
+      doc.text(infoList, 14, finalY + 32);
+
+      const stampY = finalY + 70;
+      try {
+        doc.addImage("/stample-batavia.png", 'PNG', 140, stampY, 55, 55);
+        doc.setDrawColor(200);
+        doc.line(140, stampY + 50, 195, stampY + 50);
+      } catch {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(150, 150, 150);
+        doc.text('[Digital Stamp]', 167, stampY + 30, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+      }
+
+      doc.save(`${invoice.invoiceNumber}.pdf`);
+    } catch (error) {
+      console.error("PDF Error:", error);
+      Swal.fire('Error', 'Failed to generate PDF', 'error');
+    }
   };
 
   if (loading) {

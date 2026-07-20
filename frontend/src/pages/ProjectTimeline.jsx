@@ -184,7 +184,7 @@ const ProjectTimeline = () => {
             <p className="text-sm font-black text-slate-800">{fmt(financial.grandTotal)}</p>
           </div>
           <div className={`px-3 py-1.5 rounded-xl text-[11px] font-black bg-slate-100 ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>
-            {pct}% terbayar
+            {pct}% progress
           </div>
         </div>
       </div>
@@ -239,30 +239,27 @@ const ProjectTimeline = () => {
         {/* ── 2. PROGRESS BAR ─────────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Progress Pembayaran</h3>
+            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Progress Project</h3>
             <span className={`text-2xl font-black ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>{pct}%</span>
           </div>
           <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden mb-2">
             <div className={`h-full rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${Math.min(pct, 100)}%` }} />
           </div>
           <div className="flex justify-between text-[9px] font-black text-slate-400">
-            <span>{fmt(financial.totalPaid)} terbayar</span>
+            <span>{fmt(financial.totalPaid)} terbayar ({progress.paymentPercent ?? pct}% payment)</span>
             <span>{fmt(financial.grandTotal)} total kontrak</span>
           </div>
 
-          {/* Milestone flags dari Project model */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5 pt-5 border-t border-slate-100">
-            {[
-              { label: 'DP Paid', done: project.milestones.isDPPaid },
-              { label: 'Items Received', done: project.milestones.isItemsReceived },
-              { label: 'Items Delivered', done: project.milestones.isItemsDelivered },
-              { label: 'Final Paid', done: project.milestones.isFinalPaid }
-            ].map((m, i) => (
-              <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${m.done ? 'bg-emerald-50' : 'bg-slate-50'}`}>
+          {/* Step proses real: quotation → PO → QC → supplier paid → delivered → client payment */}
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mt-5 pt-5 border-t border-slate-100">
+            {(progress.steps || []).map((m, i) => (
+              <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${m.done ? 'bg-emerald-50' : m.percent > 0 ? 'bg-amber-50' : 'bg-slate-50'}`}>
                 {m.done
                   ? <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                  : <Clock size={14} className="text-slate-300 shrink-0" />}
-                <span className={`text-[9px] font-black uppercase ${m.done ? 'text-emerald-700' : 'text-slate-400'}`}>{m.label}</span>
+                  : <Clock size={14} className={`shrink-0 ${m.percent > 0 ? 'text-amber-400' : 'text-slate-300'}`} />}
+                <span className={`text-[9px] font-black uppercase ${m.done ? 'text-emerald-700' : m.percent > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {m.label}{!m.done && m.percent > 0 ? ` ${m.percent}%` : ''}
+                </span>
               </div>
             ))}
           </div>

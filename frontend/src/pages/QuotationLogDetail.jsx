@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { 
-  ArrowLeft, CheckCircle, XCircle, Clock, FileText, 
-  Truck, Receipt, User, Building2, DollarSign, Calendar, 
-  Edit, Trash2, Save, X, Plus, Minus
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import autoTable from 'jspdf-autotable';
+import {
+  ArrowLeft, CheckCircle, XCircle, Clock, FileText,
+  Truck, Receipt, User, Building2, DollarSign, Calendar,
+  Edit, Trash2, Save, X, Plus, Minus, Download
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -176,6 +179,167 @@ const QuotationLogDetail = () => {
   const taxAmount = (subtotal * taxPercentage) / 100;
   const grandTotal = calculateGrandTotal();
 
+  // Template sama dengan PDF di Create Quotation
+  const handleDownloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const isDraft = quotation.approvalStatus !== 'Approved';
+      const qSubtotal = (quotation.items || []).reduce((s, it) => s + (Number(it.quantity) || 0) * (Number(it.salesPrice) || 0), 0);
+      const qShipping = Number(quotation.shippingFee) || 0;
+      const qTax = Number(quotation.taxAmount) || 0;
+      const qGrand = qSubtotal + qShipping + qTax;
+
+      try {
+        doc.addImage('/header-batavia.png', 'PNG', 0, 0, 210, 40);
+      } catch {
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PT. BATAVIA JAYA KREASI', 105, 13, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+      }
+
+      if (isDraft) {
+        doc.saveGraphicsState();
+        doc.setGState(new doc.GState({ opacity: 0.07 }));
+        doc.setFontSize(70);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(200, 0, 0);
+        doc.text('DRAFT', 105, 160, { align: 'center', angle: 45 });
+        doc.restoreGraphicsState();
+        doc.setTextColor(0, 0, 0);
+      }
+
+      doc.setFontSize(26);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text('QUOTATION', 14, 55);
+
+      if (isDraft) {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(180, 0, 0);
+        doc.text('[ DRAFT — Belum disetujui Management ]', 14, 62);
+        doc.setTextColor(0, 0, 0);
+      }
+
+      const infoY = isDraft ? 70 : 65;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text('To :', 14, infoY);
+      doc.setFont('helvetica', 'bold');
+      doc.text((quotation.clientName || '').toUpperCase(), 14, infoY + 6);
+
+      doc.setFont('helvetica', 'normal');
+      doc.text('Date', 120, infoY);
+      doc.text(`: ${new Date(quotation.createdAt).toLocaleDateString('en-GB')}`, 150, infoY);
+      doc.text('QUOTATION #', 120, infoY + 6);
+      doc.text(`: ${quotation.quotationId}`, 150, infoY + 6);
+      doc.text('Project ID', 120, infoY + 12);
+      doc.text(`: ${quotation.projectId || '-'}`, 150, infoY + 12);
+
+      const tableRows = (quotation.items || []).map((item) => [
+        item.quantity || 0,
+        (item.itemName || '').toUpperCase(),
+        (item.unit || '').toUpperCase(),
+        `Rp ${Number(item.salesPrice || 0).toLocaleString('id-ID')}`,
+        `Rp ${((Number(item.quantity) || 0) * (Number(item.salesPrice) || 0)).toLocaleString('id-ID')}`,
+      ]);
+
+      autoTable(doc, {
+        startY: infoY + 22,
+        head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Line Total (IDR)']],
+        body: tableRows,
+        theme: 'plain',
+        margin: { left: 7.5 }, // tabel 195mm di halaman 210mm → center
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 15 },
+          1: { halign: 'left', cellWidth: 70 },
+          2: { halign: 'center', cellWidth: 20 },
+          3: { halign: 'right', cellWidth: 45 },
+          4: { halign: 'right', cellWidth: 45 },
+        },
+        didDrawCell: (data) => {
+          if (data.section === 'body') {
+            doc.setDrawColor(230);
+            doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+          }
+        },
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 15;
+      let currentY = finalY;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Subtotal', 130, currentY);
+      doc.text(`Rp ${qSubtotal.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+
+      if (qShipping > 0) {
+        currentY += 7;
+        doc.text('Shipping Fee', 130, currentY);
+        doc.text(`Rp ${qShipping.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+      }
+
+      if (qTax > 0) {
+        currentY += 7;
+        doc.text('Tax / PPN', 130, currentY);
+        doc.text(`Rp ${qTax.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+      }
+
+      currentY += 10;
+      doc.setFontSize(12);
+      doc.setTextColor(15, 23, 42);
+      doc.text('GRAND TOTAL', 130, currentY);
+      doc.text(`Rp ${qGrand.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+
+      doc.setTextColor(0);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TERM OF PAYMENT :', 14, currentY + 20);
+      doc.setFont('helvetica', 'normal');
+      doc.text(quotation.topOption || 'COD', 14, currentY + 27);
+
+      if (qTax > 0 && quotation.bankAccount) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('REKENING BANK :', 14, currentY + 37);
+        doc.setFont('helvetica', 'normal');
+        doc.text(quotation.bankAccount, 14, currentY + 44);
+      }
+
+      const remarkOffsetY = (qTax > 0 && quotation.bankAccount) ? 54 : 37;
+      if (quotation.remarks) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('REMARKS :', 14, currentY + remarkOffsetY);
+        doc.setFont('helvetica', 'normal');
+        const splitRemarks = doc.splitTextToSize(quotation.remarks, 180);
+        doc.text(splitRemarks, 14, currentY + remarkOffsetY + 7);
+      }
+
+      const stampY = currentY + (quotation.remarks ? remarkOffsetY + 20 : remarkOffsetY + 10);
+      try {
+        doc.addImage('/stample-batavia.png', 'PNG', 140, stampY, 55, 55);
+      } catch {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(150);
+        doc.text('[Digital Stamp]', 167, stampY + 30, { align: 'center' });
+        doc.setTextColor(0);
+      }
+
+      doc.save(`${quotation.quotationId}${isDraft ? '_DRAFT' : ''}.pdf`);
+    } catch (error) {
+      console.error('PDF Error:', error);
+      Swal.fire('PDF Error', 'Gagal generate PDF: ' + error.message, 'error');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -222,6 +386,11 @@ const QuotationLogDetail = () => {
           </div>
         </div>
         <div className="flex gap-3">
+          {!isEditing && (
+            <button onClick={handleDownloadPDF} className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all">
+              <Download size={14} /> Download PDF
+            </button>
+          )}
           {canEdit && !isEditing && (
             <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 hover:border-indigo-300 transition-all">
               <Edit size={14} /> Edit

@@ -19,6 +19,7 @@ import ProjectLog from './pages/ProjectLog';
 import AddClientQuotation from './pages/AddClientQuotation';
 import AddClientInvoice from './pages/AddClientInvoice';
 import InputPayment from './pages/InputPayment';
+import InputPaymentCenter from './pages/InputPaymentCenter';
 import InputPaymentLog from './pages/InputPaymentLog';
 import QuotationCenter from './pages/QuotationCenter';
 import QuotationLog from './pages/QuotationLog';
@@ -99,6 +100,7 @@ function App() {
           <Route path="/project-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><ProjectLog /></ProtectedRoute>} />
           <Route path="/client-quote" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><AddClientQuotation /></ProtectedRoute>} />
           <Route path="/create-invoice" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><AddClientInvoice /></ProtectedRoute>} />
+          <Route path="/input-payment-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><InputPaymentCenter /></ProtectedRoute>} />
           <Route path="/input-payment" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><InputPayment /></ProtectedRoute>} />
           <Route path="/input-payment-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><InputPaymentLog /></ProtectedRoute>} />
           <Route path="/quotation-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationCenter /></ProtectedRoute>} />

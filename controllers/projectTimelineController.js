@@ -142,6 +142,8 @@ exports.getProjectTimeline = async (req, res) => {
       return !latest || new Date(inv.paymentDate) > new Date(latest) ? inv.paymentDate : latest;
     }, null);
 
+    const paymentFraction = totalStages > 0 ? paidStages / totalStages : 0;
+
     const purchaseOrders = await PurchaseOrder.find({ projectId })
       .populate('vendorId', 'vendorName vendorContact vendorAddress')
       .sort({ timestamp: -1 });
@@ -310,6 +312,29 @@ exports.getProjectTimeline = async (req, res) => {
       isFinalPaid: project.isFinalPaid || false
     };
 
+    // ─────────────────────────────────────────────────────────────────────
+    // PROGRESS PROSES (REAL) — bukan cuma pembayaran client, tapi seluruh
+    // alur: quotation → PO → QC → bayar supplier → delivery → bayar client.
+    // Tiap step bobot sama; step pembayaran client dihitung fraksional
+    // (paidStages/totalStages) supaya DP yang sudah masuk tetap terhitung.
+    // ─────────────────────────────────────────────────────────────────────
+    const processStepsRaw = [
+      { label: 'Quotation Approved', fraction: clientQuotation ? 1 : 0 },
+      { label: 'PO Terbit',          fraction: purchaseOrders.length > 0 ? 1 : 0 },
+      { label: 'QC Passed',          fraction: purchaseOrders.length > 0 && purchaseOrders.every(po => po.qcStatus === 'Passed') ? 1 : 0 },
+      { label: 'Supplier Paid',      fraction: supplierInvoices.length > 0 && supplierInvoices.every(si => si.status === 'Paid') ? 1 : 0 },
+      { label: 'Delivered',          fraction: purchaseOrders.length > 0 && purchaseOrders.every(po => po.deliveryStatus === 'Delivered') ? 1 : 0 },
+      { label: 'Client Payment',     fraction: paymentFraction },
+    ];
+    const processPercent = Math.round(
+      (processStepsRaw.reduce((s, st) => s + st.fraction, 0) / processStepsRaw.length) * 100
+    );
+    const processSteps = processStepsRaw.map(st => ({
+      label: st.label,
+      done: st.fraction >= 1,
+      percent: Math.round(st.fraction * 100),
+    }));
+
     res.json({
       project: {
         projectId: project.projectId,
@@ -336,11 +361,13 @@ exports.getProjectTimeline = async (req, res) => {
       },
 
       progress: {
-        percent: progressPercent,
+        percent: processPercent,        // progress keseluruhan proses (real)
+        paymentPercent: progressPercent, // progress pembayaran client saja
         paidStages,
         totalStages,
         isComplete,
-        lastClientPaymentDate
+        lastClientPaymentDate,
+        steps: processSteps
       },
 
       paymentStages,

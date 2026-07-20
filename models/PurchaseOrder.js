@@ -30,6 +30,8 @@ const PurchaseOrderSchema = new mongoose.Schema({
   deliveryDate: { type: Date },
   courierName: { type: String },
   trackingNumber: { type: String },
+  deliveryQty: { type: Number },
+  deliveryPhoto: { type: String },
 
   timestamp: { type: Date, default: Date.now }
 }, { 

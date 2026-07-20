@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 
-const { protect } = require('../middleware/auth'); 
+const { protect } = require('../middleware/auth');
+const upload = require('../middleware/uploadMiddleware');
 
 const { createPO, getAllPOs, financeApprovePO, qcCheckPO, updateDelivery } = require('../controllers/poController');
 
@@ -27,6 +28,6 @@ router.put('/:id/finance-approve', protect, authorizeRoles('Admin', 'Finance'), 
 
 router.put('/:id/qc-check', protect, authorizeRoles('Admin', 'Procurement'), qcCheckPO);
 
-router.put('/:id/delivery', protect, authorizeRoles('Admin', 'Procurement'), updateDelivery);
+router.put('/:id/delivery', protect, authorizeRoles('Admin', 'Procurement'), upload.single('deliveryPhoto'), updateDelivery);
 
 module.exports = router;

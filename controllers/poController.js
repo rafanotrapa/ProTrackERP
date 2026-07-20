@@ -101,15 +101,17 @@ exports.qcCheckPO = async (req, res) => {
 
 exports.updateDelivery = async (req, res) => {
   try {
-    const { status, deliveryDate, courierName, trackingNumber } = req.body;
+    const { status, deliveryDate, courierName, trackingNumber, deliveryQty } = req.body;
     const po = await PurchaseOrder.findById(req.params.id);
-    
+
     if (!po) return res.status(404).json({ msg: 'PO tidak ditemukan' });
 
     po.deliveryStatus = status;
     if (deliveryDate) po.deliveryDate = deliveryDate;
     if (courierName) po.courierName = courierName;
     if (trackingNumber) po.trackingNumber = trackingNumber;
+    if (deliveryQty) po.deliveryQty = Number(deliveryQty);
+    if (req.file) po.deliveryPhoto = req.file.filename;
 
     await po.save();
     res.json({ msg: `Status Pengiriman diupdate menjadi: ${status}`, data: po });

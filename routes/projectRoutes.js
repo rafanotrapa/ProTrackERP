@@ -1,7 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
-const SupplierQuotation = require('../models/SupplierQuotation'); 
+const SupplierQuotation = require('../models/SupplierQuotation');
+const { protect } = require('../middleware/auth');
+
+// Semua route project butuh login (token). Semua pemanggil frontend sudah
+// mengirim Authorization header, jadi tidak ada regresi.
+router.use(protect);
 
 // 1. GET ALL PROJECTS
 // Digunakan untuk: Dropdown di Client Quotation & List di halaman Timeline

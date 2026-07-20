@@ -1,4 +1,7 @@
-const ClientInvoice = require('../models/ClientInvoice');
+// Model invoice client sebenarnya bernama CreateInvoice (collection client_invoice).
+// Sebelumnya require '../models/ClientInvoice' yang TIDAK ADA → server crash bila
+// controller ini di-load. Diperbaiki agar tidak jadi landmine.
+const ClientInvoice = require('../models/CreateInvoice');
 const Log = require('../models/Log');
 
 exports.verifyPayment = async (req, res) => {

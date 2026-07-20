@@ -7,7 +7,7 @@ const path = require('path');
 const connectDB = require('./config/db');
 
 const supplierInvoiceRoutes = require('./routes/supplierInvoiceRoutes');
-const supplierPaymentRoutes = require('./routes/supplierpaymentroutes');
+const supplierPaymentRoutes = require('./routes/supplierPaymentRoutes');
 const createInvoiceRoutes = require('./routes/createInvoiceRoutes'); 
 const financialRoutes = require('./routes/financialRoutes');
 const paymentRoutes = require('./routes/paymentRoutes'); 
@@ -41,7 +41,7 @@ app.use('/api/supplier_invoices', supplierInvoiceRoutes);
 app.use('/api/supplier_payments', supplierPaymentRoutes);
 app.use('/api/project-billing', projectBillingRoutes);
 app.use('/api/project-timeline', require('./routes/projectTimelineRoutes'));
-app.use('/api/expense-submission', require('./routes/expenseSubmissionRoutes'));
+app.use('/api/expense-submission', require('./routes/ExpenseSubmissionRoutes'));
 app.use('/api/inventory', require('./routes/inventoryRoutes'));
 
 app.get('/', (req, res) => {

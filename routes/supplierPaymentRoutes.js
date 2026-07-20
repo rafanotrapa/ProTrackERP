@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getSupplierPayments, updateToPaid } = require('../controllers/supplierpaymentcontroller');
+const { getSupplierPayments, updateToPaid } = require('../controllers/supplierPaymentController');
 const { protect } = require('../middleware/auth');
 
 // GET all pending supplier invoices

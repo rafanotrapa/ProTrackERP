@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Vendor = require('../models/Vendor');
+const { protect } = require('../middleware/auth');
+
+// Semua route vendor butuh login (berisi data rekening bank). Semua pemanggil
+// frontend sudah mengirim token → tidak ada regresi.
+router.use(protect);
 
 // @route   POST api/vendor
 router.post('/', async (req, res) => {

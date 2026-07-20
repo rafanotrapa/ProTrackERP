@@ -24,9 +24,9 @@ const fileFilter = (req, file, cb) => {
 };
 
 const upload = multer({ storage, fileFilter });
-router.post('/', upload.single('document'), supplierQuotationController.createQuotation);
+router.post('/', protect, upload.single('document'), supplierQuotationController.createQuotation);
 
-router.get('/', supplierQuotationController.getAllQuotations);
+router.get('/', protect, supplierQuotationController.getAllQuotations);
 
 router.get('/pending', protect, supplierQuotationController.getPendingApprovals);
 

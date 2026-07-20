@@ -17,7 +17,14 @@ const UserSchema = new mongoose.Schema({
   isLocked: { type: Boolean, default: false },
   lockedUntil: { type: Date },
   lastLoginAttempt: { type: Date },
-  
+
+  // 🆕 Audit ringan: modul/fungsi terakhir yang diakses
+  lastActivity: {
+    module: { type: String },
+    method: { type: String },
+    at:     { type: Date },
+  },
+
   created_at: { type: Date, default: Date.now }
 });
 

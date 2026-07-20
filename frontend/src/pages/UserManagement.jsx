@@ -3,9 +3,28 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
+// Jarak waktu ringkas (mis. "5m lalu", "2h lalu", "3d lalu")
+const timeAgo = (date) => {
+  if (!date) return null;
+  const diff = Date.now() - new Date(date).getTime();
+  const s = Math.floor(diff / 1000);
+  if (s < 60) return 'baru saja';
+  const m = Math.floor(s / 60);
+  if (m < 60) return `${m}m lalu`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h lalu`;
+  const d = Math.floor(h / 24);
+  return `${d}d lalu`;
+};
+
+const ROLES = ['Marketing', 'Procurement', 'Finance', 'Management', 'Owner', 'Admin'];
+
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all'); // all | active | locked
   const navigate = useNavigate();
 
   const fetchUsers = async () => {
@@ -28,9 +47,23 @@ const UserManagement = () => {
     }
   };
 
-  useEffect(() => { 
-    fetchUsers(); 
+  useEffect(() => {
+    fetchUsers();
   }, []);
+
+  // Filter + search
+  const filteredUsers = users.filter((u) => {
+    const q = searchTerm.toLowerCase();
+    const matchSearch =
+      (u.username || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q);
+    const matchRole = roleFilter === 'all' ? true : u.role === roleFilter;
+    const matchStatus =
+      statusFilter === 'all' ? true :
+      statusFilter === 'locked' ? u.isLocked :
+      !u.isLocked;
+    return matchSearch && matchRole && matchStatus;
+  });
 
   // ============================================================
   // FUNGSI: RESET PASSWORD MANUAL (ADMIN)
@@ -213,9 +246,54 @@ const UserManagement = () => {
       <main className="flex-1 w-full px-8 md:px-12 lg:px-16">
         <div className="mx-auto w-full max-w-7xl bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
           
-          {/* SUB-HEADER */}
-          <div className="px-8 py-8 md:px-10">
-             <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic">Registered Personnel</span>
+          {/* SUB-HEADER + FILTER */}
+          <div className="px-8 py-8 md:px-10 space-y-5">
+            <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic">Registered Personnel</span>
+
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+              {/* Search */}
+              <input
+                type="text"
+                placeholder="Cari username / email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full lg:w-72 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"
+              />
+
+              {/* Role filter */}
+              <div className="flex gap-2 flex-wrap">
+                {['all', ...ROLES].map((r) => (
+                  <button
+                    key={r}
+                    onClick={() => setRoleFilter(r)}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                      roleFilter === r ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {r === 'all' ? 'All Roles' : r}
+                  </button>
+                ))}
+              </div>
+
+              {/* Status filter */}
+              <div className="flex gap-2 lg:ml-auto">
+                {[
+                  { key: 'all', label: 'All' },
+                  { key: 'active', label: '✓ Active' },
+                  { key: 'locked', label: '🔒 Locked' },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setStatusFilter(key)}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${
+                      statusFilter === key ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -224,6 +302,7 @@ const UserManagement = () => {
                 <tr>
                   <th className="px-8 md:px-10 py-6 whitespace-nowrap">Karyawan / Division</th>
                   <th className="px-8 md:px-10 py-6 whitespace-nowrap">Email Address</th>
+                  <th className="px-8 md:px-10 py-6 whitespace-nowrap">Last Activity</th>
                   <th className="px-8 md:px-10 py-6 text-center whitespace-nowrap">Status</th>
                   <th className="px-8 md:px-10 py-6 text-center whitespace-nowrap">Actions Control</th>
                 </tr>
@@ -231,18 +310,18 @@ const UserManagement = () => {
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   <tr>
-                    <td colSpan="4" className="py-24 text-center font-black text-slate-200 text-2xl animate-pulse italic uppercase">
+                    <td colSpan="5" className="py-24 text-center font-black text-slate-200 text-2xl animate-pulse italic uppercase">
                       Syncing User Database...
                     </td>
                   </tr>
-                ) : users.length === 0 ? (
+                ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="py-24 text-center font-black text-slate-300 text-xl italic uppercase">
+                    <td colSpan="5" className="py-24 text-center font-black text-slate-300 text-xl italic uppercase">
                       No users found.
                     </td>
                   </tr>
                 ) : (
-                  users.map((u) => (
+                  filteredUsers.map((u) => (
                     <tr key={u._id} className="hover:bg-indigo-50/30 transition-all group">
                       {/* Karyawan / Division */}
                       <td className="px-8 md:px-10 py-6">
@@ -260,7 +339,22 @@ const UserManagement = () => {
                       
                       {/* Email */}
                       <td className="px-8 md:px-10 py-6 font-bold text-slate-500">{u.email}</td>
-                      
+
+                      {/* Last Activity */}
+                      <td className="px-8 md:px-10 py-6">
+                        {u.lastActivity?.module ? (
+                          <div className="flex flex-col">
+                            <span className="inline-flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase bg-slate-100 text-slate-600">
+                              {u.lastActivity.module}
+                              <span className="text-[8px] font-bold text-indigo-500">{u.lastActivity.method}</span>
+                            </span>
+                            <span className="text-[9px] font-bold text-slate-400 mt-1 italic">{timeAgo(u.lastActivity.at)}</span>
+                          </div>
+                        ) : (
+                          <span className="text-[9px] font-bold text-slate-300 italic uppercase">No activity yet</span>
+                        )}
+                      </td>
+
                       {/* Status (LOCKED / ACTIVE) */}
                       <td className="px-8 md:px-10 py-6 text-center">
                         {u.isLocked ? (

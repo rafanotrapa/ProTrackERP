@@ -83,8 +83,7 @@ const Dashboard = () => {
     ],
     Management: [
       { title: 'Supplier Quotation Approval', icon: FileCheck, desc: 'Approve quotation dari supplier', descEn: 'Approve supplier quotations', path: '/quotation-approval' },
-      { title: 'Client Quotation Approval', icon: FileText, desc: 'Approve quotation untuk client', descEn: 'Approve client quotations', path: '/client-quotation-approval' },
-      { title: 'Transaction Approval', icon: Shield, desc: 'Verifikasi transaksi', descEn: 'Verify transactions', path: '/approve-transaction' }
+      { title: 'Client Quotation Approval', icon: FileText, desc: 'Approve quotation untuk client', descEn: 'Approve client quotations', path: '/client-quotation-approval' }
     ]
   };
 

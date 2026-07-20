@@ -35,8 +35,9 @@ router.get('/:projectId', async (req, res) => {
     // Step B: Cari semua penawaran Supplier untuk BJK ini (Buat merger Item)
     const supplierQuotes = await SupplierQuotation.find({ projectId: pId });
     
-    // Gabungin selectedItems dari semua penawaran supplier yang masuk
-    const itemList = supplierQuotes.map(sq => sq.selectedItems).filter(Boolean);
+    // Gabungin nama item dari semua penawaran supplier yang masuk.
+    // FIX: field yang benar adalah items[] (bukan selectedItems yang tak ada).
+    const itemList = supplierQuotes.flatMap(sq => (sq.items || []).map(it => it.itemName)).filter(Boolean);
     const mergedItems = [...new Set(itemList)].join(', ');
 
     res.json({

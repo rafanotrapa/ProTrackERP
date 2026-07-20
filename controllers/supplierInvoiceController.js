@@ -1,5 +1,4 @@
 const SupplierInvoice = require('../models/SupplierInvoice');
-const PurchaseOrder   = require('../models/PurchaseOrder');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. SUBMIT TAGIHAN
@@ -53,12 +52,8 @@ exports.submitInvoice = async (req, res) => {
 
     const submission = await newInvoice.save();
 
-    if (req.body.terminName && req.body.terminName !== 'Full Payment') {
-      await PurchaseOrder.findOneAndUpdate(
-        { _id: req.body.poId, 'paymentTerms.description': req.body.terminName },
-        { $set: { 'paymentTerms.$.status': 'Invoiced' } }
-      );
-    }
+    // (Dihapus) update PurchaseOrder.paymentTerms — field itu tidak ada di schema
+    // PO, jadi selama ini no-op. Dibuang agar tidak menyesatkan.
 
     res.status(201).json({ success: true, msg: 'Tagihan berhasil di-submit ke Finance', data: submission });
   } catch (error) {

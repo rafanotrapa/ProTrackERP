@@ -8,12 +8,14 @@ const nodemailer = require('nodemailer');
 // ============================================================
 // KONFIGURASI NODEMAILER
 // ============================================================
+// Kredensial email diambil sepenuhnya dari .env (EMAIL_HOST/PORT/USER/PASS)
+// — tidak lagi hardcoded di source code.
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'sandbox.smtp.mailtrap.io',
-  port: process.env.EMAIL_PORT || 2525,
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
   auth: {
-    user: process.env.EMAIL_USER || '74be9a391d9aa4',
-    pass: process.env.EMAIL_PASS || '1e011a60b431c8'
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
   }
 });
 
@@ -125,7 +127,7 @@ exports.login = async (req, res) => {
 
     await resetLoginAttempts(user._id);
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, username: user.username, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '1d'
     });
 

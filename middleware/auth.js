@@ -43,14 +43,16 @@ const protect = (req, res, next) => {
       const moduleName = MODULE_MAP[req.baseUrl] || req.baseUrl || 'System';
       res.on('finish', () => {
         if (res.statusCode >= 400) return;
-        User.findById(decoded.id).select('username').then((u) => {
-          Log.create({
-            user:     u?.username || 'Unknown',
-            action:   `${verb} @ ${moduleName}`,
-            category: moduleName,
-            type:     verb,
-          }).catch(() => {});
+        const writeLog = (username) => Log.create({
+          user:     username || 'Unknown',
+          action:   `${verb} @ ${moduleName}`,
+          category: moduleName,
+          type:     verb,
         }).catch(() => {});
+        // Token baru sudah membawa username → tak perlu query DB.
+        // Token lama (belum re-login) → ambil dari DB.
+        if (decoded.username) writeLog(decoded.username);
+        else User.findById(decoded.id).select('username').then((u) => writeLog(u?.username)).catch(() => {});
       });
     }
 

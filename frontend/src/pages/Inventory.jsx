@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Boxes, Search, Info } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { Boxes, Search, Pencil, PackageCheck } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -27,6 +28,42 @@ const Inventory = () => {
   };
 
   useEffect(() => { fetchInventory(); }, []);
+
+  const handleUpdateUsage = async (row) => {
+    const { value } = await Swal.fire({
+      title: 'Update Terpakai',
+      html: `<p style="font-size:13px;color:#475569;margin-bottom:8px;"><strong>${row.itemName}</strong></p>
+             <p style="font-size:11px;color:#94a3b8;">Jumlah awal: <strong>${row.initialQty}</strong> ${row.unit}</p>`,
+      input: 'number',
+      inputValue: row.usedQty,
+      inputAttributes: { min: 0, max: row.initialQty, step: 1 },
+      inputLabel: `Jumlah terpakai (maks ${row.initialQty})`,
+      showCancelButton: true,
+      confirmButtonText: 'Simpan',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#4f46e5',
+      inputValidator: (val) => {
+        const n = Number(val);
+        if (val === '' || isNaN(n) || n < 0) return 'Masukkan angka valid (>= 0)';
+        if (n > row.initialQty) return `Tidak boleh melebihi jumlah awal (${row.initialQty})`;
+        return null;
+      },
+    });
+
+    if (value === undefined) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch('http://localhost:5000/api/inventory/use',
+        { itemName: row.itemName, usedQty: Number(value) },
+        { headers: { Authorization: `Bearer ${token}` } });
+      Swal.fire({ icon: 'success', title: 'Tersimpan!', timer: 1200, showConfirmButton: false });
+      fetchInventory();
+    } catch (err) {
+      console.error('Gagal update usage:', err);
+      Swal.fire('Error', 'Gagal update jumlah terpakai', 'error');
+    }
+  };
 
   const filtered = items.filter((it) => {
     const q = searchTerm.toLowerCase();
@@ -84,16 +121,6 @@ const Inventory = () => {
       </div>
 
       <main className="flex-1 p-8 md:p-12">
-        {/* Info: terpakai otomatis */}
-        <div className="mb-6 flex items-start gap-3 bg-indigo-50 border border-indigo-100 rounded-2xl px-5 py-4">
-          <Info size={16} className="text-indigo-500 shrink-0 mt-0.5" />
-          <p className="text-[11px] font-bold text-indigo-700 leading-relaxed">
-            Stok dihitung otomatis dari Purchase Order. <span className="font-black">Qty Awal</span> = total barang dari semua PO,
-            <span className="font-black"> Terpakai</span> = barang dari PO yang sudah berstatus <span className="font-black">Delivered</span> di Delivery Management.
-            Sisa = Qty Awal − Terpakai.
-          </p>
-        </div>
-
         {/* Filter & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
@@ -144,6 +171,7 @@ const Inventory = () => {
                   <th className="px-6 py-4 text-center">Terpakai</th>
                   <th className="px-6 py-4 text-center">Sisa</th>
                   <th className="px-6 py-4">Status Stok</th>
+                  <th className="px-6 py-4 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -169,6 +197,14 @@ const Inventory = () => {
                           </div>
                           <p className="text-[8px] font-black text-slate-400 mt-1">{pct}% tersisa</p>
                         </div>
+                      </td>
+                      <td className="px-6 py-5 text-center">
+                        <button
+                          onClick={() => handleUpdateUsage(it)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
+                        >
+                          <Pencil size={11} /> Terpakai
+                        </button>
                       </td>
                     </tr>
                   );

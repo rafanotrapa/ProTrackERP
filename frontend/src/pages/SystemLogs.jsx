@@ -6,17 +6,19 @@ import { formatDistanceToNow } from 'date-fns';
 const SystemLogs = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('ALL'); 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false); 
+  const [filter, setFilter] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
+  // Kategori DINAMIS dari data — selalu cocok dengan modul yang benar-benar
+  // ada di log (bug lama: opsi statis MARKETING/PROCUREMENT tak pernah cocok).
   const categories = [
     { label: 'ALL MODULES', value: 'ALL' },
-    { label: 'ACCOUNTS', value: 'ACCOUNT' },
-    { label: 'MARKETING', value: 'MARKETING' },
-    { label: 'PROCUREMENT', value: 'PROCUREMENT' },
-    { label: 'FINANCE', value: 'FINANCE' }
+    ...[...new Set(logs.map((l) => l.category).filter(Boolean))]
+      .sort()
+      .map((c) => ({ label: c.toUpperCase(), value: c })),
   ];
 
   const fetchLogs = async () => {
@@ -42,7 +44,20 @@ const SystemLogs = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredLogs = filter === 'ALL' ? logs : logs.filter(log => log.category === filter);
+  const filteredLogs = logs.filter((log) => {
+    const matchCat = filter === 'ALL' ? true : log.category === filter;
+    const q = searchTerm.toLowerCase();
+    const matchSearch = !q ||
+      (log.user || '').toLowerCase().includes(q) ||
+      (log.action || '').toLowerCase().includes(q) ||
+      (log.category || '').toLowerCase().includes(q) ||
+      (log.type || '').toLowerCase().includes(q);
+    return matchCat && matchSearch;
+  });
+
+  // dropdown value mungkin tidak lagi ada di kategori dinamis → fallback label
+  const currentCat = categories.find((c) => c.value === filter);
+  const currentLabel = currentCat ? currentCat.label : 'ALL MODULES';
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans flex flex-col text-slate-900 pb-16">
@@ -64,14 +79,23 @@ const SystemLogs = () => {
           </div>
         </div>
         
-        <div className="flex items-center">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
+          {/* SEARCH */}
+          <input
+            type="text"
+            placeholder="Cari user / aksi / modul..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full md:w-64 px-5 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-bold outline-none focus:border-red-300 shadow-sm"
+          />
+
           {/* CUSTOM DROPDOWN UI FILTER */}
           <div className="relative w-full md:w-auto" ref={dropdownRef}>
-            <div 
+            <div
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="bg-white border border-slate-200 rounded-2xl px-6 py-4 text-[10px] font-black uppercase tracking-widest cursor-pointer flex justify-between md:justify-center items-center gap-4 shadow-sm hover:border-red-200 transition-all text-slate-600"
             >
-              <span>{categories.find(c => c.value === filter).label}</span>
+              <span>{currentLabel}</span>
               <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>

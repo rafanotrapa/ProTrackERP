@@ -1,9 +1,10 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Log = require('../models/Log');
 
-// Peta base-URL → nama modul yang ramah dibaca untuk audit "last activity".
+// Peta base-URL → nama modul ramah dibaca untuk audit log.
 const MODULE_MAP = {
-  '/api/auth':               'User Management',
+  '/api/auth':               'Account',
   '/api/project':            'Project',
   '/api/vendor':             'Vendor',
   '/api/item':               'Item',
@@ -22,6 +23,9 @@ const MODULE_MAP = {
   '/api/inventory':          'Inventory',
 };
 
+// Verb HTTP → kata kerja audit
+const ACTION_VERB = { POST: 'CREATE', PUT: 'UPDATE', PATCH: 'UPDATE', DELETE: 'DELETE' };
+
 const protect = (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1];
   if (!token) return res.status(401).json({ msg: 'No token, access denied' });
@@ -30,12 +34,25 @@ const protect = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
 
-    // Rekam modul terakhir yang diakses (fire-and-forget, tidak memblok request).
-    const moduleName = MODULE_MAP[req.baseUrl] || req.baseUrl || 'Unknown';
-    User.updateOne(
-      { _id: decoded.id },
-      { lastActivity: { module: moduleName, method: req.method, at: new Date() } }
-    ).catch(() => {}); // abaikan error audit — jangan ganggu flow utama
+    // Audit lintas modul: catat aksi ubah-data (bukan GET) ke System Logs
+    // supaya terlihat siapa mengubah modul apa. Dicatat SETELAH response
+    // selesai & HANYA jika sukses (status < 400) agar aksi gagal tidak
+    // mengotori audit. GET tidak dicatat agar log tidak banjir.
+    const verb = ACTION_VERB[req.method];
+    if (verb) {
+      const moduleName = MODULE_MAP[req.baseUrl] || req.baseUrl || 'System';
+      res.on('finish', () => {
+        if (res.statusCode >= 400) return;
+        User.findById(decoded.id).select('username').then((u) => {
+          Log.create({
+            user:     u?.username || 'Unknown',
+            action:   `${verb} @ ${moduleName}`,
+            category: moduleName,
+            type:     verb,
+          }).catch(() => {});
+        }).catch(() => {});
+      });
+    }
 
     next();
   } catch (err) {

@@ -1,9 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const Log = require('../models/Log');
-const { protect, admin } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
-router.get('/', protect, admin, async (req, res) => {
+// System Logs boleh dilihat Admin, Management, Owner (sama seperti akses halaman)
+const canViewLogs = (req, res, next) => {
+  if (req.user && ['Admin', 'Management', 'Owner'].includes(req.user.role)) return next();
+  return res.status(403).json({ msg: 'Akses ditolak! Khusus Admin / Management / Owner.' });
+};
+
+router.get('/', protect, canViewLogs, async (req, res) => {
   try {
     const logs = await Log.find().sort({ timestamp: -1 });
     res.json(logs);

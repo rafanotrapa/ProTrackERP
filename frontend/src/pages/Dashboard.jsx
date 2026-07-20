@@ -4,7 +4,7 @@ import {
   FolderPlus, FileText, Receipt, CreditCard, Calendar, 
   Truck, Package, ClipboardCheck, FileCheck, 
   Users, Logs, Award, Shield, DollarSign, BarChart3,
-  ArrowRight, CircleDot, Layers, Briefcase, Sparkles, TrendingUp
+  ArrowRight, CircleDot, Layers, Briefcase, Sparkles, TrendingUp, Boxes
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -63,6 +63,7 @@ const Dashboard = () => {
       { title: 'Receive & QC Goods', icon: '🔍', desc: 'Terima, cek barang & proses retur', descEn: 'Receive, inspect goods & process returns', path: '/receive-qc', color: 'border-amber-500' },
       { title: 'Invoice Submission', icon: FileText, desc: 'Teruskan tagihan vendor ke Finance', descEn: 'Forward vendor invoices to Finance', path: '/supplier-invoice-menu' },
       { title: 'Delivery Management', icon: Truck, desc: 'Atur jadwal pengiriman ke client', descEn: 'Schedule deliveries to clients', path: '/delivery-management' },
+      { title: 'Inventory Storage', icon: Boxes, desc: 'Stok barang dari PO: sisa & terpakai', descEn: 'PO stock: remaining & used', path: '/inventory' },
       { title: 'Expense Submission', icon: FileText, desc: 'Ajukan biaya operasional ke Finance', descEn: 'Submit operational expenses to Finance', path: '/expense-submission-menu' }
     ],
     Finance: [

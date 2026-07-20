@@ -42,6 +42,7 @@ app.use('/api/supplier_payments', supplierPaymentRoutes);
 app.use('/api/project-billing', projectBillingRoutes);
 app.use('/api/project-timeline', require('./routes/projectTimelineRoutes'));
 app.use('/api/expense-submission', require('./routes/expenseSubmissionRoutes'));
+app.use('/api/inventory', require('./routes/inventoryRoutes'));
 
 app.get('/', (req, res) => {
   res.send(`

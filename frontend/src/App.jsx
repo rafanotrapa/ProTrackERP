@@ -48,7 +48,8 @@ import InvoiceSubmission from './pages/SupplierInvoice';
 // ------------------------------------
 
 import ReceiveQCGoods from './pages/ReceiveQCGoods';  
-import DeliveryManagement from './pages/DeliveryManagement'; 
+import DeliveryManagement from './pages/DeliveryManagement';
+import Inventory from './pages/Inventory'; 
 
 import SupplierPayment from './pages/SupplierPayment';
 import FinancialReport from './pages/financialReport';
@@ -131,6 +132,7 @@ function App() {
 
           <Route path="/receive-qc" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><ReceiveQCGoods /></ProtectedRoute>} />
           <Route path="/delivery-management" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><DeliveryManagement /></ProtectedRoute>} />
+          <Route path="/inventory" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><Inventory /></ProtectedRoute>} />
 
           {/* 6. MONITORING & TIMELINE */}
           <Route path="/timeline" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']}><ProjectList /></ProtectedRoute>} />

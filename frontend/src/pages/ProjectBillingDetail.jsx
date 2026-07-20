@@ -87,6 +87,7 @@ const ProjectBillingDetail = () => {
         head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Total (IDR)']],
         body: tableRows,
         theme: 'plain',
+        margin: { left: 5 }, // tabel 200mm di halaman 210mm → center
         headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
         bodyStyles: { halign: 'center' },
         styles: { fontSize: 9, cellPadding: 4 },

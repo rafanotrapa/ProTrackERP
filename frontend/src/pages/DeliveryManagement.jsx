@@ -155,6 +155,7 @@ const DeliveryManagement = () => {
         head: [['Qty', 'Description', 'Unit']],
         body: tableRows,
         theme: 'plain',
+        margin: { left: 15 }, // tabel 180mm di halaman 210mm → center
         headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
         bodyStyles: { halign: 'center' },
         styles: { fontSize: 9, cellPadding: 4 },

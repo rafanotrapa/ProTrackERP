@@ -32,29 +32,44 @@ const SupplierPayment = () => {
   }, []);
 
   const handleConfirmPayment = async (id, invoiceNumber, vendorName) => {
-    const result = await Swal.fire({
+    // ── Step 1: upload bukti transfer ──
+    const step1 = await Swal.fire({
+      title: 'Upload Bukti Transfer',
+      html: `
+        <p style="font-size:13px; color:#475569; margin-bottom:14px;">Bukti transfer untuk <strong>${invoiceNumber}</strong> (${vendorName}) akan tampil di record Procurement untuk diteruskan ke vendor.</p>
+        <input id="swal-proof" type="file" accept="image/*,.pdf" style="width:100%; font-size:13px; padding:12px; border:2px dashed #cbd5e1; border-radius:12px; background:#f8fafc;" />
+        <p style="font-size:10px; color:#94a3b8; margin-top:8px; text-align:left;">Opsional — boleh dikosongkan.</p>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: '#0f172a',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Done',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => document.getElementById('swal-proof')?.files[0] || null
+    });
+    if (!step1.isConfirmed) return;
+    const proofFile = step1.value;
+
+    // ── Step 2: konfirmasi ──
+    const step2 = await Swal.fire({
       title: 'Confirm Payment?',
       html: `
-        <p class="text-sm mb-4">You are about to mark <strong>${invoiceNumber}</strong> from <strong>${vendorName}</strong> as <strong class="text-emerald-600">PAID</strong>.</p>
-        <div style="text-align:left;">
-          <label style="font-size:11px; font-weight:700; color:#64748b; display:block; margin-bottom:4px;">Bukti Transfer (Opsional) — akan tampil di record Procurement untuk diteruskan ke vendor</label>
-          <input id="swal-proof" type="file" accept="image/*,.pdf" style="width:100%; font-size:12px;" />
-        </div>
+        <p class="text-sm">You are about to mark <strong>${invoiceNumber}</strong> from <strong>${vendorName}</strong> as <strong class="text-emerald-600">PAID</strong>.</p>
+        <p style="font-size:11px; color:#64748b; margin-top:10px;">${proofFile ? `📎 Bukti transfer: <strong>${proofFile.name}</strong>` : 'Tanpa bukti transfer'}</p>
       `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#1e293b',
       confirmButtonText: 'Yes, Confirm Payment',
-      cancelButtonText: 'Cancel',
-      preConfirm: () => document.getElementById('swal-proof')?.files[0] || null
+      cancelButtonText: 'Cancel'
     });
 
-    if (result.isConfirmed) {
+    if (step2.isConfirmed) {
       try {
         const token = localStorage.getItem('token');
         const fd = new FormData();
-        if (result.value) fd.append('paymentProof', result.value);
+        if (proofFile) fd.append('paymentProof', proofFile);
         await axios.patch(`http://localhost:5000/api/supplier_invoices/${id}/confirm`, fd, {
           headers: { Authorization: `Bearer ${token}` }
         });

@@ -532,6 +532,7 @@ const AddClientQuotation = () => {
         head:       [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Line Total (IDR)']],
         body:       tableRows,
         theme:      'plain',
+        margin:     { left: 7.5 }, // tabel 195mm di halaman 210mm → center
         headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
         styles:     { fontSize: 9, cellPadding: 4 },
         columnStyles: {

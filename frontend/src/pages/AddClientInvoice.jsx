@@ -8,6 +8,7 @@ import autoTable from 'jspdf-autotable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
+import { parsePaymentStages } from '../utils/paymentTerms';
 
 const AddClientInvoice = () => {
   const navigate = useNavigate();
@@ -56,12 +57,13 @@ const AddClientInvoice = () => {
             const grandTotal = quote.clientPrice + shippingFee + taxAmount;
             const totalPaid = invoicesRes.data.summary?.totalPaid || 0;
             const remainingAmount = grandTotal - totalPaid;
-            
+
             return {
               ...quote,
               grandTotal: grandTotal,
               remainingAmount: remainingAmount,
               totalPaid: totalPaid,
+              invoiceCount: invoicesRes.data.summary?.count || 0, // jumlah invoice yg sudah ada → tahap berikutnya
               hasPartialPayment: totalPaid > 0
             };
           } catch (err) {
@@ -75,6 +77,7 @@ const AddClientInvoice = () => {
               grandTotal: grandTotal,
               remainingAmount: grandTotal,
               totalPaid: 0,
+              invoiceCount: 0,
               hasPartialPayment: false
             };
           }
@@ -97,42 +100,30 @@ const AddClientInvoice = () => {
     if (selectedQuote) {
       const rawTop = selectedQuote.topOption || 'COD';
       const topText = rawTop.toUpperCase();
-      
+      const grandTotal = selectedQuote.grandTotal;
+
       let percent = 100;
       let phase = "FULL PAYMENT";
       let calculatedAmount = 0;
 
-      // Cek apakah ini progress invoice (sudah ada yang paid)
       const hasPartialPayment = selectedQuote.totalPaid > 0;
-      
-      if (hasPartialPayment) {
-        // Jika sudah pernah bayar, hitung sisa dari GRAND TOTAL
-        calculatedAmount = selectedQuote.remainingAmount;
-        phase = `REMAINING BALANCE (${topText})`;
-        percent = (calculatedAmount / selectedQuote.grandTotal) * 100;
+
+      // Hitung tahap dari TOP. Mendukung N termin (3x/4x): ambil tahap
+      // BERIKUTNYA sesuai jumlah invoice yang sudah dibuat (bukan lump sisa).
+      const stages = parsePaymentStages(rawTop, grandTotal);
+
+      if (stages.length > 1) {
+        // Installment (DP / termin N) — pilih tahap ke-(invoiceCount)
+        const nextIdx = Math.min(selectedQuote.invoiceCount || 0, stages.length - 1);
+        const stage = stages[nextIdx];
+        calculatedAmount = stage.amount;
+        phase = stage.name;
+        percent = stage.percentage;
       } else {
-        // Logic TOP berdasarkan GRAND TOTAL
-        const percentageMatch = topText.match(/(\d+)%/);
-        
-        if (percentageMatch) {
-          percent = parseInt(percentageMatch[1]);
-          phase = `TERMIN/DP ${percent}%`;
-          calculatedAmount = (selectedQuote.grandTotal * percent) / 100;
-        } else if (
-          topText.includes("NET") || 
-          topText.includes("COD") || 
-          topText.includes("CBD") || 
-          topText.includes("CIA") ||
-          topText.includes("/") 
-        ) {
-          percent = 100;
-          phase = `FULL PAYMENT (${topText})`;
-          calculatedAmount = selectedQuote.grandTotal;
-        } else if (topText.includes("TERMIN")) {
-          percent = 100;
-          phase = "TERMIN (FULL AMOUNT)";
-          calculatedAmount = selectedQuote.grandTotal;
-        }
+        // Full payment (COD/CBD/CIA/Net/2-10)
+        calculatedAmount = hasPartialPayment ? selectedQuote.remainingAmount : grandTotal;
+        phase = hasPartialPayment ? `REMAINING BALANCE (${topText})` : `FULL PAYMENT (${topText})`;
+        percent = grandTotal > 0 ? (calculatedAmount / grandTotal) * 100 : 100;
       }
 
       // Mapping items dengan salesPrice dari client quotation

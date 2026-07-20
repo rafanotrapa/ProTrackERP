@@ -6,6 +6,7 @@ const PurchaseOrder      = require('../models/PurchaseOrder');
 const SupplierQuotation  = require('../models/SupplierQuotation');
 const SupplierInvoice    = require('../models/SupplierInvoice');
 const ExpenseSubmission  = require('../models/ExpenseSubmission');
+const { parsePaymentStages } = require('../utils/paymentTerms');
 
 const getInvoicePaymentStatus = async (invoiceId) => {
   const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
@@ -24,31 +25,9 @@ const getVerifiedPayment = async (invoiceId) => {
 const getContractGrandTotal = (q) =>
   Number(q?.clientPrice || 0) + Number(q?.shippingFee || 0) + Number(q?.taxAmount || 0);
 
-const parseTopOption = (topOption, totalContractValue) => {
-  const topText = (topOption || '').toUpperCase();
-
-  const dpMatch = topText.match(/DP\s*(\d+)%/i);
-  if (dpMatch) {
-    const dp = parseInt(dpMatch[1]);
-    const sisa = 100 - dp;
-    return [
-      { name: `DP ${dp}%`, percentage: dp, amount: (totalContractValue * dp) / 100, order: 1 },
-      { name: `Pelunasan ${sisa}%`, percentage: sisa, amount: (totalContractValue * sisa) / 100, order: 2 }
-    ];
-  }
-
-  const terminMatches = [...topText.matchAll(/(\d+)%/g)];
-  if (terminMatches.length >= 2) {
-    return terminMatches.map((m, i) => {
-      const pct = parseInt(m[1]);
-      return { name: `Termin ${i + 1} (${pct}%)`, percentage: pct, amount: (totalContractValue * pct) / 100, order: i + 1 };
-    });
-  }
-
-  return [
-    { name: 'Full Payment', percentage: 100, amount: totalContractValue, order: 1 }
-  ];
-};
+// Parser dipindah ke utils/paymentTerms.js (parsePaymentStages) — konsisten
+// dengan Project Billing, kini mendukung N termin (3x/4x).
+const parseTopOption = parsePaymentStages;
 
 exports.getProjectTimeline = async (req, res) => {
   try {

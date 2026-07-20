@@ -11,22 +11,21 @@ const getInvoicePaymentStatus = async (invoiceId) => {
 // 1. CREATE INVOICE
 exports.createNewInvoice = async (req, res) => {
   try {
-    const { projectId, amount, isProgressInvoice } = req.body;
-    
-    if (isProgressInvoice) {
-      const existingInvoices = await CreateInvoice.find({ 
-        projectId: projectId,
-        amount: amount,
-        status: 'Paid'
-      });
-      
-      if (existingInvoices.length > 0) {
-        return res.status(400).json({ 
-          msg: "Termin/Progress invoice ini sudah pernah dibuat dan dibayar" 
+    const { projectId, billingPhase } = req.body;
+
+    // Cegah duplikat berdasarkan IDENTITAS TAHAP (billingPhase), bukan nominal.
+    // FIX: cek lama pakai projectId+amount → salah memblokir termin dengan
+    // persentase sama (mis. 4x = 25/25/25/25). billingPhase unik per tahap
+    // (DP / Pelunasan / Termin 1..N) sehingga tahap berbeda tidak saling blokir.
+    if (projectId && billingPhase) {
+      const dup = await CreateInvoice.findOne({ projectId, billingPhase });
+      if (dup) {
+        return res.status(400).json({
+          msg: `Invoice untuk tahap "${billingPhase}" sudah pernah dibuat.`
         });
       }
     }
-    
+
     const newInvoice = new CreateInvoice({
       ...req.body,
       status: 'Unpaid'

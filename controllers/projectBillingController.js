@@ -1,6 +1,7 @@
 const CreateInvoice = require('../models/CreateInvoice');
 const Payment = require('../models/Payment');
 const ClientQuotation = require('../models/ClientQuotation');
+const { parsePaymentStages } = require('../utils/paymentTerms');
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER: cek status pembayaran invoice + ambil tanggal bayar (Verified)
@@ -28,55 +29,8 @@ const getContractGrandTotal = (quotation) => {
   return clientPrice + shippingFee + taxAmount;
 };
 
-const parseTopOption = (topOption, totalContractValue) => {
-  const topText = topOption?.toUpperCase() || '';
-  
-  const dpMatch = topText.match(/DP\s*(\d+)%/i);
-  if (dpMatch) {
-    const dpPercent = parseInt(dpMatch[1]);
-    const remainingPercent = 100 - dpPercent;
-    return {
-      type: 'installment',
-      stages: [
-        { name: `DP ${dpPercent}%`, percentage: dpPercent, amount: (totalContractValue * dpPercent) / 100, order: 1 },
-        { name: `Pelunasan ${remainingPercent}%`, percentage: remainingPercent, amount: (totalContractValue * remainingPercent) / 100, order: 2 }
-      ]
-    };
-  }
-  
-  const terminMatches = [...topText.matchAll(/(\d+)%/g)];
-  if (terminMatches.length === 2) {
-    const p1 = parseInt(terminMatches[0][1]);
-    const p2 = parseInt(terminMatches[1][1]);
-    return {
-      type: 'installment',
-      stages: [
-        { name: `Termin ${p1}%`, percentage: p1, amount: (totalContractValue * p1) / 100, order: 1 },
-        { name: `Termin ${p2}%`, percentage: p2, amount: (totalContractValue * p2) / 100, order: 2 }
-      ]
-    };
-  }
-  
-  const singlePercentMatch = topText.match(/(\d+)%/);
-  if (singlePercentMatch && !topText.includes('DP') && !topText.includes('TERMIN')) {
-    const percent = parseInt(singlePercentMatch[1]);
-    const remainingPercent = 100 - percent;
-    return {
-      type: 'installment',
-      stages: [
-        { name: `Pembayaran ${percent}%`, percentage: percent, amount: (totalContractValue * percent) / 100, order: 1 },
-        { name: `Pelunasan ${remainingPercent}%`, percentage: remainingPercent, amount: (totalContractValue * remainingPercent) / 100, order: 2 }
-      ]
-    };
-  }
-  
-  return {
-    type: 'full',
-    stages: [
-      { name: 'Full Payment', percentage: 100, amount: totalContractValue, order: 1 }
-    ]
-  };
-};
+// Parser dipindah ke utils/paymentTerms.js (parsePaymentStages) — satu sumber
+// kebenaran bersama Timeline & Invoice, sekarang mendukung N termin (3x/4x).
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. GET ALL PROJECTS BILLING (list)
@@ -126,8 +80,8 @@ exports.getAllProjectsBilling = async (req, res) => {
       const totalPaid = project.totalPaid || 0;
       const remainingAmount = totalContract - totalPaid;
       
-      const stages = parseTopOption(project.topOption, totalContract);
-      const totalStages = stages.stages.length;
+      const stages = parsePaymentStages(project.topOption, totalContract);
+      const totalStages = stages.length;
       const paidStages = project.invoices.filter(inv => inv.status === 'Paid').length;
       const progressPercent = totalStages > 0 ? (paidStages / totalStages) * 100 : 0;
       
@@ -172,9 +126,9 @@ exports.getProjectBillingDetail = async (req, res) => {
     
     const invoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
     
-    const expectedStages = parseTopOption(topOption, totalContractValue);
-    
-    const stagesWithStatus = await Promise.all(expectedStages.stages.map(async (stage, idx) => {
+    const expectedStages = parsePaymentStages(topOption, totalContractValue);
+
+    const stagesWithStatus = await Promise.all(expectedStages.map(async (stage, idx) => {
       const invoice = invoices[idx];
       let status = 'Pending';
       let invoiceData = null;
@@ -216,7 +170,7 @@ exports.getProjectBillingDetail = async (req, res) => {
       .filter(inv => inv.status === 'Paid')
       .reduce((sum, inv) => sum + inv.amount, 0);
     
-    const totalStages = expectedStages.stages.length;
+    const totalStages = expectedStages.length;
     const paidStages = stagesWithStatus.filter(s => s.status === 'Paid').length;
     const progressPercent = totalStages > 0 ? (paidStages / totalStages) * 100 : 0;
     
@@ -270,14 +224,14 @@ exports.generateNextInvoice = async (req, res) => {
     
     const existingInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
     
-    const expectedStages = parseTopOption(topOption, totalContractValue);
+    const expectedStages = parsePaymentStages(topOption, totalContractValue);
     const nextStageIndex = existingInvoices.length;
-    
-    if (nextStageIndex >= expectedStages.stages.length) {
+
+    if (nextStageIndex >= expectedStages.length) {
       return res.status(400).json({ msg: 'All stages have been generated already' });
     }
-    
-    const nextStage = expectedStages.stages[nextStageIndex];
+
+    const nextStage = expectedStages[nextStageIndex];
     
     if (existingInvoices.length > 0) {
       const previousInvoice = existingInvoices[existingInvoices.length - 1];

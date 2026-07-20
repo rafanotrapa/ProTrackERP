@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FolderOpen, Search } from 'lucide-react';
+import { FolderOpen, Search, Pencil } from 'lucide-react';
+import Swal from 'sweetalert2';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -44,6 +45,43 @@ const ProjectLog = () => {
   useEffect(() => {
     fetchProjects();
   }, []);
+
+  // ── Edit budget / contract value ─────────────────────────
+  const handleEditBudget = async (p) => {
+    const { value } = await Swal.fire({
+      title: 'Edit Contract Value',
+      text: `${p.projectId} — ${p.projectName}`,
+      input: 'text',
+      inputValue: String(p.amount || 0),
+      inputLabel: 'Nominal (IDR)',
+      showCancelButton: true,
+      confirmButtonText: 'Simpan',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#4f46e5',
+      inputValidator: (val) => {
+        const num = Number(String(val).replace(/[^0-9]/g, ''));
+        if (!val || num <= 0) return 'Nominal wajib diisi dengan angka valid!';
+        return null;
+      },
+    });
+
+    if (value === undefined) return; // batal
+
+    const amount = Number(String(value).replace(/[^0-9]/g, ''));
+    try {
+      const token = localStorage.getItem('token');
+      await axios.patch(
+        `http://localhost:5000/api/project/update-status/${p.projectId}`,
+        { amount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      Swal.fire({ icon: 'success', title: 'Budget Updated!', timer: 1500, showConfirmButton: false });
+      fetchProjects();
+    } catch (err) {
+      console.error('Gagal update budget:', err);
+      Swal.fire('Error', 'Gagal update contract value!', 'error');
+    }
+  };
 
   // ── Filter ───────────────────────────────────────────────
   const filtered = projects.filter((p) => {
@@ -167,7 +205,16 @@ const ProjectLog = () => {
                       <p className="text-[9px] text-slate-400">{p.clientContact}</p>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <p className="font-black text-emerald-600">Rp {formatRupiah(p.amount)}</p>
+                      <div className="flex items-center justify-end gap-1.5">
+                        <p className="font-black text-emerald-600">Rp {formatRupiah(p.amount)}</p>
+                        <button
+                          onClick={() => handleEditBudget(p)}
+                          title="Edit Contract Value"
+                          className="text-slate-300 hover:text-indigo-600 transition-all active:scale-90"
+                        >
+                          <Pencil size={12} />
+                        </button>
+                      </div>
                       <p className="text-[8px] text-slate-400">{p.currency}</p>
                     </td>
                     <td className="px-6 py-5 text-center">

@@ -7,6 +7,7 @@ import "jspdf-autotable";
 import autoTable from 'jspdf-autotable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 // ─────────────────────────────────────────────────────────────
 //  HELPERS
@@ -774,20 +775,13 @@ const AddClientQuotation = () => {
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                   Select Project BJK
                 </label>
-                <select
+                <StyledSelect
                   name="projectId"
-                  required
-                  className="w-full p-3 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:border-indigo-600 outline-none shadow-sm cursor-pointer"
-                  onChange={handleProjectChange}
                   value={formData.projectId}
-                >
-                  <option value="">-- Cari Project ID --</option>
-                  {projects.map((p) => (
-                    <option key={p._id} value={p.projectId}>
-                      {p.projectId} - {p.projectName}
-                    </option>
-                  ))}
-                </select>
+                  onChange={handleProjectChange}
+                  placeholder="-- Cari Project ID --"
+                  options={projects.map((p) => ({ value: p.projectId, label: `${p.projectId} - ${p.projectName}` }))}
+                />
               </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
@@ -1005,16 +999,18 @@ const AddClientQuotation = () => {
               {/* Currency */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Currency</label>
-                <select
+                <StyledSelect
                   name="currency"
-                  className="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-indigo-600 outline-none cursor-pointer"
-                  onChange={handleChange}
                   value={formData.currency}
-                >
-                  <option value="IDR">IDR (Indonesian Rupiah)</option>
-                  <option value="USD">USD (US Dollar)</option>
-                  <option value="SGD">SGD (Singapore Dollar)</option>
-                </select>
+                  onChange={handleChange}
+                  searchable={false}
+                  triggerClassName="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-indigo-600 outline-none cursor-pointer flex justify-between items-center hover:border-indigo-600 transition-all"
+                  options={[
+                    { value: 'IDR', label: 'IDR (Indonesian Rupiah)' },
+                    { value: 'USD', label: 'USD (US Dollar)' },
+                    { value: 'SGD', label: 'SGD (Singapore Dollar)' },
+                  ]}
+                />
               </div>
 
               {/* TOP */}
@@ -1023,23 +1019,26 @@ const AddClientQuotation = () => {
                   Term of Payment (TOP) <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-2">
-                  <select
-                    name="topOption"
-                    required
-                    className="flex-1 p-3 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:border-amber-500 outline-none shadow-sm cursor-pointer"
-                    onChange={handleChange}
-                    value={formData.topOption}
-                  >
-                    <option value="COD">Cash on Delivery (COD)</option>
-                    <option value="CBD">Cash Before Delivery (CBD)</option>
-                    <option value="CIA">Cash in Advance (CIA)</option>
-                    <option value="Net 30">Net 30 Days</option>
-                    <option value="Net 60">Net 60 Days</option>
-                    <option value="Net 90">Net 90 Days</option>
-                    <option value="Net EOM">Net End of Month (EOM)</option>
-                    <option value="2/10 Net 30">2/10 Net 30 (2% Disc/10 Days)</option>
-                    <option value="Termin">Custom Cicilan / Termin (Manual)</option>
-                  </select>
+                  <div className="flex-1">
+                    <StyledSelect
+                      name="topOption"
+                      value={formData.topOption}
+                      onChange={handleChange}
+                      placeholder="-- Pilih TOP --"
+                      searchable={false}
+                      options={[
+                        { value: 'COD', label: 'Cash on Delivery (COD)' },
+                        { value: 'CBD', label: 'Cash Before Delivery (CBD)' },
+                        { value: 'CIA', label: 'Cash in Advance (CIA)' },
+                        { value: 'Net 30', label: 'Net 30 Days' },
+                        { value: 'Net 60', label: 'Net 60 Days' },
+                        { value: 'Net 90', label: 'Net 90 Days' },
+                        { value: 'Net EOM', label: 'Net End of Month (EOM)' },
+                        { value: '2/10 Net 30', label: '2/10 Net 30 (2% Disc/10 Days)' },
+                        { value: 'Termin', label: 'Custom Cicilan / Termin (Manual)' },
+                      ]}
+                    />
+                  </div>
                   {formData.topOption === 'Termin' && (
                     <input
                       type="text"

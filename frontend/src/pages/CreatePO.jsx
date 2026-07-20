@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { ShoppingCart } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const CreatePO = () => {
   const navigate = useNavigate();
@@ -99,12 +100,13 @@ const CreatePO = () => {
 
               <div className="space-y-1">
                 <label className="mb-1.5 ml-1 text-[10px] font-black italic leading-none tracking-widest uppercase text-slate-400">Link to Marketing Quotation</label>
-                <select name="quotationId" value={formData.quotationId} onChange={handleQuoteChange} required className="w-full p-4 font-bold outline-none transition-all bg-slate-50 border-slate-300 rounded-xl text-slate-800 focus:border-blue-600 focus:bg-white cursor-pointer">
-                  <option value="">-- Pilih Quotation Dasar (Deal) --</option>
-                  {quotations.map(q => (
-                    <option key={q._id} value={q._id}>{q.quotationId} (Project: {q.projectId})</option>
-                  ))}
-                </select>
+                <StyledSelect
+                  name="quotationId"
+                  value={formData.quotationId}
+                  onChange={handleQuoteChange}
+                  placeholder="-- Pilih Quotation Dasar (Deal) --"
+                  options={quotations.map((q) => ({ value: q._id, label: `${q.quotationId} (Project: ${q.projectId})` }))}
+                />
               </div>
 
               <div className="space-y-1">

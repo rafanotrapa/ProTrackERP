@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const QuotationLogDetail = () => {
   const { id } = useParams();
@@ -444,15 +445,23 @@ const QuotationLogDetail = () => {
                 <div>
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">TOP</p>
                   {isEditing ? (
-                    <select name="topOption" value={editForm.topOption} onChange={handleEditChange} className="mt-1 p-2 bg-white border border-slate-300 rounded-lg text-sm font-bold outline-none">
-                      <option value="COD">COD</option>
-                      <option value="CBD">CBD</option>
-                      <option value="CIA">CIA</option>
-                      <option value="Net 30">Net 30 Days</option>
-                      <option value="Net 60">Net 60 Days</option>
-                      <option value="DP 30%">DP 30%</option>
-                      <option value="DP 50%">DP 50%</option>
-                    </select>
+                    <div className="mt-1">
+                      <StyledSelect
+                        name="topOption"
+                        value={editForm.topOption}
+                        onChange={handleEditChange}
+                        searchable={false}
+                        options={[
+                          { value: 'COD', label: 'COD' },
+                          { value: 'CBD', label: 'CBD' },
+                          { value: 'CIA', label: 'CIA' },
+                          { value: 'Net 30', label: 'Net 30 Days' },
+                          { value: 'Net 60', label: 'Net 60 Days' },
+                          { value: 'DP 30%', label: 'DP 30%' },
+                          { value: 'DP 50%', label: 'DP 50%' },
+                        ]}
+                      />
+                    </div>
                   ) : (
                     <p className="text-base font-black text-amber-600 uppercase mt-1">{quotation.topOption || 'COD'}</p>
                   )}

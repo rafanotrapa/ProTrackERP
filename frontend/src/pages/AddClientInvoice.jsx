@@ -7,6 +7,7 @@ import "jspdf-autotable";
 import autoTable from 'jspdf-autotable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const AddClientInvoice = () => {
   const navigate = useNavigate();
@@ -441,21 +442,16 @@ const AddClientInvoice = () => {
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                   Select Project (From Approved Client Quotation)
                 </label>
-                <select 
-                  name="projectId" 
-                  required 
-                  className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:border-indigo-600 outline-none shadow-sm cursor-pointer" 
-                  onChange={handleProjectChange}
+                <StyledSelect
+                  name="projectId"
                   value={formData.projectId}
-                >
-                  <option value="">-- Link to Client Quotation --</option>
-                  {quotations.map(q => (
-                    <option key={q._id} value={q.projectId}>
-                      {q.projectId} - {q.projectName} 
-                      {q.totalPaid > 0 && ` (Paid: Rp ${q.totalPaid.toLocaleString()} | Remaining: Rp ${q.remainingAmount.toLocaleString()})`}
-                    </option>
-                  ))}
-                </select>
+                  onChange={handleProjectChange}
+                  placeholder="-- Link to Client Quotation --"
+                  options={quotations.map((q) => ({
+                    value: q.projectId,
+                    label: `${q.projectId} - ${q.projectName}${q.totalPaid > 0 ? ` (Paid: Rp ${q.totalPaid.toLocaleString()} | Remaining: Rp ${q.remainingAmount.toLocaleString()})` : ''}`,
+                  }))}
+                />
                 <p className="text-[8px] text-slate-400 italic mt-1">
                   * Only projects with approved client quotation and unpaid balance are shown
                 </p>

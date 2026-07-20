@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { Upload, Search, ReceiptText, Plus, Trash2 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 // ─────────────────────────────────────────────────────────────
 //  HELPER
@@ -269,16 +270,18 @@ const AddExpenseSubmission = () => {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                 Currency
               </label>
-              <select
+              <StyledSelect
                 name="currency"
                 value={formData.currency}
                 onChange={handleChange}
-                className="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-amber-600 outline-none cursor-pointer"
-              >
-                <option value="IDR">IDR (Indonesian Rupiah)</option>
-                <option value="USD">USD (US Dollar)</option>
-                <option value="SGD">SGD (Singapore Dollar)</option>
-              </select>
+                searchable={false}
+                triggerClassName="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-amber-600 outline-none cursor-pointer flex justify-between items-center hover:border-amber-500 transition-all"
+                options={[
+                  { value: 'IDR', label: 'IDR (Indonesian Rupiah)' },
+                  { value: 'USD', label: 'USD (US Dollar)' },
+                  { value: 'SGD', label: 'SGD (Singapore Dollar)' },
+                ]}
+              />
             </div>
           </div>
 

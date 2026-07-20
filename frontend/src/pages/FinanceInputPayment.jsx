@@ -4,6 +4,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const FinanceInputPayment = () => {
   const navigate = useNavigate();
@@ -188,18 +189,17 @@ const FinanceInputPayment = () => {
             </h3>
             <div>
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Project</label>
-              <select 
-                className="w-full mt-1 p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:border-indigo-600 outline-none shadow-sm cursor-pointer"
-                onChange={handleProjectChange}
-                value={selectedProject?.projectId || ''}
-              >
-                <option value="">-- Select Project --</option>
-                {projects.map(p => (
-                  <option key={p.projectId} value={p.projectId}>
-                    {p.projectId} - {p.projectName} ({p.progressPercent}% paid)
-                  </option>
-                ))}
-              </select>
+              <div className="mt-1">
+                <StyledSelect
+                  value={selectedProject?.projectId || ''}
+                  onChange={handleProjectChange}
+                  placeholder="-- Select Project --"
+                  options={projects.map((p) => ({
+                    value: p.projectId,
+                    label: `${p.projectId} - ${p.projectName} (${p.progressPercent}% paid)`,
+                  }))}
+                />
+              </div>
             </div>
           </div>
 
@@ -211,18 +211,17 @@ const FinanceInputPayment = () => {
               </h3>
               <div>
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unpaid Invoices</label>
-                <select 
-                  className="w-full mt-1 p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 focus:border-indigo-600 outline-none shadow-sm cursor-pointer"
-                  onChange={handleStageChange}
-                  value={selectedStage ? unpaidStages.indexOf(selectedStage) : ''}
-                >
-                  <option value="">-- Select Invoice --</option>
-                  {unpaidStages.map((stage, idx) => (
-                    <option key={idx} value={idx}>
-                      {stage.invoice?.invoiceNumber} - {stage.name} (Rp {stage.invoice?.amount?.toLocaleString()})
-                    </option>
-                  ))}
-                </select>
+                <div className="mt-1">
+                  <StyledSelect
+                    value={selectedStage ? unpaidStages.indexOf(selectedStage) : ''}
+                    onChange={handleStageChange}
+                    placeholder="-- Select Invoice --"
+                    options={unpaidStages.map((stage, idx) => ({
+                      value: idx,
+                      label: `${stage.invoice?.invoiceNumber} - ${stage.name} (Rp ${stage.invoice?.amount?.toLocaleString()})`,
+                    }))}
+                  />
+                </div>
                 {unpaidStages.length === 0 && selectedProject && (
                   <p className="text-[10px] text-amber-600 mt-2">No unpaid invoices for this project</p>
                 )}

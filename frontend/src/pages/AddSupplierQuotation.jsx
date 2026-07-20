@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { Plus, Trash2, Info, Truck, Receipt } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const AddSupplierQuotation = () => {
   const navigate = useNavigate();
@@ -292,17 +293,19 @@ const AddSupplierQuotation = () => {
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Currency</label>
-                <select 
-                  name="currency" 
-                  className="w-full p-3.5 border border-indigo-200 rounded-xl bg-indigo-50 font-black text-indigo-600 outline-none cursor-pointer" 
-                  value={formData.currency} 
+                <StyledSelect
+                  name="currency"
+                  value={formData.currency}
                   onChange={handleChange}
-                >
-                  <option value="IDR">IDR (Rp)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="SGD">SGD (S$)</option>
-                  <option value="EUR">EUR (€)</option>
-                </select>
+                  searchable={false}
+                  triggerClassName="w-full p-3.5 border border-indigo-200 rounded-xl bg-indigo-50 font-black text-indigo-600 outline-none cursor-pointer flex justify-between items-center hover:border-indigo-400 transition-all"
+                  options={[
+                    { value: 'IDR', label: 'IDR (Rp)' },
+                    { value: 'USD', label: 'USD ($)' },
+                    { value: 'SGD', label: 'SGD (S$)' },
+                    { value: 'EUR', label: 'EUR (€)' },
+                  ]}
+                />
               </div>
 
               {/* RENDER VENDOR INPUT BERDASARKAN MODE PROJECT */}
@@ -311,18 +314,13 @@ const AddSupplierQuotation = () => {
                   {isManualMode ? 'Select Supplier (Multi)' : 'Auto-Mapped Supplier'}
                 </label>
                 {isManualMode ? (
-                  <select 
-                    name="vendorId" 
-                    className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer"
-                    onChange={handleChange}
+                  <StyledSelect
+                    name="vendorId"
                     value={formData.vendorId}
-                    required
-                  >
-                    <option value="">-- Pilih Supplier --</option>
-                    {linkedVendorsToProject.map(v => (
-                      <option key={v._id} value={v.vendorId}>{v.vendorId} - {v.vendorName}</option>
-                    ))}
-                  </select>
+                    onChange={handleChange}
+                    placeholder="-- Pilih Supplier --"
+                    options={linkedVendorsToProject.map((v) => ({ value: v.vendorId, label: `${v.vendorId} - ${v.vendorName}` }))}
+                  />
                 ) : (
                   <div className="w-full p-3.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-500 shadow-inner cursor-not-allowed flex items-center">
                     <span className="truncate">
@@ -476,17 +474,26 @@ const AddSupplierQuotation = () => {
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Term of Payment (TOP) <span className="text-red-500">*</span></label>
                   <div className="flex gap-2">
-                    <select name="topOption" className="flex-1 p-3 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-amber-500 shadow-sm cursor-pointer" onChange={handleChange} value={formData.topOption}>
-                      <option value="COD">Cash on Delivery (COD)</option>
-                      <option value="CBD">Cash Before Delivery (CBD)</option>
-                      <option value="CIA">Cash in Advance (CIA)</option>
-                      <option value="Net 30">Net 30 Days</option>
-                      <option value="Net 60">Net 60 Days</option>
-                      <option value="Net 90">Net 90 Days</option>
-                      <option value="Net EOM">Net End of Month (EOM)</option>
-                      <option value="2/10 Net 30">2/10 Net 30 (2% Disc/10 Days)</option>
-                      <option value="Termin">Custom Cicilan / Termin (Manual)</option>
-                    </select>
+                    <div className="flex-1">
+                      <StyledSelect
+                        name="topOption"
+                        value={formData.topOption}
+                        onChange={handleChange}
+                        placeholder="-- Pilih TOP --"
+                        searchable={false}
+                        options={[
+                          { value: 'COD', label: 'Cash on Delivery (COD)' },
+                          { value: 'CBD', label: 'Cash Before Delivery (CBD)' },
+                          { value: 'CIA', label: 'Cash in Advance (CIA)' },
+                          { value: 'Net 30', label: 'Net 30 Days' },
+                          { value: 'Net 60', label: 'Net 60 Days' },
+                          { value: 'Net 90', label: 'Net 90 Days' },
+                          { value: 'Net EOM', label: 'Net End of Month (EOM)' },
+                          { value: '2/10 Net 30', label: '2/10 Net 30 (2% Disc/10 Days)' },
+                          { value: 'Termin', label: 'Custom Cicilan / Termin (Manual)' },
+                        ]}
+                      />
+                    </div>
                     {formData.topOption === 'Termin' && (
                       <input type="text" placeholder="Ex: DP 30%" name="customTop" className="w-1/3 p-3 border-2 border-amber-400 rounded-xl outline-none font-black text-amber-600" onChange={handleChange} value={formData.customTop} required />
                     )}

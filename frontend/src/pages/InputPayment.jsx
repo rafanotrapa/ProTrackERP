@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { ArrowLeft } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const InputPayment = () => {
   const navigate = useNavigate();
@@ -120,16 +121,15 @@ const InputPayment = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">1. Select Reference Invoice</label>
-              <select 
-                className="w-full p-5 border-2 border-slate-100 rounded-2xl font-bold text-slate-800 focus:border-indigo-600 outline-none transition-all shadow-sm cursor-pointer appearance-none bg-slate-50" 
+              <StyledSelect
+                value={formData.invoiceId || ''}
                 onChange={handleInvoiceChange}
-                required
-              >
-                <option value="">-- SEARCH INVOICE --</option>
-                {invoices.map(inv => (
-                  <option key={inv._id} value={inv._id}>{inv.invoiceNumber} | {inv.projectName}</option>
-                ))}
-              </select>
+                placeholder="-- SEARCH INVOICE --"
+                options={invoices.map((inv) => ({
+                  value: inv._id,
+                  label: `${inv.invoiceNumber} | ${inv.projectName}`,
+                }))}
+              />
             </div>
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">2. Actual Payment Date</label>

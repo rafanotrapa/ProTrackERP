@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { Upload, CheckCircle2, AlertCircle, Search, Receipt, Anchor } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const InvoiceSubmission = () => {
   const navigate = useNavigate();
@@ -220,17 +221,16 @@ const InvoiceSubmission = () => {
                 {selectedPO && selectedPO.paymentTerms && selectedPO.paymentTerms.length > 0 && (
                   <div className="space-y-1 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                      <label className="text-[10px] font-black text-amber-600 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Pilih Termin Pembayaran</label>
-                     <select 
+                     <StyledSelect
                         value={formData.terminName}
                         onChange={handleTerminChange}
-                        className="w-full p-3 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-amber-500 cursor-pointer shadow-sm"
-                     >
-                        {selectedPO.paymentTerms.map((term, i) => (
-                          <option key={i} value={term.description} disabled={term.status === 'Invoiced'}>
-                             {term.description} - {formData.currency} {formatRupiah(term.amount)} {term.status === 'Invoiced' ? '(Sudah Ditagih)' : ''}
-                          </option>
-                        ))}
-                     </select>
+                        searchable={false}
+                        options={selectedPO.paymentTerms.map((term) => ({
+                          value: term.description,
+                          disabled: term.status === 'Invoiced',
+                          label: `${term.description} - ${formData.currency} ${formatRupiah(term.amount)} ${term.status === 'Invoiced' ? '(Sudah Ditagih)' : ''}`,
+                        }))}
+                     />
                   </div>
                 )}
 

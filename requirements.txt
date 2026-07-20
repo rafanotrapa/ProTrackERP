@@ -1,0 +1,44 @@
+# ProTrackERP — Requirements
+#
+# This is a Node.js project. Dependencies are managed with npm via package.json
+# (not pip). This file documents the system requirements and packages needed.
+#
+# Install:
+#   npm install                    # backend (run in project root)
+#   cd frontend && npm install     # frontend
+
+# ── System ──────────────────────────────────────────────
+Node.js >= 18
+MongoDB (local or MongoDB Atlas)
+npm
+git
+
+# ── Backend dependencies (package.json) ─────────────────
+express@^5.2.1
+mongoose@^9.3.3
+jsonwebtoken@^9.0.3
+bcryptjs@^3.0.3
+cors@^2.8.6
+dotenv@^17.3.1
+multer@^2.1.1
+nodemailer@^8.0.4
+
+# ── Frontend dependencies (frontend/package.json) ───────
+react@^19.2.4
+react-dom@^19.2.4
+react-router-dom@^7.13.2
+axios@^1.15.0
+sweetalert2@^11.26.24
+jspdf@^4.2.1
+jspdf-autotable@^5.0.7
+lucide-react@^1.14.0
+date-fns@^4.1.0
+@tailwindcss/postcss@^4.2.2
+
+# ── Frontend dev dependencies ───────────────────────────
+vite@^8.0.1
+tailwindcss@^4.2.2
+postcss@^8.5.8
+autoprefixer@^10.4.27
+@vitejs/plugin-react@^6.0.1
+eslint@^9.39.4

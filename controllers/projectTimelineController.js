@@ -136,6 +136,12 @@ exports.getProjectTimeline = async (req, res) => {
     const progressPercent = totalStages > 0 ? Math.round((paidStages / totalStages) * 100) : 0;
     const isComplete = paidStages >= totalStages && totalStages > 0;
 
+    // Tanggal payment client terakhir yang Verified — acuan mulai garansi 1 tahun
+    const lastClientPaymentDate = clientInvoices.reduce((latest, inv) => {
+      if (!inv.paymentDate) return latest;
+      return !latest || new Date(inv.paymentDate) > new Date(latest) ? inv.paymentDate : latest;
+    }, null);
+
     const purchaseOrders = await PurchaseOrder.find({ projectId })
       .populate('vendorId', 'vendorName vendorContact vendorAddress')
       .sort({ timestamp: -1 });
@@ -333,7 +339,8 @@ exports.getProjectTimeline = async (req, res) => {
         percent: progressPercent,
         paidStages,
         totalStages,
-        isComplete
+        isComplete,
+        lastClientPaymentDate
       },
 
       paymentStages,

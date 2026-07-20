@@ -149,6 +149,12 @@ const ProjectTimeline = () => {
   const pct = progress.percent || 0;
   const barColor = isComplete ? 'bg-emerald-500' : pct >= 50 ? 'bg-indigo-500' : 'bg-amber-500';
 
+  // Garansi 1 tahun sejak payment client terakhir; badge hilang setelah lewat setahun
+  const guaranteeActive =
+    isComplete &&
+    progress.lastClientPaymentDate &&
+    Date.now() - new Date(progress.lastClientPaymentDate).getTime() < 365 * 24 * 60 * 60 * 1000;
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Header />
@@ -187,9 +193,16 @@ const ProjectTimeline = () => {
 
         {/* ── 1. PROJECT IDENTITY ─────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <h2 className="text-2xl md:text-3xl font-black text-slate-900 uppercase italic tracking-tighter mb-1 line-clamp-2">
-            {project.projectName}
-          </h2>
+          <div className="flex items-center gap-3 flex-wrap mb-1">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 uppercase italic tracking-tighter line-clamp-2">
+              {project.projectName}
+            </h2>
+            {guaranteeActive && (
+              <span className="px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase bg-emerald-100 text-emerald-700 whitespace-nowrap">
+                ✓ Done with 1 Year Guarantee
+              </span>
+            )}
+          </div>
           <p className="text-sm font-semibold text-slate-500 mb-4">{project.clientName}</p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

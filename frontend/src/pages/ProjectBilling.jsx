@@ -5,9 +5,6 @@ import { DollarSign, CheckCircle, Clock, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// ─────────────────────────────────────────────────────────────
-//  HELPER
-// ─────────────────────────────────────────────────────────────
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const ProjectBilling = () => {
@@ -34,7 +31,6 @@ const ProjectBilling = () => {
     fetchProjects();
   }, []);
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = projects.filter((p) => {
     const term = searchTerm.toLowerCase();
     const matchSearch =
@@ -86,7 +82,6 @@ const ProjectBilling = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -118,7 +113,6 @@ const ProjectBilling = () => {
           </div>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <DollarSign size={48} className="text-slate-300 mx-auto" />

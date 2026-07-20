@@ -1,15 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-const { protect, admin } = require('../middleware/auth'); 
+const { protect, admin } = require('../middleware/auth');
 
-const { 
-  register, 
-  login, 
-  getAllUsers, 
-  deleteUser, 
+const {
+  register,
+  login,
+  getAllUsers,
+  deleteUser,
   adminResetPassword,
-  adminUnlockAccount,    // 🆕
+  adminUnlockAccount,
   forgotPassword,
   resetPassword
 } = require('../controllers/authController');

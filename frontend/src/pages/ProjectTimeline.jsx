@@ -12,7 +12,6 @@ import Footer from '../components/Footer';
 
 const API = 'http://localhost:5000';
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmt = (v) => 'Rp ' + (Number(v) || 0).toLocaleString('id-ID');
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
@@ -46,7 +45,6 @@ const StatusPill = ({ status, size = 'sm' }) => {
   );
 };
 
-// ─── Section wrapper ──────────────────────────────────────────────────────────
 const Section = ({ icon, title, badge, id, open, onToggle, children }) => (
   <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
     <button
@@ -68,7 +66,6 @@ const Section = ({ icon, title, badge, id, open, onToggle, children }) => (
   </div>
 );
 
-// ─── Info row in financial tables ─────────────────────────────────────────────
 const InfoRow = ({ label, value, valueClass = 'text-slate-800', border = true }) => (
   <div className={`flex justify-between items-center py-2.5 ${border ? 'border-b border-slate-100' : ''}`}>
     <span className="text-[11px] font-semibold text-slate-500">{label}</span>
@@ -76,7 +73,6 @@ const InfoRow = ({ label, value, valueClass = 'text-slate-800', border = true })
   </div>
 );
 
-// ─── Main component ───────────────────────────────────────────────────────────
 const ProjectTimeline = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -89,7 +85,7 @@ const ProjectTimeline = () => {
     po: true,
     logistics: false,
     cashOut: false,
-    expenses: true,   // ← baru: terbuka default biar langsung kelihatan
+    expenses: true,
     profit: false
   });
 
@@ -112,7 +108,6 @@ const ProjectTimeline = () => {
     load();
   }, [projectId]);
 
-  // ─── Loading ──────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -124,7 +119,6 @@ const ProjectTimeline = () => {
     );
   }
 
-  // ─── Not found ────────────────────────────────────────────────────────────
   if (!data) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -143,17 +137,21 @@ const ProjectTimeline = () => {
   const {
     project, financial, progress, paymentStages, clientInvoices,
     purchaseOrders, supplierInvoices, cashOut, profitMargin,
-    expenses, // ← baru
+    expenses,
   } = data;
   const isComplete = progress.isComplete;
   const pct = progress.percent || 0;
   const barColor = isComplete ? 'bg-emerald-500' : pct >= 50 ? 'bg-indigo-500' : 'bg-amber-500';
 
+  const guaranteeActive =
+    isComplete &&
+    progress.lastClientPaymentDate &&
+    Date.now() - new Date(progress.lastClientPaymentDate).getTime() < 365 * 24 * 60 * 60 * 1000;
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Header />
 
-      {/* STICKY PAGE HEADER */}
       <div className="sticky top-16 z-20 bg-white border-b border-slate-100 px-6 md:px-10 py-4 flex flex-wrap items-center justify-between gap-3 shadow-sm">
         <div className="flex items-center gap-3">
           <button
@@ -178,18 +176,24 @@ const ProjectTimeline = () => {
             <p className="text-sm font-black text-slate-800">{fmt(financial.grandTotal)}</p>
           </div>
           <div className={`px-3 py-1.5 rounded-xl text-[11px] font-black bg-slate-100 ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>
-            {pct}% terbayar
+            {pct}% progress
           </div>
         </div>
       </div>
 
       <main className="flex-1 p-6 md:p-10 w-full space-y-5">
 
-        {/* ── 1. PROJECT IDENTITY ─────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <h2 className="text-2xl md:text-3xl font-black text-slate-900 uppercase italic tracking-tighter mb-1 line-clamp-2">
-            {project.projectName}
-          </h2>
+          <div className="flex items-center gap-3 flex-wrap mb-1">
+            <h2 className="text-2xl md:text-3xl font-black text-slate-900 uppercase italic tracking-tighter line-clamp-2">
+              {project.projectName}
+            </h2>
+            {guaranteeActive && (
+              <span className="px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase bg-emerald-100 text-emerald-700 whitespace-nowrap">
+                ✓ Done with 1 Year Guarantee
+              </span>
+            )}
+          </div>
           <p className="text-sm font-semibold text-slate-500 mb-4">{project.clientName}</p>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -206,7 +210,6 @@ const ProjectTimeline = () => {
             ))}
           </div>
 
-          {/* Contact info jika ada */}
           {(project.clientContact || project.clientAddress) && (
             <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-slate-100">
               {project.clientContact && (
@@ -223,39 +226,33 @@ const ProjectTimeline = () => {
           )}
         </div>
 
-        {/* ── 2. PROGRESS BAR ─────────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Progress Pembayaran</h3>
+            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Progress Project</h3>
             <span className={`text-2xl font-black ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>{pct}%</span>
           </div>
           <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden mb-2">
             <div className={`h-full rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${Math.min(pct, 100)}%` }} />
           </div>
           <div className="flex justify-between text-[9px] font-black text-slate-400">
-            <span>{fmt(financial.totalPaid)} terbayar</span>
+            <span>{fmt(financial.totalPaid)} terbayar ({progress.paymentPercent ?? pct}% payment)</span>
             <span>{fmt(financial.grandTotal)} total kontrak</span>
           </div>
 
-          {/* Milestone flags dari Project model */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5 pt-5 border-t border-slate-100">
-            {[
-              { label: 'DP Paid', done: project.milestones.isDPPaid },
-              { label: 'Items Received', done: project.milestones.isItemsReceived },
-              { label: 'Items Delivered', done: project.milestones.isItemsDelivered },
-              { label: 'Final Paid', done: project.milestones.isFinalPaid }
-            ].map((m, i) => (
-              <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${m.done ? 'bg-emerald-50' : 'bg-slate-50'}`}>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mt-5 pt-5 border-t border-slate-100">
+            {(progress.steps || []).map((m, i) => (
+              <div key={i} className={`flex items-center gap-2 p-2.5 rounded-xl ${m.done ? 'bg-emerald-50' : m.percent > 0 ? 'bg-amber-50' : 'bg-slate-50'}`}>
                 {m.done
                   ? <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                  : <Clock size={14} className="text-slate-300 shrink-0" />}
-                <span className={`text-[9px] font-black uppercase ${m.done ? 'text-emerald-700' : 'text-slate-400'}`}>{m.label}</span>
+                  : <Clock size={14} className={`shrink-0 ${m.percent > 0 ? 'text-amber-400' : 'text-slate-300'}`} />}
+                <span className={`text-[9px] font-black uppercase ${m.done ? 'text-emerald-700' : m.percent > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
+                  {m.label}{!m.done && m.percent > 0 ? ` ${m.percent}%` : ''}
+                </span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* ── 3. PAYMENT STAGES (TERMIN) ──────────────────────────────────── */}
         <Section icon={<Receipt size={14} />} title="Payment Stages (Termin)" id="stages"
           badge={`${progress.paidStages}/${progress.totalStages} paid`}
           open={open.stages} onToggle={toggle}
@@ -309,7 +306,6 @@ const ProjectTimeline = () => {
           )}
         </Section>
 
-        {/* ── 4. FINANCIAL SUMMARY ────────────────────────────────────────── */}
         <Section icon={<DollarSign size={14} />} title="Ringkasan Keuangan" id="financial"
           open={open.financial} onToggle={toggle}
         >
@@ -318,7 +314,6 @@ const ProjectTimeline = () => {
             <InfoRow label="Ongkos Kirim" value={fmt(financial.shippingFee)} />
             <InfoRow label={`Pajak (${financial.taxPercentage}%)`} value={fmt(financial.taxAmount)} />
 
-            {/* Grand Total highlight */}
             <div className="flex justify-between items-center py-3 -mx-6 px-6 bg-slate-900 text-white my-1">
               <span className="text-[11px] font-black uppercase tracking-wider">Grand Total</span>
               <span className="font-black text-base">{fmt(financial.grandTotal)}</span>
@@ -330,7 +325,6 @@ const ProjectTimeline = () => {
           </div>
         </Section>
 
-        {/* ── 5. INVOICE CLIENT ───────────────────────────────────────────── */}
         <Section icon={<FileText size={14} />} title="Invoice Client" id="clientInvoices"
           badge={clientInvoices.length > 0 ? `${clientInvoices.length} invoice` : null}
           open={open.clientInvoices} onToggle={toggle}
@@ -366,7 +360,6 @@ const ProjectTimeline = () => {
           )}
         </Section>
 
-        {/* ── 6. PURCHASE ORDER ───────────────────────────────────────────── */}
         <Section icon={<ShoppingCart size={14} />} title="Purchase Order (PO)" id="po"
           badge={purchaseOrders.length > 0 ? `${purchaseOrders.length} PO` : '0 PO'}
           open={open.po} onToggle={toggle}
@@ -380,7 +373,6 @@ const ProjectTimeline = () => {
             <div className="divide-y divide-slate-100">
               {purchaseOrders.map((po) => (
                 <div key={po._id} className="px-6 py-5">
-                  {/* PO Header */}
                   <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
                       <p className="font-black text-slate-800 text-base">{po.poNumber}</p>
@@ -393,7 +385,6 @@ const ProjectTimeline = () => {
                     </div>
                   </div>
 
-                  {/* Status grid */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
                     <div className="bg-slate-50 rounded-xl p-3">
                       <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider mb-1">Payment Status</p>
@@ -409,7 +400,6 @@ const ProjectTimeline = () => {
                     </div>
                   </div>
 
-                  {/* Items */}
                   {po.items && po.items.length > 0 && (
                     <div className="overflow-x-auto">
                       <table className="w-full text-sm">
@@ -440,7 +430,6 @@ const ProjectTimeline = () => {
           )}
         </Section>
 
-        {/* ── 7. LOGISTICS ────────────────────────────────────────────────── */}
         {purchaseOrders.length > 0 && (
           <Section icon={<Truck size={14} />} title="Logistics & Pengiriman" id="logistics"
             open={open.logistics} onToggle={toggle}
@@ -478,7 +467,6 @@ const ProjectTimeline = () => {
           </Section>
         )}
 
-        {/* ── 8. DUIT KELUAR (SUPPLIER INVOICES) ──────────────────────────── */}
         <Section icon={<Banknote size={14} />} title="Tagihan Supplier (Duit Keluar)" id="cashOut"
           badge={supplierInvoices.length > 0 ? `${supplierInvoices.length} tagihan` : null}
           open={open.cashOut} onToggle={toggle}
@@ -529,7 +517,6 @@ const ProjectTimeline = () => {
           )}
         </Section>
 
-        {/* ── 9. REIMBURSE / EXPENSE SUBMISSION (BARU) ────────────────────── */}
         <Section icon={<Wallet size={14} />} title="Reimburse & Biaya Lain" id="expenses"
           badge={expenses.count > 0 ? `${expenses.count} pengajuan` : null}
           open={open.expenses} onToggle={toggle}
@@ -568,7 +555,6 @@ const ProjectTimeline = () => {
                       <span className="text-[8px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{e.submissionId}</span>
                       <span className="text-[8px] font-bold text-slate-400">{(e.items || []).length} item</span>
                     </div>
-                    {/* Multi-item list */}
                     <div className="space-y-1">
                       {(e.items || []).map((it, idx) => (
                         <div key={idx} className="flex justify-between gap-3">
@@ -616,12 +602,10 @@ const ProjectTimeline = () => {
           )}
         </Section>
 
-        {/* ── 10. PROFIT MARGIN ───────────────────────────────────────────── */}
         <Section icon={<BarChart3 size={14} />} title="Profit Margin" id="profit"
           open={open.profit} onToggle={toggle}
         >
           <div className="px-6 py-5">
-            {/* Summary cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
               <div className="bg-indigo-50 rounded-xl p-4">
                 <p className="text-[8px] font-black text-indigo-400 uppercase tracking-wider mb-1">Sales Price (Client)</p>
@@ -645,7 +629,6 @@ const ProjectTimeline = () => {
               </div>
             </div>
 
-            {/* Gross vs Net breakdown */}
             <div className="bg-slate-50 rounded-xl p-4 mb-5 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-bold text-slate-500">Gross Profit (sebelum biaya lain)</span>
@@ -667,7 +650,6 @@ const ProjectTimeline = () => {
               </div>
             </div>
 
-            {/* Margin bar */}
             <div className="mb-2">
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Net Margin</p>
@@ -693,7 +675,6 @@ const ProjectTimeline = () => {
               )}
             </div>
 
-            {/* Estimasi vs Aktual — budget Supplier Quotation vs realisasi Supplier Invoice */}
             {profitMargin.estimatedCOGS !== undefined && (
               <div className="bg-indigo-50 rounded-xl p-4 mt-4">
                 <p className="text-[9px] font-black text-indigo-500 uppercase tracking-wider mb-3">
@@ -723,7 +704,6 @@ const ProjectTimeline = () => {
           </div>
         </Section>
 
-        {/* ── PROJECT HEALTH BANNER ─────────────────────────────────────── */}
         <div className={`rounded-2xl p-4 border flex items-start gap-3 ${
           isComplete ? 'bg-emerald-50 border-emerald-200' :
           pct >= 75  ? 'bg-indigo-50 border-indigo-200' :

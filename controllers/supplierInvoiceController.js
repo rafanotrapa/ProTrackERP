@@ -1,9 +1,5 @@
 const SupplierInvoice = require('../models/SupplierInvoice');
-const PurchaseOrder   = require('../models/PurchaseOrder');
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. SUBMIT TAGIHAN
-// ─────────────────────────────────────────────────────────────────────────────
 exports.submitInvoice = async (req, res) => {
   try {
     const userId   = req.user ? (req.user._id || req.user.id) : null;
@@ -38,7 +34,8 @@ exports.submitInvoice = async (req, res) => {
       importDutyAmount,
       customsDutyNote: req.body.customsDutyNote || '',
       remarks:         req.body.remarks,
-      file:            req.file ? req.file.filename : null,
+      file:            req.files?.file?.[0]?.filename || null,
+      itemPhoto:       req.files?.itemPhoto?.[0]?.filename || null,
       user:            userId,
       status:          'Pending Verification',
       statusHistory: [{
@@ -52,22 +49,12 @@ exports.submitInvoice = async (req, res) => {
 
     const submission = await newInvoice.save();
 
-    if (req.body.terminName && req.body.terminName !== 'Full Payment') {
-      await PurchaseOrder.findOneAndUpdate(
-        { _id: req.body.poId, 'paymentTerms.description': req.body.terminName },
-        { $set: { 'paymentTerms.$.status': 'Invoiced' } }
-      );
-    }
-
     res.status(201).json({ success: true, msg: 'Tagihan berhasil di-submit ke Finance', data: submission });
   } catch (error) {
     res.status(500).json({ msg: `Gagal simpan invoice: ${error.message}` });
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. LIST SEMUA INVOICE
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getAllInvoices = async (req, res) => {
   try {
     const invoices = await SupplierInvoice.find()
@@ -80,9 +67,6 @@ exports.getAllInvoices = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 3. UPDATE STATUS
-// ─────────────────────────────────────────────────────────────────────────────
 exports.updateStatus = async (req, res) => {
   try {
     const userId   = req.user ? (req.user._id || req.user.id) : null;
@@ -115,9 +99,6 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 4. PENDING PAYMENTS
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getPendingPayments = async (req, res) => {
   try {
     const pendingInvoices = await SupplierInvoice.find({ status: 'Pending Verification' })
@@ -129,9 +110,6 @@ exports.getPendingPayments = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 5. CONFIRM PAYMENT
-// ─────────────────────────────────────────────────────────────────────────────
 exports.confirmPayment = async (req, res) => {
   try {
     const userId   = req.user ? (req.user._id || req.user.id) : null;
@@ -147,7 +125,12 @@ exports.confirmPayment = async (req, res) => {
 
     const invoice = await SupplierInvoice.findByIdAndUpdate(
       req.params.id,
-      { status: 'Paid', paymentDate: new Date(), $push: { statusHistory: historyEntry } },
+      {
+        status: 'Paid',
+        paymentDate: new Date(),
+        ...(req.file && { paymentProof: req.file.filename }),
+        $push: { statusHistory: historyEntry }
+      },
       { new: true }
     );
 
@@ -160,13 +143,10 @@ exports.confirmPayment = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 6. GET BY ID
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getInvoiceById = async (req, res) => {
   try {
     const invoice = await SupplierInvoice.findById(req.params.id)
-      .populate('user', 'name username'); 
+      .populate('user', 'name username');
 
     if (!invoice) return res.status(404).json({ msg: 'Invoice tidak ditemukan' });
     res.json(invoice);
@@ -179,9 +159,6 @@ exports.getInvoiceById = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 7. GET TRACK RECORD
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getInvoiceRecord = async (req, res) => {
   try {
     const { status, vendorName, projectId } = req.query;

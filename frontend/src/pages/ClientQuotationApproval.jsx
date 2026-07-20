@@ -56,10 +56,10 @@ const ClientQuotationApproval = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
-      
+
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
-        <button 
-          onClick={() => navigate('/dashboard')} 
+        <button
+          onClick={() => navigate('/dashboard')}
           className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
         >
           <ArrowLeft className="text-slate-400 group-hover:text-indigo-600 transition-colors" size={24} />
@@ -84,20 +84,17 @@ const ClientQuotationApproval = () => {
           ) : (
             quotations.map((quo) => {
               const grandTotal = calculateGrandTotal(quo);
-              
-              // REVENUE MURNI KLIEN (Harga Jual Barang + Ongkir) --> PPN adalah uang titipan, tidak dihitung revenue
-              const netRevenue = (quo.clientPrice || 0) + (quo.shippingFee || 0); 
-              
-              // TOTAL MODAL MURNI (Dari Backend: Harga Beli Barang + Ongkir Supplier)
-              const totalModal = quo.totalModal || 0; 
-              
-              // GROSS PROFIT & MARGIN ASLI
-              const grossProfit = netRevenue - totalModal; 
+
+              const netRevenue = (quo.clientPrice || 0) + (quo.shippingFee || 0);
+
+              const totalModal = quo.totalModal || 0;
+
+              const grossProfit = netRevenue - totalModal;
               const marginPerc = netRevenue > 0 ? ((grossProfit / netRevenue) * 100).toFixed(1) : 0;
 
               return (
-                <div 
-                  key={quo._id} 
+                <div
+                  key={quo._id}
                   onClick={() => navigate(`/client-quotation-approval/${quo._id}`)}
                   className="group flex flex-col md:flex-row items-center justify-between p-6 bg-slate-50 hover:bg-indigo-600 rounded-4xl border border-slate-100 transition-all cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1 gap-4"
                 >
@@ -112,7 +109,7 @@ const ClientQuotationApproval = () => {
                         </p>
                         {getModeBadge(quo.quotationMode)}
                         <span className={`px-3 py-0.5 rounded-full text-[8px] font-black uppercase italic ${
-                          quo.approvalStatus === 'Approved' ? 'bg-emerald-100 text-emerald-600' : 
+                          quo.approvalStatus === 'Approved' ? 'bg-emerald-100 text-emerald-600' :
                           quo.approvalStatus === 'Rejected' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
                         }`}>
                           {quo.approvalStatus || 'Pending'}
@@ -137,7 +134,6 @@ const ClientQuotationApproval = () => {
                     </div>
                   </div>
 
-                  {/* FINANCIAL METRICS */}
                   <div className="flex flex-row md:flex-col gap-4 md:gap-1 items-end bg-white md:bg-transparent p-4 md:p-0 rounded-2xl md:rounded-none w-full md:w-auto border border-slate-100 md:border-none shadow-sm md:shadow-none">
                     <div className="flex flex-col text-right flex-1 md:flex-none">
                        <span className="text-[9px] font-black text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest">Bill to Client</span>

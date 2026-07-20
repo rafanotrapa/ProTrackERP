@@ -1,10 +1,10 @@
-const ClientInvoice = require('../models/ClientInvoice');
+const ClientInvoice = require('../models/CreateInvoice');
 const Log = require('../models/Log');
 
 exports.verifyPayment = async (req, res) => {
     try {
         const { invoiceId, bankName, amountPaid } = req.body;
-        const file = req.file; 
+        const file = req.file;
 
         if (!invoiceId) {
             return res.status(400).json({ msg: "ID Invoice tidak ditemukan!" });

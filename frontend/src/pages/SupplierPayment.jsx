@@ -32,9 +32,29 @@ const SupplierPayment = () => {
   }, []);
 
   const handleConfirmPayment = async (id, invoiceNumber, vendorName) => {
-    const result = await Swal.fire({
+    const step1 = await Swal.fire({
+      title: 'Upload Bukti Transfer',
+      html: `
+        <p style="font-size:13px; color:#475569; margin-bottom:14px;">Bukti transfer untuk <strong>${invoiceNumber}</strong> (${vendorName}) akan tampil di record Procurement untuk diteruskan ke vendor.</p>
+        <input id="swal-proof" type="file" accept="image/*,.pdf" style="width:100%; font-size:13px; padding:12px; border:2px dashed #cbd5e1; border-radius:12px; background:#f8fafc;" />
+        <p style="font-size:10px; color:#94a3b8; margin-top:8px; text-align:left;">Opsional — boleh dikosongkan.</p>
+      `,
+      showCancelButton: true,
+      confirmButtonColor: '#0f172a',
+      cancelButtonColor: '#94a3b8',
+      confirmButtonText: 'Done',
+      cancelButtonText: 'Cancel',
+      preConfirm: () => document.getElementById('swal-proof')?.files[0] || null
+    });
+    if (!step1.isConfirmed) return;
+    const proofFile = step1.value;
+
+    const step2 = await Swal.fire({
       title: 'Confirm Payment?',
-      html: `You are about to mark <strong>${invoiceNumber}</strong> from <strong>${vendorName}</strong> as <strong class="text-emerald-600">PAID</strong>.`,
+      html: `
+        <p class="text-sm">You are about to mark <strong>${invoiceNumber}</strong> from <strong>${vendorName}</strong> as <strong class="text-emerald-600">PAID</strong>.</p>
+        <p style="font-size:11px; color:#64748b; margin-top:10px;">${proofFile ? `📎 Bukti transfer: <strong>${proofFile.name}</strong>` : 'Tanpa bukti transfer'}</p>
+      `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
@@ -43,10 +63,12 @@ const SupplierPayment = () => {
       cancelButtonText: 'Cancel'
     });
 
-    if (result.isConfirmed) {
+    if (step2.isConfirmed) {
       try {
         const token = localStorage.getItem('token');
-        await axios.patch(`http://localhost:5000/api/supplier_invoices/${id}/confirm`, {}, {
+        const fd = new FormData();
+        if (proofFile) fd.append('paymentProof', proofFile);
+        await axios.patch(`http://localhost:5000/api/supplier_invoices/${id}/confirm`, fd, {
           headers: { Authorization: `Bearer ${token}` }
         });
         Swal.fire({
@@ -79,7 +101,6 @@ const SupplierPayment = () => {
     return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black bg-amber-100 text-amber-600"><Clock size={12} /> PENDING</span>;
   };
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = payments.filter((p) => {
     const term = searchTerm.toLowerCase();
     const matchSearch =
@@ -133,7 +154,6 @@ const SupplierPayment = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -166,7 +186,6 @@ const SupplierPayment = () => {
           </div>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <CheckCircle size={48} className="text-emerald-300 mx-auto" />

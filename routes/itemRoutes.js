@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Item = require('../models/Item');
+const { protect } = require('../middleware/auth');
+
+router.use(protect);
 
 router.get('/', async (req, res) => {
   try {
@@ -18,7 +21,7 @@ router.post('/', async (req, res) => {
 
     const newItem = new Item({
       ...req.body,
-      itemId: generatedID 
+      itemId: generatedID
     });
 
     await newItem.save();

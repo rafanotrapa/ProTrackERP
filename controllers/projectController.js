@@ -4,16 +4,16 @@ const Log = require('../models/Log');
 exports.addProject = async (req, res) => {
   try {
 
-    const { 
-      projectId, 
-      projectName, 
-      institutionName, 
+    const {
+      projectId,
+      projectName,
+      institutionName,
       clientCompany,
-      clientName, 
-      clientContact, 
-      clientAddress, 
-      amount, 
-      currency, 
+      clientName,
+      clientContact,
+      clientAddress,
+      amount,
+      currency,
       description,
       quotationMode
     } = req.body;
@@ -22,7 +22,7 @@ exports.addProject = async (req, res) => {
       projectId,
       projectName,
       institutionName,
-      clientCompany: clientCompany || '',  // 🆕 Opsional
+      clientCompany: clientCompany || '',
       clientName,
       clientContact,
       clientAddress,
@@ -95,7 +95,7 @@ exports.updateProject = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
-    
+
     const updatedProject = await Project.findByIdAndUpdate(id, updateData, { new: true });
     if (!updatedProject) {
       return res.status(404).json({ msg: 'Project tidak ditemukan' });
@@ -143,7 +143,7 @@ exports.updateProjectProgress = async (req, res) => {
   try {
     const { id } = req.params;
     const { isDPPaid, isItemsReceived, isItemsDelivered, isFinalPaid } = req.body;
-    
+
     const project = await Project.findById(id);
     if (!project) {
       return res.status(404).json({ msg: 'Project tidak ditemukan' });

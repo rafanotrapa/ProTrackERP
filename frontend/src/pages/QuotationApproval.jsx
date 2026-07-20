@@ -13,7 +13,7 @@ const QuotationApproval = () => {
   const fetchQuotations = async () => {
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get('http://localhost:5000/api/supplier_quotation/pending', { 
+      const res = await axios.get('http://localhost:5000/api/supplier_quotation/pending', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setQuotations(res.data);
@@ -29,11 +29,10 @@ const QuotationApproval = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
-      
-      {/* HEADER WITH BACK BUTTON */}
+
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
-        <button 
-          onClick={() => navigate('/dashboard')} 
+        <button
+          onClick={() => navigate('/dashboard')}
           className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
         >
           <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
@@ -57,8 +56,8 @@ const QuotationApproval = () => {
             </div>
           ) : (
             quotations.map((quo) => (
-              <div 
-                key={quo._id} 
+              <div
+                key={quo._id}
                 onClick={() => navigate(`/quotation-approval/${quo._id}`)}
                 className="group flex items-center justify-between p-6 bg-slate-50 hover:bg-indigo-600 rounded-4xl border border-slate-100 transition-all cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1"
               >
@@ -76,7 +75,7 @@ const QuotationApproval = () => {
                         <Clock size={10}/> {new Date(quo.timestamp).toLocaleDateString()}
                       </span>
                       <span className={`px-3 py-0.5 rounded-full text-[8px] font-black uppercase italic ${
-                        quo.approvalStatus === 'Approved' ? 'bg-emerald-100 text-emerald-600' : 
+                        quo.approvalStatus === 'Approved' ? 'bg-emerald-100 text-emerald-600' :
                         quo.approvalStatus === 'Rejected' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
                       }`}>
                         {quo.approvalStatus || 'Pending'}

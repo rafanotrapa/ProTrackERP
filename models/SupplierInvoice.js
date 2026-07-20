@@ -28,7 +28,9 @@ const SupplierInvoiceSchema = new mongoose.Schema({
   importDutyAmount: { type: Number, default: 0 },
   customsDutyNote: { type: String },
   
-  file: { type: String }, 
+  file: { type: String },
+  itemPhoto: { type: String },
+  paymentProof: { type: String },
   remarks: { type: String },
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, 
   

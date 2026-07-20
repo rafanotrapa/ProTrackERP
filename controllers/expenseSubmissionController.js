@@ -1,9 +1,5 @@
 const ExpenseSubmission = require('../models/ExpenseSubmission');
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPER: parse & validasi items[] dari request body
-// (items dikirim sebagai JSON string lewat FormData karena ada file upload)
-// ─────────────────────────────────────────────────────────────────────────────
 const parseItems = (rawItems) => {
   let items = rawItems;
   if (typeof rawItems === 'string') {
@@ -23,10 +19,6 @@ const parseItems = (rawItems) => {
     }));
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. SUBMIT EXPENSE — bisa dilakukan semua role, kapan saja, terlepas
-//    dari status project. Mendukung multi-item dalam satu submission.
-// ─────────────────────────────────────────────────────────────────────────────
 exports.submitExpense = async (req, res) => {
   try {
     const userId   = req.user ? (req.user._id || req.user.id) : null;
@@ -88,9 +80,6 @@ exports.submitExpense = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. GET ALL — untuk Log page
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getAllExpenses = async (req, res) => {
   try {
     const { status, projectId } = req.query;
@@ -110,9 +99,6 @@ exports.getAllExpenses = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 3. GET BY ID
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getExpenseById = async (req, res) => {
   try {
     const expense = await ExpenseSubmission.findById(req.params.id)
@@ -128,10 +114,6 @@ exports.getExpenseById = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 4. GET BY PROJECT — dipakai Financial Report & Project Timeline
-//    Hanya yang sudah Approved yang dihitung sebagai expense riil.
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getExpensesByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -146,9 +128,6 @@ exports.getExpensesByProject = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 5. APPROVE / REJECT (Finance)
-// ─────────────────────────────────────────────────────────────────────────────
 exports.reviewExpense = async (req, res) => {
   try {
     const { status, rejectionReason, note } = req.body;
@@ -195,10 +174,6 @@ exports.reviewExpense = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 6. UPDATE (edit) — hanya untuk submission yang belum Approved.
-//    Sekarang bisa update seluruh items[] sekaligus.
-// ─────────────────────────────────────────────────────────────────────────────
 exports.updateExpense = async (req, res) => {
   try {
     const { id } = req.params;
@@ -219,7 +194,6 @@ exports.updateExpense = async (req, res) => {
       remarks:     remarks     !== undefined ? remarks : existing.remarks,
       projectId:   projectId   || existing.projectId,
       projectName: projectName || existing.projectName,
-      // Reset ke Pending Verification jika sebelumnya Rejected dan diedit ulang
       status: existing.status === 'Rejected' ? 'Pending Verification' : existing.status,
       $push: {
         statusHistory: {
@@ -232,7 +206,6 @@ exports.updateExpense = async (req, res) => {
       },
     };
 
-    // Jika items dikirim, parse ulang & hitung total baru
     if (req.body.items !== undefined) {
       const items = parseItems(req.body.items);
       if (items.length === 0) {
@@ -252,9 +225,6 @@ exports.updateExpense = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 7. DELETE — hanya untuk submission yang belum Approved
-// ─────────────────────────────────────────────────────────────────────────────
 exports.deleteExpense = async (req, res) => {
   try {
     const { id } = req.params;
@@ -273,9 +243,6 @@ exports.deleteExpense = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 8. PENDING APPROVALS
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getPendingExpenses = async (req, res) => {
   try {
     const pending = await ExpenseSubmission.find({ status: 'Pending Verification' })

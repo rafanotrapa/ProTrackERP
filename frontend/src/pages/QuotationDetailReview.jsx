@@ -6,16 +6,6 @@ import { CheckCircle, XCircle, Clock, FileText, Building2, Package } from 'lucid
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// ─────────────────────────────────────────────────────────────
-//  QuotationDetailReview — Review SUPPLIER Quotation (COGS/modal
-//  dari procurement). Management approve di sini SEBELUM quotation
-//  ini bisa dipakai sebagai dasar input items di Client Quotation.
-//
-//  Endpoint: GET/PATCH /api/supplier_quotation/:id
-//  (Beda dengan ClientQuotationDetailReview.jsx yang review margin
-//  Sales Price ke client — file ini cuma review modal/COGS vendor,
-//  belum ada sales price/margin di tahap ini.)
-// ─────────────────────────────────────────────────────────────
 const QuotationDetailReview = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -56,7 +46,6 @@ const QuotationDetailReview = () => {
 
   if (!quo) return null;
 
-  // ── Kalkulasi modal/COGS ─────────────────────────────────
   const subtotalCOGS  = (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
   const additionalFee = quo.additionalFee || 0;
   const taxAmount     = quo.taxAmount || 0;
@@ -118,7 +107,6 @@ const QuotationDetailReview = () => {
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
 
-      {/* HEADER */}
       <div className="w-full border-b border-slate-100 px-8 py-8 flex flex-wrap items-center justify-between gap-4 bg-slate-50/30">
         <div className="flex items-center gap-6">
           <button
@@ -157,10 +145,8 @@ const QuotationDetailReview = () => {
       <main className="flex-1 p-8 md:p-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* LEFT — DETAILS */}
           <div className="lg:col-span-2 space-y-8">
 
-            {/* Vendor & Project Info */}
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
               <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
                 <Building2 size={14} /> Vendor & Project
@@ -185,7 +171,6 @@ const QuotationDetailReview = () => {
               </div>
             </div>
 
-            {/* Remarks */}
             {quo.remarks && (
               <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -195,7 +180,6 @@ const QuotationDetailReview = () => {
               </div>
             )}
 
-            {/* Items Breakdown */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <div className="p-5 border-b border-slate-100 bg-slate-50">
                 <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
@@ -236,10 +220,9 @@ const QuotationDetailReview = () => {
               </div>
             </div>
 
-            {/* Document attachment */}
             {quo.documentUrl && (
               <a
-                href={`http://localhost:5000/${quo.documentUrl}`}
+                href={`http://localhost:5000${quo.documentUrl.startsWith('/') ? '' : '/'}${quo.documentUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all"
@@ -249,7 +232,6 @@ const QuotationDetailReview = () => {
             )}
           </div>
 
-          {/* RIGHT — FINANCIAL SUMMARY + ACTIONS */}
           <div className="space-y-6">
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl sticky top-24">
               <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">
@@ -288,7 +270,6 @@ const QuotationDetailReview = () => {
               )}
             </div>
 
-            {/* Management Actions */}
             {isPending && (
               <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Management Action</p>

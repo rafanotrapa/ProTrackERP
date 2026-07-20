@@ -4,24 +4,37 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
+
+const COMPANY_TYPES = ['PT', 'CV', 'Persero', 'Individual'].map((v) => ({ value: v, label: v }));
+const VENDOR_CATEGORIES = [
+  'Software Development', 'IT Consulting Services', 'System Integrator',
+  'Cloud Computing Services', 'Cyber Security Services', 'Network Infrastructure Provider',
+  'Data Center Services', 'Hardware Distributor', 'Computer & Laptop Supplier',
+  'Server & Storage Solution Provider', 'Managed IT Services', 'Enterprise Application Provider',
+  'Mobile Application Development', 'Artificial Intelligence (AI) Solutions',
+  'Internet of Things (IoT) Solutions', 'IT Support & Maintenance Services',
+  'Database Management Services', 'Digital Transformation Services',
+  'Telecommunications & Unified Communication', 'IT Outsourcing Services',
+].map((v) => ({ value: v, label: v }));
 
 const AddVendor = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [projects, setProjects] = useState([]); 
-  const [existingVendors, setExistingVendors] = useState([]); 
+  const [projects, setProjects] = useState([]);
+  const [existingVendors, setExistingVendors] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
         const headers = { Authorization: `Bearer ${token}` };
-        
+
         const [resProj, resVend] = await Promise.all([
           axios.get('http://localhost:5000/api/project', { headers }),
           axios.get('http://localhost:5000/api/vendor', { headers })
         ]);
-        
+
         setProjects(resProj.data);
         setExistingVendors(resVend.data);
       } catch (err) {
@@ -40,19 +53,19 @@ const AddVendor = () => {
 
   const [formData, setFormData] = useState({
     vendorId: generateVendorID(),
-    projectId: '', 
+    projectId: '',
     vendorName: '',
     companyType: 'PT',
     contactPerson: '',
     email: '',
     phone: '',
     address: '',
-    category: 'Software Development' // <-- Default disesuaikan dengan list pertama
+    category: 'Software Development'
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'phone') {
       const onlyNums = value.replace(/[^0-9]/g, '');
       if (onlyNums.length <= 15) {
@@ -60,7 +73,7 @@ const AddVendor = () => {
       }
       return;
     }
-    
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -69,10 +82,10 @@ const AddVendor = () => {
     if (!formData.projectId) return Swal.fire('Warning', 'Pilih Project Target terlebih dahulu!', 'warning');
 
     const selectedProj = projects.find(p => p.projectId === formData.projectId);
-    
+
     if (selectedProj && selectedProj.quotationMode === 'auto') {
       const linkedVendorsCount = existingVendors.filter(v => v.projectId === formData.projectId).length;
-      
+
       if (linkedVendorsCount >= 1) {
         return Swal.fire({
           icon: 'error',
@@ -93,7 +106,7 @@ const AddVendor = () => {
         icon: 'success',
         title: 'REGISTERED',
         text: `Vendor ${formData.vendorName} successfully registered to the system.`,
-        confirmButtonColor: '#0f172a' 
+        confirmButtonColor: '#0f172a'
       });
       navigate('/existing-vendors');
     } catch (err) {
@@ -121,12 +134,12 @@ const AddVendor = () => {
 
       <main className="flex-1 p-8 md:p-12 lg:p-16">
         <form onSubmit={handleSubmit} className="max-w-none w-full space-y-12">
-          
+
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 01. Company Profile & Target
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Vendor ID</label>
@@ -135,22 +148,23 @@ const AddVendor = () => {
 
               <div className="space-y-1 md:col-span-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Project Target</label>
-                <select name="projectId" required className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer" onChange={handleChange} value={formData.projectId}>
-                  <option value="">-- Select Linked Project --</option>
-                  {projects.map(p => (
-                    <option key={p._id} value={p.projectId}>{p.projectId} - {p.projectName}</option>
-                  ))}
-                </select>
+                <StyledSelect
+                  name="projectId"
+                  value={formData.projectId}
+                  onChange={handleChange}
+                  placeholder="-- Select Linked Project --"
+                  options={projects.map((p) => ({ value: p.projectId, label: `${p.projectId} - ${p.projectName}` }))}
+                />
               </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Type</label>
-                <select name="companyType" className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer" onChange={handleChange} value={formData.companyType}>
-                  <option value="PT">PT</option>
-                  <option value="CV">CV</option>
-                  <option value="Persero">Persero</option>
-                  <option value="Individual">Individual</option>
-                </select>
+                <StyledSelect
+                  name="companyType"
+                  value={formData.companyType}
+                  onChange={handleChange}
+                  options={COMPANY_TYPES}
+                />
               </div>
             </div>
 
@@ -161,29 +175,12 @@ const AddVendor = () => {
                </div>
                <div className="space-y-1">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Category</label>
-                 <select name="category" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm cursor-pointer" onChange={handleChange} value={formData.category}>
-                   {/* 20 KATEGORI IT DITAMBAHKAN DI SINI */}
-                   <option value="Software Development">Software Development</option>
-                   <option value="IT Consulting Services">IT Consulting Services</option>
-                   <option value="System Integrator">System Integrator</option>
-                   <option value="Cloud Computing Services">Cloud Computing Services</option>
-                   <option value="Cyber Security Services">Cyber Security Services</option>
-                   <option value="Network Infrastructure Provider">Network Infrastructure Provider</option>
-                   <option value="Data Center Services">Data Center Services</option>
-                   <option value="Hardware Distributor">Hardware Distributor</option>
-                   <option value="Computer & Laptop Supplier">Computer & Laptop Supplier</option>
-                   <option value="Server & Storage Solution Provider">Server & Storage Solution Provider</option>
-                   <option value="Managed IT Services">Managed IT Services</option>
-                   <option value="Enterprise Application Provider">Enterprise Application Provider</option>
-                   <option value="Mobile Application Development">Mobile Application Development</option>
-                   <option value="Artificial Intelligence (AI) Solutions">Artificial Intelligence (AI) Solutions</option>
-                   <option value="Internet of Things (IoT) Solutions">Internet of Things (IoT) Solutions</option>
-                   <option value="IT Support & Maintenance Services">IT Support & Maintenance Services</option>
-                   <option value="Database Management Services">Database Management Services</option>
-                   <option value="Digital Transformation Services">Digital Transformation Services</option>
-                   <option value="Telecommunications & Unified Communication">Telecommunications & Unified Communication</option>
-                   <option value="IT Outsourcing Services">IT Outsourcing Services</option>
-                 </select>
+                 <StyledSelect
+                   name="category"
+                   value={formData.category}
+                   onChange={handleChange}
+                   options={VENDOR_CATEGORIES}
+                 />
                </div>
             </div>
           </div>
@@ -210,8 +207,8 @@ const AddVendor = () => {
           </div>
 
           <div className="flex justify-end pt-10 border-t border-slate-100">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className={`px-12 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
                 loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'

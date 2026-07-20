@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 const Register = () => {
-  const [formData, setFormData] = useState({ 
-    username: '', 
-    email: '', 
-    password: '', 
-    role: 'Marketing' 
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    role: 'Marketing'
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +25,6 @@ const Register = () => {
     { label: 'Super Admin Access', value: 'Admin' }
   ];
 
-  // Menutup dropdown jika klik di luar
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -45,7 +44,6 @@ const Register = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // SweetAlert2 Sukses
       Swal.fire({
         title: 'SUCCESS!',
         text: 'Karyawan Baru Berhasil Terdaftar ke Sistem.',
@@ -60,7 +58,6 @@ const Register = () => {
       });
 
     } catch (err) {
-      // SweetAlert2 Error
       Swal.fire({
         title: 'ERROR!',
         text: err.response?.data?.msg || 'Gagal registrasi user',
@@ -75,7 +72,7 @@ const Register = () => {
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-10 font-sans flex flex-col items-center">
       <div className="w-full max-w-6xl">
-        
+
         <header className="flex justify-between items-end mb-8 px-2">
           <div>
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
@@ -85,8 +82,8 @@ const Register = () => {
               Human Resources • Access Control Protocol
             </p>
           </div>
-          <button 
-            onClick={() => navigate('/manage-users')} 
+          <button
+            onClick={() => navigate('/manage-users')}
             className="text-slate-400 font-black text-[10px] uppercase border-b-2 border-transparent hover:border-indigo-600 hover:text-indigo-600 transition-all tracking-widest pb-1"
           >
             Back to User List
@@ -96,34 +93,31 @@ const Register = () => {
         <div className="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 p-8 md:p-12">
           <form onSubmit={handleRegister} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-              
-              {/* FULL NAME */}
+
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Full Name</label>
-                <input 
-                  type="text" required 
+                <input
+                  type="text" required
                   className="w-full rounded-2xl bg-slate-50 border border-slate-100 p-4 text-xl font-black italic uppercase outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all text-slate-800"
                   placeholder="E.G. JOHN DOE"
                   onChange={(e) => setFormData({...formData, username: e.target.value})}
                 />
               </div>
 
-              {/* EMAIL */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Work Email</label>
-                <input 
-                  type="email" required 
+                <input
+                  type="email" required
                   className="w-full rounded-2xl bg-slate-50 border border-slate-100 p-4 font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all text-slate-600"
                   placeholder="johndoe@gmail.com"
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
               </div>
 
-              {/* CUSTOM DROPDOWN ROLE */}
               <div className="space-y-2 relative" ref={dropdownRef}>
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Assign Division Role</label>
-                
-                <div 
+
+                <div
                   onClick={() => setIsOpen(!isOpen)}
                   className={`w-full rounded-2xl bg-slate-50 border border-slate-100 p-4 font-black uppercase text-sm cursor-pointer flex justify-between items-center transition-all ${isOpen ? 'ring-4 ring-indigo-500/10 bg-white border-indigo-200' : ''}`}
                 >
@@ -138,7 +132,7 @@ const Register = () => {
                 {isOpen && (
                   <div className="absolute z-50 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
                     {roles.map((role) => (
-                      <div 
+                      <div
                         key={role.value}
                         className="px-5 py-4 text-xs font-black uppercase italic tracking-wider text-slate-600 hover:bg-indigo-600 hover:text-white cursor-pointer transition-colors border-b border-slate-50 last:border-none"
                         onClick={() => {
@@ -153,18 +147,17 @@ const Register = () => {
                 )}
               </div>
 
-              {/* PASSWORD WITH VIEW TOGGLE */}
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Initial Password</label>
                 <div className="relative">
-                  <input 
-                    type={showPassword ? "text" : "password"} 
-                    required 
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
                     className="w-full rounded-2xl bg-slate-50 border border-slate-100 p-4 font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all text-slate-800 pr-14"
                     placeholder="••••••••"
                     onChange={(e) => setFormData({...formData, password: e.target.value})}
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition-colors"
@@ -180,16 +173,16 @@ const Register = () => {
             </div>
 
             <div className="pt-4 flex flex-col md:flex-row gap-4">
-              <button 
-                type="submit" 
-                disabled={loading} 
+              <button
+                type="submit"
+                disabled={loading}
                 className="flex-2 bg-slate-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-black shadow-2xl shadow-slate-200 transition-all active:scale-95 disabled:bg-slate-300"
               >
                 {loading ? 'SYNCING DATABASE...' : 'DEPLOY ACCOUNT'}
               </button>
-              <button 
-                type="button" 
-                onClick={() => navigate('/manage-users')} 
+              <button
+                type="button"
+                onClick={() => navigate('/manage-users')}
                 className="flex-1 bg-slate-100 text-slate-400 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all"
               >
                 Cancel

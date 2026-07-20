@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
-const SupplierQuotation = require('../models/SupplierQuotation'); 
+const SupplierQuotation = require('../models/SupplierQuotation');
+const { protect } = require('../middleware/auth');
 
-// 1. GET ALL PROJECTS
-// Digunakan untuk: Dropdown di Client Quotation & List di halaman Timeline
+router.use(protect);
+
 router.get('/', async (req, res) => {
   try {
     const projects = await Project.find().sort({ createdAt: -1 });
@@ -15,23 +16,18 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 2. GET SINGLE PROJECT (AUTO-FILL & TIMELINE DATA)
-// Digunakan untuk: Narik detail Client + Merge barang dari Supplier Quotation
 router.get('/:projectId', async (req, res) => {
   try {
-    const pId = req.params.projectId.trim(); // ID BJK-xxx
-    
-    // Step A: Cari data dasar Project (Nama Client, TOP, Status Milestone)
+    const pId = req.params.projectId.trim();
+
     const project = await Project.findOne({ projectId: pId });
     if (!project) {
       return res.status(404).json({ msg: "Project BJK tidak ditemukan di database" });
     }
 
-    // Step B: Cari semua penawaran Supplier untuk BJK ini (Buat merger Item)
     const supplierQuotes = await SupplierQuotation.find({ projectId: pId });
-    
-    // Gabungin selectedItems dari semua penawaran supplier yang masuk
-    const itemList = supplierQuotes.map(sq => sq.selectedItems).filter(Boolean);
+
+    const itemList = supplierQuotes.flatMap(sq => (sq.items || []).map(it => it.itemName)).filter(Boolean);
     const mergedItems = [...new Set(itemList)].join(', ');
 
     res.json({
@@ -45,7 +41,6 @@ router.get('/:projectId', async (req, res) => {
   }
 });
 
-// 3. POST: SIMPAN PROJECT BARU
 router.post('/', async (req, res) => {
   try {
 
@@ -57,18 +52,16 @@ router.post('/', async (req, res) => {
     const newProject = new Project(req.body);
     const savedProject = await newProject.save();
 
-    res.status(201).json({ 
-      success: true, 
+    res.status(201).json({
+      success: true,
       msg: "Project BJK Berhasil Disimpan!",
-      data: savedProject 
+      data: savedProject
     });
   } catch (err) {
     console.error("Error POST Project:", err.message);
     res.status(500).json({ success: false, msg: err.message });
   }
 });
-
-// 4. PATCH: UPDATE STATUS MILESTONE (FUNGSI TIMELINE)
 
 router.patch('/update-status/:projectId', async (req, res) => {
   try {
@@ -84,10 +77,10 @@ router.patch('/update-status/:projectId', async (req, res) => {
       return res.status(404).json({ msg: "Gagal update, Project tidak ditemukan" });
     }
 
-    res.json({ 
-      success: true, 
-      msg: "Status Milestone Updated!", 
-      data: updatedProject 
+    res.json({
+      success: true,
+      msg: "Status Milestone Updated!",
+      data: updatedProject
     });
   } catch (err) {
     console.error("Error Update Status:", err.message);

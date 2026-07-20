@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { ArrowLeft } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const InputPayment = () => {
   const navigate = useNavigate();
@@ -74,15 +75,15 @@ const InputPayment = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post('http://localhost:5000/api/payments', data, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
 
-      Swal.fire({ 
-        icon: 'success', 
-        title: 'PAYMENT SUBMITTED', 
+      Swal.fire({
+        icon: 'success',
+        title: 'PAYMENT SUBMITTED',
         text: 'Data forwarded to Finance verification.',
         confirmButtonColor: '#0f172a'
       });
@@ -97,9 +98,9 @@ const InputPayment = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-slate-900">
       <Header />
-      
+
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
-        <button 
+        <button
           onClick={() => navigate('/input-payment-center')}
           className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
         >
@@ -115,35 +116,32 @@ const InputPayment = () => {
 
       <main className="flex-1 p-8 md:p-12">
         <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-12">
-          
-          {/* Form Inputs */}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">1. Select Reference Invoice</label>
-              <select 
-                className="w-full p-5 border-2 border-slate-100 rounded-2xl font-bold text-slate-800 focus:border-indigo-600 outline-none transition-all shadow-sm cursor-pointer appearance-none bg-slate-50" 
+              <StyledSelect
+                value={formData.invoiceId || ''}
                 onChange={handleInvoiceChange}
-                required
-              >
-                <option value="">-- SEARCH INVOICE --</option>
-                {invoices.map(inv => (
-                  <option key={inv._id} value={inv._id}>{inv.invoiceNumber} | {inv.projectName}</option>
-                ))}
-              </select>
+                placeholder="-- SEARCH INVOICE --"
+                options={invoices.map((inv) => ({
+                  value: inv._id,
+                  label: `${inv.invoiceNumber} | ${inv.projectName}`,
+                }))}
+              />
             </div>
             <div className="space-y-3">
               <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">2. Actual Payment Date</label>
-              <input 
-                type="date" 
-                required 
-                className="w-full p-5 border-2 border-slate-100 rounded-2xl font-bold text-slate-800 focus:border-indigo-600 outline-none shadow-sm bg-slate-50" 
+              <input
+                type="date"
+                required
+                className="w-full p-5 border-2 border-slate-100 rounded-2xl font-bold text-slate-800 focus:border-indigo-600 outline-none shadow-sm bg-slate-50"
                 value={formData.paymentDate}
                 onChange={(e) => setFormData({...formData, paymentDate: e.target.value})}
               />
             </div>
           </div>
 
-          {/* Detailed Info Card */}
           <div className="p-12 bg-slate-900 rounded-[2.5rem] shadow-2xl relative overflow-hidden text-white border-b-8 border-indigo-600">
             <div className="relative z-10 flex flex-col gap-8">
               <div>
@@ -152,7 +150,7 @@ const InputPayment = () => {
                   Rp {Number(formData.amountToPay).toLocaleString()}
                 </h2>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-white/10">
                 <div className="space-y-4">
                   <div>
@@ -178,12 +176,11 @@ const InputPayment = () => {
             </div>
           </div>
 
-          {/* Evidence Upload Section */}
           <div className="space-y-3">
             <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">3. Transaction Evidence (Image Only)</label>
             <div className="relative border-4 border-dashed border-slate-100 rounded-4xl p-16 flex flex-col items-center justify-center hover:border-indigo-200 hover:bg-slate-50 transition-all cursor-pointer group">
-              <input 
-                type="file" 
+              <input
+                type="file"
                 className="absolute inset-0 opacity-0 cursor-pointer"
                 onChange={(e) => setSelectedFile(e.target.files[0])}
                 accept="image/*"
@@ -199,10 +196,9 @@ const InputPayment = () => {
             </div>
           </div>
 
-          {/* Action Button Section */}
           <div className="flex justify-end pt-10 border-t border-slate-100">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className={`px-12 py-5 rounded-2xl font-black text-white uppercase tracking-[0.2em] text-[11px] shadow-2xl transition-all active:scale-95 ${
                 loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'

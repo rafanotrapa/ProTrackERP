@@ -9,9 +9,6 @@ import {
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// ─────────────────────────────────────────────────────────────
-//  HELPERS
-// ─────────────────────────────────────────────────────────────
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 const stripNonNumeric = (str) => str.toString().replace(/[^0-9]/g, '');
 
@@ -34,7 +31,6 @@ const ExpenseSubmissionLog = () => {
   });
   const isFinance = ['Finance', 'Admin', 'Owner'].includes(user.role);
 
-  // ── Edit modal state ────────────────────────────────────
   const [editTarget, setEditTarget] = useState(null);
   const [editForm, setEditForm]     = useState({ items: [], remarks: '' });
   const [savingEdit, setSavingEdit] = useState(false);
@@ -57,7 +53,6 @@ const ExpenseSubmissionLog = () => {
     fetchExpenses();
   }, []);
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = expenses.filter((e) => {
     const q = searchTerm.toLowerCase();
     const itemNames = (e.items || []).map((it) => it.name).join(' ');
@@ -77,7 +72,6 @@ const ExpenseSubmissionLog = () => {
     rejected: expenses.filter((e) => e.status === 'Rejected').length,
   };
 
-  // ── Approve / Reject (Finance only) ─────────────────────
   const handleReview = async (exp, status) => {
     let rejectionReason = '';
     if (status === 'Rejected') {
@@ -117,7 +111,6 @@ const ExpenseSubmissionLog = () => {
     }
   };
 
-  // ── Edit ─────────────────────────────────────────────────
   const openEdit = (exp) => {
     setEditTarget(exp);
     setEditForm({
@@ -188,7 +181,6 @@ const ExpenseSubmissionLog = () => {
     }
   };
 
-  // ── Delete ───────────────────────────────────────────────
   const handleDelete = async (exp) => {
     const result = await Swal.fire({
       title: 'Hapus Submission?',
@@ -259,7 +251,6 @@ const ExpenseSubmissionLog = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -292,7 +283,6 @@ const ExpenseSubmissionLog = () => {
           </div>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <FileText size={48} className="text-slate-300 mx-auto" />
@@ -402,7 +392,6 @@ const ExpenseSubmissionLog = () => {
         )}
       </main>
 
-      {/* ── EDIT MODAL (multi-item) ──────────────────────────── */}
       {editTarget && (
         <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-4 my-8">

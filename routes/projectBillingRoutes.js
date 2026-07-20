@@ -7,7 +7,6 @@ const {
   generateNextInvoice
 } = require('../controllers/projectBillingController');
 
-// Semua route hanya untuk Finance & Admin
 router.get('/', protect, getAllProjectsBilling);
 router.get('/:projectId', protect, getProjectBillingDetail);
 router.post('/:projectId/generate-next', protect, generateNextInvoice);

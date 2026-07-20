@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Search } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { FileText, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// ─────────────────────────────────────────────────────────────
-//  HELPER
-// ─────────────────────────────────────────────────────────────
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
+
+const viewPaymentProof = (inv) => {
+  const url = `http://localhost:5000/uploads/documents/${inv.paymentProof}`;
+  const isPdf = inv.paymentProof.toLowerCase().endsWith('.pdf');
+  Swal.fire({
+    title: `Bukti Transfer — ${inv.invoiceNumber}`,
+    html: `
+      ${isPdf
+        ? `<iframe src="${url}" style="width:100%; height:60vh; border:1px solid #e2e8f0; border-radius:12px;"></iframe>`
+        : `<img src="${url}" style="max-width:100%; max-height:60vh; border-radius:12px; border:1px solid #e2e8f0;" />`}
+      <a href="${url}" target="_blank" download style="display:inline-block; margin-top:14px; padding:10px 20px; background:#4f46e5; color:white; border-radius:12px; font-size:12px; font-weight:800; text-decoration:none;">⬇ DOWNLOAD</a>
+    `,
+    width: 720,
+    showConfirmButton: false,
+    showCloseButton: true
+  });
+};
 
 const SupplierInvoiceRecord = () => {
   const navigate = useNavigate();
@@ -34,7 +49,6 @@ const SupplierInvoiceRecord = () => {
     fetchInvoices();
   }, []);
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = invoices.filter((inv) => {
     const q = searchTerm.toLowerCase();
     const matchSearch =
@@ -90,7 +104,6 @@ const SupplierInvoiceRecord = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -123,7 +136,6 @@ const SupplierInvoiceRecord = () => {
           </div>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <FileText size={48} className="text-slate-300 mx-auto" />
@@ -166,6 +178,15 @@ const SupplierInvoiceRecord = () => {
                         }`}>
                           {currentStatus}
                         </span>
+                        {currentStatus === 'Paid' && inv.paymentProof && (
+                          <button
+                            onClick={() => viewPaymentProof(inv)}
+                            title="Lihat & download bukti transfer untuk diteruskan ke vendor"
+                            className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[8px] font-black uppercase bg-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"
+                          >
+                            <Eye size={11} /> Bukti TF
+                          </button>
+                        )}
                       </td>
                       <td className="px-6 py-5 text-center">
                         <p className="text-[9px] font-bold text-slate-500">

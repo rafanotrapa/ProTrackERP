@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { 
-  ArrowLeft, CheckCircle, XCircle, Clock, FileText, 
-  Truck, Receipt, User, Building2, DollarSign, Calendar, 
-  Edit, Trash2, Save, X, Plus, Minus
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import autoTable from 'jspdf-autotable';
+import {
+  ArrowLeft, CheckCircle, XCircle, Clock, FileText,
+  Truck, Receipt, User, Building2, DollarSign, Calendar,
+  Edit, Trash2, Save, X, Plus, Minus, Download
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const QuotationLogDetail = () => {
   const { id } = useParams();
@@ -93,7 +97,7 @@ const QuotationLogDetail = () => {
   const handleUpdate = async () => {
     try {
       const token = localStorage.getItem('token');
-      
+
       const payload = {
         items: editItems,
         clientPrice: calculateSubtotal(),
@@ -103,26 +107,25 @@ const QuotationLogDetail = () => {
         taxPercentage: Number(editForm.taxPercentage),
         taxAmount: (calculateSubtotal() * Number(editForm.taxPercentage)) / 100
       };
-      
+
       await axios.patch(`http://localhost:5000/api/client_quotation/${id}/revision`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       Swal.fire({
         icon: 'success',
         title: 'Updated!',
         text: 'Quotation has been updated successfully',
         confirmButtonColor: '#0f172a'
       });
-      
+
       setIsEditing(false);
-      
-      // Refresh data
+
       const res = await axios.get(`http://localhost:5000/api/client_quotation/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setQuotation(res.data);
-      
+
     } catch (err) {
       Swal.fire({
         icon: 'error',
@@ -150,7 +153,7 @@ const QuotationLogDetail = () => {
         await axios.delete(`http://localhost:5000/api/client_quotation/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Deleted!',
@@ -158,7 +161,7 @@ const QuotationLogDetail = () => {
           confirmButtonColor: '#0f172a'
         });
         navigate('/quotation-log');
-        
+
       } catch (err) {
         Swal.fire({
           icon: 'error',
@@ -175,6 +178,166 @@ const QuotationLogDetail = () => {
   const taxPercentage = editForm.taxPercentage || 0;
   const taxAmount = (subtotal * taxPercentage) / 100;
   const grandTotal = calculateGrandTotal();
+
+  const handleDownloadPDF = () => {
+    try {
+      const doc = new jsPDF();
+      const isDraft = quotation.approvalStatus !== 'Approved';
+      const qSubtotal = (quotation.items || []).reduce((s, it) => s + (Number(it.quantity) || 0) * (Number(it.salesPrice) || 0), 0);
+      const qShipping = Number(quotation.shippingFee) || 0;
+      const qTax = Number(quotation.taxAmount) || 0;
+      const qGrand = qSubtotal + qShipping + qTax;
+
+      try {
+        doc.addImage('/header-batavia.png', 'PNG', 0, 0, 210, 40);
+      } catch {
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PT. BATAVIA JAYA KREASI', 105, 13, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+      }
+
+      if (isDraft) {
+        doc.saveGraphicsState();
+        doc.setGState(new doc.GState({ opacity: 0.07 }));
+        doc.setFontSize(70);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(200, 0, 0);
+        doc.text('DRAFT', 105, 160, { align: 'center', angle: 45 });
+        doc.restoreGraphicsState();
+        doc.setTextColor(0, 0, 0);
+      }
+
+      doc.setFontSize(26);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text('QUOTATION', 14, 55);
+
+      if (isDraft) {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(180, 0, 0);
+        doc.text('[ DRAFT — Belum disetujui Management ]', 14, 62);
+        doc.setTextColor(0, 0, 0);
+      }
+
+      const infoY = isDraft ? 70 : 65;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text('To :', 14, infoY);
+      doc.setFont('helvetica', 'bold');
+      doc.text((quotation.clientName || '').toUpperCase(), 14, infoY + 6);
+
+      doc.setFont('helvetica', 'normal');
+      doc.text('Date', 120, infoY);
+      doc.text(`: ${new Date(quotation.createdAt).toLocaleDateString('en-GB')}`, 150, infoY);
+      doc.text('QUOTATION #', 120, infoY + 6);
+      doc.text(`: ${quotation.quotationId}`, 150, infoY + 6);
+      doc.text('Project ID', 120, infoY + 12);
+      doc.text(`: ${quotation.projectId || '-'}`, 150, infoY + 12);
+
+      const tableRows = (quotation.items || []).map((item) => [
+        item.quantity || 0,
+        (item.itemName || '').toUpperCase(),
+        (item.unit || '').toUpperCase(),
+        `Rp ${Number(item.salesPrice || 0).toLocaleString('id-ID')}`,
+        `Rp ${((Number(item.quantity) || 0) * (Number(item.salesPrice) || 0)).toLocaleString('id-ID')}`,
+      ]);
+
+      autoTable(doc, {
+        startY: infoY + 22,
+        head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Line Total (IDR)']],
+        body: tableRows,
+        theme: 'plain',
+        margin: { left: 7.5 },
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 15 },
+          1: { halign: 'left', cellWidth: 70 },
+          2: { halign: 'center', cellWidth: 20 },
+          3: { halign: 'right', cellWidth: 45 },
+          4: { halign: 'right', cellWidth: 45 },
+        },
+        didDrawCell: (data) => {
+          if (data.section === 'body') {
+            doc.setDrawColor(230);
+            doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+          }
+        },
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 15;
+      let currentY = finalY;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Subtotal', 130, currentY);
+      doc.text(`Rp ${qSubtotal.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+
+      if (qShipping > 0) {
+        currentY += 7;
+        doc.text('Shipping Fee', 130, currentY);
+        doc.text(`Rp ${qShipping.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+      }
+
+      if (qTax > 0) {
+        currentY += 7;
+        doc.text('Tax / PPN', 130, currentY);
+        doc.text(`Rp ${qTax.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+      }
+
+      currentY += 10;
+      doc.setFontSize(12);
+      doc.setTextColor(15, 23, 42);
+      doc.text('GRAND TOTAL', 130, currentY);
+      doc.text(`Rp ${qGrand.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
+
+      doc.setTextColor(0);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.text('TERM OF PAYMENT :', 14, currentY + 20);
+      doc.setFont('helvetica', 'normal');
+      doc.text(quotation.topOption || 'COD', 14, currentY + 27);
+
+      if (qTax > 0 && quotation.bankAccount) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('REKENING BANK :', 14, currentY + 37);
+        doc.setFont('helvetica', 'normal');
+        doc.text(quotation.bankAccount, 14, currentY + 44);
+      }
+
+      const remarkOffsetY = (qTax > 0 && quotation.bankAccount) ? 54 : 37;
+      if (quotation.remarks) {
+        doc.setFont('helvetica', 'bold');
+        doc.text('REMARKS :', 14, currentY + remarkOffsetY);
+        doc.setFont('helvetica', 'normal');
+        const splitRemarks = doc.splitTextToSize(quotation.remarks, 180);
+        doc.text(splitRemarks, 14, currentY + remarkOffsetY + 7);
+      }
+
+      const stampY = currentY + (quotation.remarks ? remarkOffsetY + 20 : remarkOffsetY + 10);
+      try {
+        doc.addImage('/stample-batavia.png', 'PNG', 140, stampY, 55, 55);
+      } catch {
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(150);
+        doc.text('[Digital Stamp]', 167, stampY + 30, { align: 'center' });
+        doc.setTextColor(0);
+      }
+
+      doc.save(`${quotation.quotationId}${isDraft ? '_DRAFT' : ''}.pdf`);
+    } catch (error) {
+      console.error('PDF Error:', error);
+      Swal.fire('PDF Error', 'Gagal generate PDF: ' + error.message, 'error');
+    }
+  };
 
   if (loading) {
     return (
@@ -205,10 +368,10 @@ const QuotationLogDetail = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
-      
+
       <div className="w-full border-b border-slate-100 px-8 py-8 flex flex-wrap items-center justify-between gap-4 bg-slate-50/30">
         <div className="flex items-center gap-6">
-          <button 
+          <button
             onClick={() => navigate('/quotation-log')}
             className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
           >
@@ -222,6 +385,11 @@ const QuotationLogDetail = () => {
           </div>
         </div>
         <div className="flex gap-3">
+          {!isEditing && (
+            <button onClick={handleDownloadPDF} className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all">
+              <Download size={14} /> Download PDF
+            </button>
+          )}
           {canEdit && !isEditing && (
             <button onClick={() => setIsEditing(true)} className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 hover:border-indigo-300 transition-all">
               <Edit size={14} /> Edit
@@ -246,7 +414,7 @@ const QuotationLogDetail = () => {
       </div>
 
       <main className="flex-1 p-8 md:p-12">
-        
+
         <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
           {getStatusBadge(quotation.approvalStatus)}
           <div className="flex items-center gap-4 text-[9px] text-slate-500">
@@ -258,8 +426,7 @@ const QuotationLogDetail = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* LEFT COLUMN */}
+
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -275,15 +442,23 @@ const QuotationLogDetail = () => {
                 <div>
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">TOP</p>
                   {isEditing ? (
-                    <select name="topOption" value={editForm.topOption} onChange={handleEditChange} className="mt-1 p-2 bg-white border border-slate-300 rounded-lg text-sm font-bold outline-none">
-                      <option value="COD">COD</option>
-                      <option value="CBD">CBD</option>
-                      <option value="CIA">CIA</option>
-                      <option value="Net 30">Net 30 Days</option>
-                      <option value="Net 60">Net 60 Days</option>
-                      <option value="DP 30%">DP 30%</option>
-                      <option value="DP 50%">DP 50%</option>
-                    </select>
+                    <div className="mt-1">
+                      <StyledSelect
+                        name="topOption"
+                        value={editForm.topOption}
+                        onChange={handleEditChange}
+                        searchable={false}
+                        options={[
+                          { value: 'COD', label: 'COD' },
+                          { value: 'CBD', label: 'CBD' },
+                          { value: 'CIA', label: 'CIA' },
+                          { value: 'Net 30', label: 'Net 30 Days' },
+                          { value: 'Net 60', label: 'Net 60 Days' },
+                          { value: 'DP 30%', label: 'DP 30%' },
+                          { value: 'DP 50%', label: 'DP 50%' },
+                        ]}
+                      />
+                    </div>
                   ) : (
                     <p className="text-base font-black text-amber-600 uppercase mt-1">{quotation.topOption || 'COD'}</p>
                   )}
@@ -295,7 +470,6 @@ const QuotationLogDetail = () => {
               </div>
             </div>
 
-            {/* Items Table with Edit Capability */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <div className="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                 <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
@@ -342,7 +516,6 @@ const QuotationLogDetail = () => {
               </div>
             </div>
 
-            {/* Remarks */}
             <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Remarks / Notes</p>
               {isEditing ? (
@@ -353,19 +526,18 @@ const QuotationLogDetail = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN - SUMMARY */}
           <div className="space-y-6">
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl sticky top-24">
               <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">
                 Financial Summary
               </h3>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between py-2 border-b border-white/10">
                   <span className="text-[10px] font-bold text-slate-300">Subtotal</span>
                   <span className="font-black text-white">Rp {formatRupiah(subtotal)}</span>
                 </div>
-                
+
                 {isEditing ? (
                   <div className="flex justify-between py-2 border-b border-white/10">
                     <span className="text-[10px] font-bold text-slate-300 flex items-center gap-1"><Truck size={12} /> Shipping</span>
@@ -379,7 +551,7 @@ const QuotationLogDetail = () => {
                     </div>
                   )
                 )}
-                
+
                 {isEditing ? (
                   <div className="flex justify-between py-2 border-b border-white/10">
                     <span className="text-[10px] font-bold text-slate-300 flex items-center gap-1"><Receipt size={12} /> PPN %</span>
@@ -393,13 +565,13 @@ const QuotationLogDetail = () => {
                     </div>
                   )
                 )}
-                
+
                 <div className="flex justify-between py-3 mt-2 bg-indigo-500/20 -mx-3 px-3 rounded-xl">
                   <span className="text-[11px] font-black text-indigo-300 uppercase tracking-wider">GRAND TOTAL</span>
                   <span className="text-xl font-black text-indigo-300">Rp {formatRupiah(grandTotal)}</span>
                 </div>
               </div>
-              
+
               {quotation.approvalStatus === 'Approved' && !isEditing && (
                 <p className="text-[8px] text-slate-500 text-center mt-4 pt-3 border-t border-white/10">
                   ⚠️ Setelah edit, quotation akan berstatus Revised dan perlu approval ulang dari Management.
@@ -409,7 +581,7 @@ const QuotationLogDetail = () => {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

@@ -20,7 +20,7 @@ const PaymentVerifyDetail = () => {
   useEffect(() => {
     const fetchDetail = async () => {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         Swal.fire('ERROR', 'Token tidak ditemukan, silakan login ulang', 'error');
         navigate('/');
@@ -32,8 +32,7 @@ const PaymentVerifyDetail = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPayment(res.data);
-        
-        // Jika payment memiliki invoiceId, fetch data invoice secara terpisah
+
         if (res.data.invoiceId) {
           const invoiceId = res.data.invoiceId._id || res.data.invoiceId;
           try {
@@ -45,7 +44,7 @@ const PaymentVerifyDetail = () => {
             console.error("Failed to fetch invoice:", invErr);
           }
         }
-        
+
       } catch (err) {
         console.error("Fetch error:", err);
         Swal.fire({
@@ -68,11 +67,11 @@ const PaymentVerifyDetail = () => {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.patch('http://localhost:5000/api/payments/verify', 
+      await axios.patch('http://localhost:5000/api/payments/verify',
         { paymentId: id, status },
         { headers: { Authorization: `Bearer ${token}` }}
       );
-      
+
       Swal.fire({
         title: 'SUCCESS!',
         text: `Payment has been ${status.toLowerCase()}`,
@@ -95,7 +94,6 @@ const PaymentVerifyDetail = () => {
     }
   };
 
-  // Fungsi download PDF invoice
   const downloadInvoicePDF = async (invoice) => {
     if (!invoice) {
       Swal.fire('Error', 'Invoice data not found', 'error');
@@ -103,11 +101,10 @@ const PaymentVerifyDetail = () => {
     }
 
     setDownloading(true);
-    
+
     try {
       const doc = new jsPDF();
-      
-      // Header
+
       try {
         doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
       } catch {
@@ -120,20 +117,18 @@ const PaymentVerifyDetail = () => {
         doc.setTextColor(0, 0, 0);
       }
 
-      // Judul
       doc.setFontSize(26);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(15, 23, 42);
       doc.text("INVOICE", 105, 55, { align: 'center' });
 
-      // Info
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       doc.text("To :", 14, 65);
       doc.setFont('helvetica', 'bold');
       doc.text((invoice.clientName || '').toUpperCase(), 14, 71);
-      
+
       doc.setFont('helvetica', 'normal');
       doc.text("Date", 120, 65);
       doc.text(`: ${new Date().toLocaleDateString('en-GB')}`, 150, 65);
@@ -144,7 +139,6 @@ const PaymentVerifyDetail = () => {
       doc.text("TOP", 120, 83);
       doc.text(`: ${invoice.topOption || '-'}`, 150, 83);
 
-      // Tabel items
       const tableRows = (invoice.items || []).map(item => [
         item.quantity || 0,
         (item.itemName || '').toUpperCase(),
@@ -158,6 +152,7 @@ const PaymentVerifyDetail = () => {
         head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Total (IDR)']],
         body: tableRows,
         theme: 'plain',
+        margin: { left: 5 },
         headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
         bodyStyles: { halign: 'center' },
         styles: { fontSize: 9, cellPadding: 4 },
@@ -177,17 +172,16 @@ const PaymentVerifyDetail = () => {
       });
 
       const finalY = doc.lastAutoTable.finalY + 15;
-      
+
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
       doc.text("Total", 130, finalY);
       doc.text(`Rp ${Number(invoice.amount || 0).toLocaleString()}`, 196, finalY, { align: 'right' });
 
-      // Payment status info
       doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
       doc.text(`Payment Status: ${payment?.status || 'Unknown'}`, 14, finalY + 20);
-      
+
       if (payment?.status === 'Verified') {
         doc.setTextColor(0, 128, 0);
         doc.text(`✓ Verified on ${new Date(payment.updatedAt).toLocaleDateString('id-ID')}`, 14, finalY + 27);
@@ -203,7 +197,7 @@ const PaymentVerifyDetail = () => {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.text("PAYMENT & DELIVERY INFO :", 14, finalY + 40);
-      
+
       doc.setFont('helvetica', 'normal');
       const infoList = [
         "Pembayaran melalui Cash / Transfer",
@@ -215,7 +209,6 @@ const PaymentVerifyDetail = () => {
       ];
       doc.text(infoList, 14, finalY + 47);
 
-      // Stempel
       const stampY = finalY + 85;
       try {
         doc.addImage("/stample-batavia.png", 'PNG', 140, stampY, 55, 55);
@@ -230,7 +223,7 @@ const PaymentVerifyDetail = () => {
       }
 
       doc.save(`${invoice.invoiceNumber}.pdf`);
-      
+
       Swal.fire({
         icon: 'success',
         title: 'PDF Downloaded',
@@ -238,7 +231,7 @@ const PaymentVerifyDetail = () => {
         timer: 2000,
         showConfirmButton: false
       });
-      
+
     } catch (error) {
       console.error("PDF Error:", error);
       Swal.fire('Error', 'Failed to generate PDF', 'error');
@@ -263,8 +256,8 @@ const PaymentVerifyDetail = () => {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <p className="font-bold text-slate-600 text-lg">Payment data not found</p>
-          <button 
-            onClick={() => navigate('/verify-payment')} 
+          <button
+            onClick={() => navigate('/verify-payment')}
             className="mt-4 text-indigo-600 underline text-sm"
           >
             Back to Payment List
@@ -284,28 +277,26 @@ const PaymentVerifyDetail = () => {
     return `http://localhost:5000/${path}`;
   };
 
-  // Tentukan invoice yang akan digunakan (dari invoiceData atau payment.invoiceId)
   const displayInvoice = invoiceData || payment.invoiceId;
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-slate-900">
       <Header />
       <main className="flex-1 p-8 md:p-12 max-w-7xl mx-auto w-full space-y-10">
-        
+
         <div className="flex items-center justify-between border-b border-slate-100 pb-8 flex-wrap gap-4">
           <div className="border-l-4 border-slate-900 pl-4">
             <h1 className="text-2xl font-bold uppercase tracking-tight">Payment Review</h1>
             <p className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Transaction ID: {payment._id}</p>
           </div>
-          <button 
-            onClick={() => navigate('/verify-payment')} 
+          <button
+            onClick={() => navigate('/verify-payment')}
             className="px-6 py-2 border border-slate-200 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
           >
             ← Back to List
           </button>
         </div>
 
-        {/* Status Banner */}
         {!isPending && (
           <div className={`p-6 rounded-4xl border-2 ${
             isVerified ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
@@ -323,14 +314,13 @@ const PaymentVerifyDetail = () => {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Sisi Kiri: Bukti Bayar */}
           <div className="space-y-4">
             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Transfer Evidence Attachment</label>
             <div className="bg-slate-50 p-4 rounded-4xl border border-slate-100 shadow-inner overflow-hidden">
               {payment.evidencePath ? (
-                <img 
-                  src={getImageUrl(payment.evidencePath)} 
-                  alt="Payment Slip" 
+                <img
+                  src={getImageUrl(payment.evidencePath)}
+                  alt="Payment Slip"
                   className="w-full h-auto rounded-2xl shadow-lg"
                   onError={(e) => {
                     e.target.src = 'https://placehold.co/600x400?text=Image+Not+Found';
@@ -344,13 +334,11 @@ const PaymentVerifyDetail = () => {
             </div>
           </div>
 
-          {/* Sisi Kanan: Detail & Action */}
           <div className="space-y-8">
             <div className="p-10 bg-slate-900 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Payment Amount</label>
               <h2 className="text-5xl font-black mt-2 tracking-tighter">Rp {Number(payment.amountPaid || 0).toLocaleString()}</h2>
-              
-              {/* Status Badge di Detail */}
+
               <div className="absolute top-6 right-6">
                 {isVerified && (
                   <div className="bg-emerald-500 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg">
@@ -395,7 +383,6 @@ const PaymentVerifyDetail = () => {
               </div>
             </div>
 
-            {/* Tombol Download Invoice PDF - PAKAI displayInvoice */}
             {displayInvoice && (
               <button
                 onClick={() => downloadInvoicePDF(displayInvoice)}
@@ -406,10 +393,9 @@ const PaymentVerifyDetail = () => {
               </button>
             )}
 
-            {/* Tombol Action - HANYA muncul kalau status masih Pending */}
             {isPending && (
               <div className="flex gap-4 pt-4">
-                <button 
+                <button
                   onClick={() => handleAction('Rejected')}
                   disabled={actionLoading}
                   className={`flex-1 py-4 border-2 rounded-2xl font-bold text-[10px] uppercase tracking-widest transition-all active:scale-95 ${
@@ -420,7 +406,7 @@ const PaymentVerifyDetail = () => {
                 >
                   {actionLoading ? 'PROCESSING...' : 'Reject Payment'}
                 </button>
-                <button 
+                <button
                   onClick={() => handleAction('Verified')}
                   disabled={actionLoading}
                   className={`flex-1 py-4 rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-xl transition-all active:scale-95 ${
@@ -434,7 +420,6 @@ const PaymentVerifyDetail = () => {
               </div>
             )}
 
-            {/* Tombol back tambahan untuk yang sudah diproses */}
             {!isPending && (
               <div className="text-center pt-4">
                 <button

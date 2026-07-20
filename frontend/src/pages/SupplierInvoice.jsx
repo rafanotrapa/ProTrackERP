@@ -5,22 +5,23 @@ import Swal from 'sweetalert2';
 import { Upload, CheckCircle2, AlertCircle, Search, Receipt, Anchor } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const InvoiceSubmission = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [availablePOs, setAvailablePOs] = useState([]); 
+  const [availablePOs, setAvailablePOs] = useState([]);
 
   const [openDropdown, setOpenDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const [selectedPO, setSelectedPO] = useState(null); 
+
+  const [selectedPO, setSelectedPO] = useState(null);
   const dropdownRef = useRef(null);
 
   const [formData, setFormData] = useState({
     submissionId: `SUB-${Date.now()}`,
-    poId: '',          
-    poNumber: '',      
+    poId: '',
+    poNumber: '',
     projectId: '',
     vendorName: '',
     currency: 'IDR',
@@ -32,7 +33,8 @@ const InvoiceSubmission = () => {
     isImportEnabled: false,
     importDutyAmount: '',
     remarks: '',
-    file: null
+    file: null,
+    itemPhoto: null
   });
 
   useEffect(() => {
@@ -57,7 +59,7 @@ const InvoiceSubmission = () => {
   }, []);
 
   const filteredOptions = useMemo(() => {
-    return availablePOs.filter(po => 
+    return availablePOs.filter(po =>
       `${po.poNumber || ''} ${po.projectId || ''} ${po.vendorId?.vendorName || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [availablePOs, searchTerm]);
@@ -80,7 +82,7 @@ const InvoiceSubmission = () => {
       isTaxEnabled: false, taxAmount: '',
       isImportEnabled: false, importDutyAmount: ''
     }));
-    
+
     setOpenDropdown(false);
     setSearchTerm('');
   };
@@ -88,7 +90,7 @@ const InvoiceSubmission = () => {
   const handleTerminChange = (e) => {
     const selectedDesc = e.target.value;
     const selectedTerminObj = selectedPO.paymentTerms.find(t => t.description === selectedDesc);
-    
+
     setFormData(prev => ({
         ...prev,
         terminName: selectedDesc,
@@ -128,8 +130,8 @@ const InvoiceSubmission = () => {
     setLoading(true);
     const data = new FormData();
     Object.keys(formData).forEach(key => {
-        if (key === 'file') {
-            data.append(key, formData[key]);
+        if (key === 'file' || key === 'itemPhoto') {
+            if (formData[key]) data.append(key, formData[key]);
         } else {
             data.append(key, formData[key] || '');
         }
@@ -140,9 +142,9 @@ const InvoiceSubmission = () => {
       await axios.post('http://localhost:5000/api/supplier_invoices', data, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       Swal.fire({ icon: 'success', title: 'SUBMITTED', text: 'Data tagihan sudah diteruskan ke Finance.', confirmButtonColor: '#0f172a' });
-      navigate('/supplier-invoice-record'); // Redirect ke Record jika sukses
+      navigate('/supplier-invoice-record');
     } catch (err) {
       console.error("FULL ERROR TRACE:", err);
       let errorMessage = err.response?.data?.msg || err.message;
@@ -155,7 +157,6 @@ const InvoiceSubmission = () => {
       <Header />
 
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
-        {/* BACK TO MENU */}
         <button onClick={() => navigate('/supplier-invoice-menu')} className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center shadow-sm active:scale-90 group transition-all">
           <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
         </button>
@@ -167,15 +168,13 @@ const InvoiceSubmission = () => {
 
       <main className="flex-1 p-8 md:p-12 lg:p-16">
         <form onSubmit={handleSubmit} className="max-w-none w-full space-y-12">
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
-            {/* LEFT COLUMN: BILLING DATA */}
             <div className="space-y-10">
               <div className="space-y-6">
                 <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Billing Reference</h3>
-                
+
                 <div className="grid grid-cols-1 gap-6">
-                  {/* PO DROP */}
                   <div className="space-y-1 relative" ref={dropdownRef}>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Purchase Order Reference</label>
                     <div onClick={() => setOpenDropdown(!openDropdown)} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm">
@@ -190,9 +189,9 @@ const InvoiceSubmission = () => {
                         </div>
                         <ul className="max-h-56 overflow-y-auto">
                           {filteredOptions.length > 0 ? filteredOptions.map(po => (
-                            <li 
-                              key={po._id} 
-                              onMouseDown={() => handleSelect(po)} 
+                            <li
+                              key={po._id}
+                              onMouseDown={() => handleSelect(po)}
                               className="px-5 py-4 hover:bg-indigo-600 group cursor-pointer transition-all border-b border-slate-50 last:border-none"
                             >
                               <p className="text-[10px] font-black text-indigo-600 group-hover:text-white uppercase italic">{po.poNumber}</p>
@@ -219,17 +218,16 @@ const InvoiceSubmission = () => {
                 {selectedPO && selectedPO.paymentTerms && selectedPO.paymentTerms.length > 0 && (
                   <div className="space-y-1 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                      <label className="text-[10px] font-black text-amber-600 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Pilih Termin Pembayaran</label>
-                     <select 
+                     <StyledSelect
                         value={formData.terminName}
                         onChange={handleTerminChange}
-                        className="w-full p-3 bg-white border border-amber-300 rounded-lg text-xs font-bold text-slate-700 outline-none focus:border-amber-500 cursor-pointer shadow-sm"
-                     >
-                        {selectedPO.paymentTerms.map((term, i) => (
-                          <option key={i} value={term.description} disabled={term.status === 'Invoiced'}>
-                             {term.description} - {formData.currency} {formatRupiah(term.amount)} {term.status === 'Invoiced' ? '(Sudah Ditagih)' : ''}
-                          </option>
-                        ))}
-                     </select>
+                        searchable={false}
+                        options={selectedPO.paymentTerms.map((term) => ({
+                          value: term.description,
+                          disabled: term.status === 'Invoiced',
+                          label: `${term.description} - ${formData.currency} ${formatRupiah(term.amount)} ${term.status === 'Invoiced' ? '(Sudah Ditagih)' : ''}`,
+                        }))}
+                     />
                   </div>
                 )}
 
@@ -240,27 +238,26 @@ const InvoiceSubmission = () => {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Base Billing Amount</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={formatRupiah(formData.amount)} 
-                      onChange={(e) => setFormData({...formData, amount: e.target.value.replace(/[^0-9]/g, '')})} 
-                      className={`w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-black text-xl outline-none focus:border-indigo-600 shadow-sm text-right ${selectedPO && selectedPO.paymentTerms?.length > 0 ? 'text-amber-600' : 'text-slate-800'}`} 
+                    <input
+                      type="text"
+                      required
+                      value={formatRupiah(formData.amount)}
+                      onChange={(e) => setFormData({...formData, amount: e.target.value.replace(/[^0-9]/g, '')})}
+                      className={`w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-black text-xl outline-none focus:border-indigo-600 shadow-sm text-right ${selectedPO && selectedPO.paymentTerms?.length > 0 ? 'text-amber-600' : 'text-slate-800'}`}
                     />
                   </div>
                 </div>
 
-                {/* --- TOGGLE TAX & IMPORT DUTY --- */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                   <div className="flex flex-col gap-2">
                     <label className="flex items-center gap-2 cursor-pointer w-max">
                       <input type="checkbox" className="w-4 h-4 text-indigo-600 rounded border-slate-300" checked={formData.isTaxEnabled} onChange={e => setFormData({...formData, isTaxEnabled: e.target.checked, taxAmount: e.target.checked ? formData.taxAmount : ''})} />
                       <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Receipt size={12}/> Tagihan Pajak</span>
                     </label>
-                    <input 
-                      type="text" disabled={!formData.isTaxEnabled} placeholder="Nominal Pajak" 
-                      value={formatRupiah(formData.taxAmount)} onChange={e => setFormData({...formData, taxAmount: e.target.value.replace(/[^0-9]/g, '')})} 
-                      className="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-right shadow-inner" 
+                    <input
+                      type="text" disabled={!formData.isTaxEnabled} placeholder="Nominal Pajak"
+                      value={formatRupiah(formData.taxAmount)} onChange={e => setFormData({...formData, taxAmount: e.target.value.replace(/[^0-9]/g, '')})}
+                      className="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-right shadow-inner"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -268,10 +265,10 @@ const InvoiceSubmission = () => {
                       <input type="checkbox" className="w-4 h-4 text-indigo-600 rounded border-slate-300" checked={formData.isImportEnabled} onChange={e => setFormData({...formData, isImportEnabled: e.target.checked, importDutyAmount: e.target.checked ? formData.importDutyAmount : ''})} />
                       <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Anchor size={12}/> Bea Masuk / Import</span>
                     </label>
-                    <input 
-                      type="text" disabled={!formData.isImportEnabled} placeholder="Nominal Bea Masuk" 
-                      value={formatRupiah(formData.importDutyAmount)} onChange={e => setFormData({...formData, importDutyAmount: e.target.value.replace(/[^0-9]/g, '')})} 
-                      className="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-right shadow-inner" 
+                    <input
+                      type="text" disabled={!formData.isImportEnabled} placeholder="Nominal Bea Masuk"
+                      value={formatRupiah(formData.importDutyAmount)} onChange={e => setFormData({...formData, importDutyAmount: e.target.value.replace(/[^0-9]/g, '')})}
+                      className="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-right shadow-inner"
                     />
                   </div>
                 </div>
@@ -281,15 +278,29 @@ const InvoiceSubmission = () => {
                    <span className="text-2xl font-black text-indigo-600">{formData.currency} {formatRupiah(calculateGrandTotal())}</span>
                 </div>
 
-                {/* REMARKS */}
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Internal Notes</label>
                   <textarea value={formData.remarks} placeholder="Catatan untuk Finance: misal tagihan termin 1..." onChange={(e) => setFormData({...formData, remarks: e.target.value})} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl h-20 outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-sm" />
                 </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block leading-none">Foto Barang (Opsional)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const f = e.target.files[0];
+                      if (f) setFormData(prev => ({ ...prev, itemPhoto: f }));
+                    }}
+                    className="w-full p-3 bg-white border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-600 file:text-[10px] file:font-black file:uppercase"
+                  />
+                  {formData.itemPhoto && (
+                    <p className="text-[9px] font-bold text-indigo-500 uppercase italic ml-1 truncate">📷 {formData.itemPhoto.name}</p>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* RIGHT COLUMN: DOCUMENT UPLOAD */}
             <div className="space-y-6">
               <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Digital Evidence</h3>
               <div className="relative h-full min-h-[300px]">
@@ -322,8 +333,8 @@ const InvoiceSubmission = () => {
                 <AlertCircle size={16} />
                 <p className="text-[9px] font-black uppercase italic tracking-widest">Finance will verify entry against your document.</p>
              </div>
-             <button 
-                type="submit" 
+             <button
+                type="submit"
                 disabled={loading}
                 className={`px-16 py-5 rounded-2xl font-black text-white uppercase tracking-[0.3em] text-[11px] shadow-2xl transition-all active:scale-95 italic ${loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-indigo-200'}`}
               >

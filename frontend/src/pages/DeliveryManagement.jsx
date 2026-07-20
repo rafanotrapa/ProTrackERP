@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { jsPDF } from "jspdf";
+import "jspdf-autotable";
+import autoTable from 'jspdf-autotable';
 import { Truck, CalendarClock, PackageCheck, MapPin, Search } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -19,7 +22,6 @@ const DeliveryManagement = () => {
       const res = await axios.get('http://localhost:5000/api/po', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Hanya tampilkan PO yang barangnya udah LULUS QC (siap dikirim ke klien)
       const readyToDeliver = (res.data || []).filter((po) => po.qcStatus === 'Passed');
       setDeliveries(readyToDeliver);
     } catch (err) {
@@ -31,14 +33,17 @@ const DeliveryManagement = () => {
 
   useEffect(() => { fetchDeliveries(); }, []);
 
-  const handleSchedule = async (id) => {
+  const handleSchedule = async (po) => {
+    const totalQtyPO = (po.items || []).reduce((s, it) => s + (Number(it.quantity) || 0), 0);
     const { value: formValues } = await Swal.fire({
       title: 'SET DELIVERY SCHEDULE',
       html: `
         <div class="text-left space-y-4">
           <div><label class="text-[10px] font-black uppercase text-slate-400">Tgl Pengiriman</label><input id="swal-date" type="date" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-[10px] font-black uppercase text-slate-400">Jumlah Barang</label><input id="swal-qty" type="number" min="1" value="${totalQtyPO || ''}" placeholder="Total unit yang dikirim" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
           <div><label class="text-[10px] font-black uppercase text-slate-400">Kurir / Ekspedisi</label><input id="swal-courier" placeholder="Misal: Lalamove / Kurir Internal" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
           <div><label class="text-[10px] font-black uppercase text-slate-400">Nomor Resi (Opsional)</label><input id="swal-resi" placeholder="Bisa diisi nanti" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-[10px] font-black uppercase text-slate-400">Foto Barang</label><input id="swal-photo" type="file" accept="image/*" class="w-full p-3 border rounded-lg outline-none text-xs"></div>
         </div>
       `,
       focusConfirm: false,
@@ -47,30 +52,154 @@ const DeliveryManagement = () => {
       confirmButtonText: 'SAVE SCHEDULE',
       preConfirm: () => {
         const date = document.getElementById('swal-date').value;
+        const qty = document.getElementById('swal-qty').value;
         const courier = document.getElementById('swal-courier').value;
-        if (!date || !courier) {
-          Swal.showValidationMessage('Tanggal dan Kurir wajib diisi!');
+        if (!date || !courier || !qty) {
+          Swal.showValidationMessage('Tanggal, Jumlah Barang, dan Kurir wajib diisi!');
           return false;
         }
-        return { deliveryDate: date, courierName: courier, trackingNumber: document.getElementById('swal-resi').value };
+        return {
+          deliveryDate: date,
+          deliveryQty: qty,
+          courierName: courier,
+          trackingNumber: document.getElementById('swal-resi').value,
+          photoFile: document.getElementById('swal-photo').files[0] || null
+        };
       }
     });
 
     if (formValues) {
-      updateStatus(id, 'Scheduled', formValues);
+      const ok = await updateStatus(po._id, 'Scheduled', formValues);
+      if (ok) generateBastPDF(po, formValues);
     }
   };
 
   const updateStatus = async (id, newStatus, extraData = {}) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/po/${id}/delivery`, { status: newStatus, ...extraData }, {
+      let body;
+      if ('photoFile' in extraData) {
+        body = new FormData();
+        body.append('status', newStatus);
+        body.append('deliveryDate', extraData.deliveryDate);
+        body.append('deliveryQty', extraData.deliveryQty);
+        body.append('courierName', extraData.courierName);
+        body.append('trackingNumber', extraData.trackingNumber || '');
+        if (extraData.photoFile) body.append('deliveryPhoto', extraData.photoFile);
+      } else {
+        body = { status: newStatus, ...extraData };
+      }
+      await axios.put(`http://localhost:5000/api/po/${id}/delivery`, body, {
         headers: { Authorization: `Bearer ${token}` }
       });
       Swal.fire('UPDATED!', `Status pengiriman diubah ke ${newStatus}.`, 'success');
       fetchDeliveries();
+      return true;
     } catch (err) {
       Swal.fire('ERROR', 'Gagal update status logistik', 'error');
+      return false;
+    }
+  };
+
+  const generateBastPDF = (po, values) => {
+    try {
+      const doc = new jsPDF();
+
+      try {
+        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
+      } catch {
+        doc.setFillColor(15, 23, 42);
+        doc.rect(0, 0, 210, 20, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PT. BATAVIA JAYA KREASI', 105, 13, { align: 'center' });
+        doc.setTextColor(0, 0, 0);
+      }
+
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text("BERITA ACARA SERAH TERIMA", 105, 55, { align: 'center' });
+      doc.setFontSize(11);
+      doc.text("(BAST)", 105, 62, { align: 'center' });
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text("Project", 14, 74);
+      doc.text(`: ${po.projectId || '-'}`, 45, 74);
+      doc.text("No. PO", 14, 80);
+      doc.text(`: ${po.poNumber || '-'}`, 45, 80);
+      doc.text("Alamat Kirim", 14, 86);
+      doc.text(`: ${(po.shippingAddress || '-').substring(0, 60)}`, 45, 86);
+
+      doc.text("Tgl Pengiriman", 120, 74);
+      doc.text(`: ${new Date(values.deliveryDate).toLocaleDateString('en-GB')}`, 155, 74);
+      doc.text("Ekspedisi", 120, 80);
+      doc.text(`: ${values.courierName}`, 155, 80);
+      doc.text("No. Resi", 120, 86);
+      doc.text(`: ${values.trackingNumber || '-'}`, 155, 86);
+
+      const tableRows = (po.items || []).map(item => [
+        item.quantity || 0,
+        (item.itemName || '').toUpperCase(),
+        (item.unit || '').toUpperCase(),
+      ]);
+
+      autoTable(doc, {
+        startY: 95,
+        head: [['Qty', 'Description', 'Unit']],
+        body: tableRows,
+        theme: 'plain',
+        margin: { left: 15 },
+        headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
+        bodyStyles: { halign: 'center' },
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 20 },
+          1: { halign: 'left', cellWidth: 130 },
+          2: { halign: 'center', cellWidth: 30 },
+        },
+        didDrawCell: (data) => {
+          if (data.section === 'body') {
+            doc.setDrawColor(230);
+            doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
+          }
+        }
+      });
+
+      const finalY = doc.lastAutoTable.finalY + 12;
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.text("Jumlah Barang Dikirim", 14, finalY);
+      doc.text(`: ${values.deliveryQty} Unit`, 60, finalY);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text(
+        "Dengan ini menyatakan bahwa barang tersebut di atas telah diserahkan dan diterima dalam keadaan baik dan lengkap.",
+        14, finalY + 10, { maxWidth: 180 }
+      );
+
+      const signY = finalY + 30;
+      doc.setFont('helvetica', 'bold');
+      doc.text("Pihak Pertama (Pengirim)", 40, signY, { align: 'center' });
+      doc.text("Pihak Kedua (Penerima)", 165, signY, { align: 'center' });
+
+      try {
+        doc.addImage("/stample-batavia.png", 'PNG', 15, signY + 3, 45, 45);
+      } catch { }
+
+      doc.setFont('helvetica', 'normal');
+      doc.text("(________________)", 40, signY + 45, { align: 'center' });
+      doc.text("(________________)", 165, signY + 45, { align: 'center' });
+
+      doc.save(`BAST-${po.poNumber || po._id}.pdf`);
+    } catch (error) {
+      console.error("PDF Error:", error);
+      Swal.fire('Error', 'Gagal generate PDF BAST', 'error');
     }
   };
 
@@ -79,7 +208,6 @@ const DeliveryManagement = () => {
     return new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = deliveries.filter((po) => {
     const term = searchTerm.toLowerCase();
     const matchSearch =
@@ -135,7 +263,6 @@ const DeliveryManagement = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -169,7 +296,6 @@ const DeliveryManagement = () => {
           </div>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <Truck size={48} className="text-slate-300 mx-auto" />
@@ -230,7 +356,7 @@ const DeliveryManagement = () => {
                       <div className="flex justify-end gap-2">
                         {(po.deliveryStatus === 'Pending' || !po.deliveryStatus) && (
                           <button
-                            onClick={() => handleSchedule(po._id)}
+                            onClick={() => handleSchedule(po)}
                             className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-cyan-600 transition-all"
                           >
                             <CalendarClock size={13} /> SCHEDULE

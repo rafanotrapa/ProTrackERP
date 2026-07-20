@@ -43,20 +43,20 @@ const FinanceInputPayment = () => {
     setSelectedStage(null);
     setSelectedInvoice(null);
     setFormData(prev => ({ ...prev, amountPaid: '' }));
-    
+
     if (projectId) {
       try {
         const token = localStorage.getItem('token');
         const res = await axios.get(`http://localhost:5000/api/project-billing/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
-        const unpaid = res.data.stages?.filter(stage => 
+
+        const unpaid = res.data.stages?.filter(stage =>
           stage.status !== 'Paid' && stage.invoice
         ) || [];
-        
+
         setUnpaidStages(unpaid);
-        
+
         if (unpaid.length === 0) {
           Swal.fire('Info', 'No unpaid invoices for this project', 'info');
         }
@@ -73,7 +73,7 @@ const FinanceInputPayment = () => {
     const stageIndex = e.target.value;
     const stage = unpaidStages[stageIndex];
     setSelectedStage(stage);
-    
+
     if (stage && stage.invoice) {
       setSelectedInvoice(stage.invoice);
       setFormData(prev => ({
@@ -94,45 +94,45 @@ const FinanceInputPayment = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedProject) {
       Swal.fire('Warning', 'Please select a project', 'warning');
       return;
     }
-    
+
     if (!selectedInvoice) {
       Swal.fire('Warning', 'Please select an invoice to pay', 'warning');
       return;
     }
-    
+
     if (!formData.evidence) {
       Swal.fire('Warning', 'Please upload payment evidence', 'warning');
       return;
     }
-    
+
     if (!formData.amountPaid || Number(formData.amountPaid) <= 0) {
       Swal.fire('Warning', 'Invalid payment amount', 'warning');
       return;
     }
-    
+
     setLoading(true);
-    
+
     const submitData = new FormData();
     submitData.append('invoiceId', selectedInvoice.id);
     submitData.append('amountPaid', formData.amountPaid);
     submitData.append('paymentDate', formData.paymentDate);
     submitData.append('remarks', formData.remarks);
     submitData.append('evidence', formData.evidence);
-    
+
     try {
       const token = localStorage.getItem('token');
       await axios.post('http://localhost:5000/api/payments', submitData, {
-        headers: { 
+        headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       Swal.fire({
         icon: 'success',
         title: 'PAYMENT SUBMITTED',
@@ -141,7 +141,7 @@ const FinanceInputPayment = () => {
       }).then(() => {
         navigate('/verify-payment');
       });
-      
+
     } catch (err) {
       console.error("Submit error:", err);
       Swal.fire({
@@ -165,7 +165,7 @@ const FinanceInputPayment = () => {
       <Header />
 
       <div className="w-full border-b border-slate-100 px-6 md:px-10 py-6 flex items-center gap-4">
-        <button 
+        <button
           onClick={() => navigate('/dashboard')}
           className="bg-white hover:bg-slate-50 border border-slate-200 h-10 w-10 rounded-xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
         >
@@ -181,8 +181,7 @@ const FinanceInputPayment = () => {
 
       <main className="flex-1 p-6 md:p-10">
         <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-8">
-          
-          {/* SECTION 1: SELECT PROJECT */}
+
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
               <span className="w-8 h-1 bg-indigo-600"></span> 01. Select Project
@@ -203,7 +202,6 @@ const FinanceInputPayment = () => {
             </div>
           </div>
 
-          {/* SECTION 2: SELECT INVOICE / TERMIN */}
           {selectedProject && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
@@ -229,7 +227,6 @@ const FinanceInputPayment = () => {
             </div>
           )}
 
-          {/* SECTION 3: DETAIL INVOICE CARD */}
           {selectedInvoice && (
             <div className="bg-linear-to-r from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl">
               <div className="flex flex-wrap justify-between items-start gap-4">
@@ -242,7 +239,7 @@ const FinanceInputPayment = () => {
                   <p className="text-base md:text-lg font-black mt-1 text-amber-300">{selectedStage?.name || '-'}</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5 pt-5 border-t border-white/10">
                 <div>
                   <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Client Name</p>
@@ -253,7 +250,7 @@ const FinanceInputPayment = () => {
                   <p className="font-bold text-sm uppercase">{selectedProject?.projectName || '-'}</p>
                 </div>
               </div>
-              
+
               <div className="mt-5 pt-5 border-t border-white/10 text-right">
                 <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">AMOUNT TO PAY</p>
                 <p className="text-2xl md:text-3xl font-black tracking-tighter">Rp {selectedInvoice.amount?.toLocaleString()}</p>
@@ -261,21 +258,20 @@ const FinanceInputPayment = () => {
             </div>
           )}
 
-          {/* SECTION 4: PAYMENT DETAILS */}
           {selectedInvoice && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
                 <span className="w-8 h-1 bg-indigo-600"></span> 03. Payment Details
               </h3>
-              
+
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">
                       Amount Paid <span className="text-red-500">*</span>
                     </label>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       name="amountPaid"
                       required
                       value={formatRupiah(formData.amountPaid)}
@@ -286,8 +282,8 @@ const FinanceInputPayment = () => {
                   </div>
                   <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Date <span className="text-red-500">*</span></label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       name="paymentDate"
                       required
                       value={formData.paymentDate}
@@ -300,8 +296,8 @@ const FinanceInputPayment = () => {
                 <div>
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Evidence <span className="text-red-500">*</span></label>
                   <div className="relative mt-1 group">
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       accept="image/*,application/pdf"
                       required
                       onChange={handleFileChange}
@@ -316,7 +312,7 @@ const FinanceInputPayment = () => {
 
                 <div>
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Remarks / Notes (Optional)</label>
-                  <textarea 
+                  <textarea
                     name="remarks"
                     rows="3"
                     value={formData.remarks}
@@ -329,14 +325,13 @@ const FinanceInputPayment = () => {
             </div>
           )}
 
-          {/* SUBMIT BUTTON */}
           <div className="flex justify-end pt-4">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading || !selectedProject || !selectedInvoice || !formData.evidence}
               className={`px-8 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
-                loading || !selectedProject || !selectedInvoice || !formData.evidence 
-                  ? 'bg-slate-400 cursor-not-allowed' 
+                loading || !selectedProject || !selectedInvoice || !formData.evidence
+                  ? 'bg-slate-400 cursor-not-allowed'
                   : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
               }`}
             >
@@ -344,7 +339,6 @@ const FinanceInputPayment = () => {
             </button>
           </div>
 
-          {/* INFO BANNER */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
             <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>

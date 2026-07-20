@@ -29,7 +29,6 @@ const FinancePaymentCenter = () => {
       <main className="flex-1 p-8 md:p-12 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          {/* CARD KIRI: INPUT PAYMENT */}
           <div
             onClick={() => navigate('/finance-input-payment')}
             className="group relative bg-white border-2 border-slate-100 rounded-3xl p-8 cursor-pointer hover:border-indigo-600 hover:shadow-2xl transition-all overflow-hidden"
@@ -49,7 +48,6 @@ const FinancePaymentCenter = () => {
             </div>
           </div>
 
-          {/* CARD KANAN: VERIFICATION LOG */}
           <div
             onClick={() => navigate('/verify-payment')}
             className="group relative bg-white border-2 border-slate-100 rounded-3xl p-8 cursor-pointer hover:border-indigo-600 hover:shadow-2xl transition-all overflow-hidden"

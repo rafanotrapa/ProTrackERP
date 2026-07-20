@@ -35,11 +35,10 @@ const ProjectBillingDetail = () => {
     fetchDetail();
   }, [projectId, navigate]);
 
-  // Fungsi generate PDF invoice
   const generateInvoicePDF = (invoice) => {
     try {
       const doc = new jsPDF();
-      
+
       try {
         doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
       } catch {
@@ -63,7 +62,7 @@ const ProjectBillingDetail = () => {
       doc.text("To :", 14, 65);
       doc.setFont('helvetica', 'bold');
       doc.text((invoice.clientName || data?.clientName || '').toUpperCase(), 14, 71);
-      
+
       doc.setFont('helvetica', 'normal');
       doc.text("Date", 120, 65);
       doc.text(`: ${new Date().toLocaleDateString('en-GB')}`, 150, 65);
@@ -87,7 +86,7 @@ const ProjectBillingDetail = () => {
         head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Total (IDR)']],
         body: tableRows,
         theme: 'plain',
-        margin: { left: 5 }, // tabel 200mm di halaman 210mm → center
+        margin: { left: 5 },
         headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
         bodyStyles: { halign: 'center' },
         styles: { fontSize: 9, cellPadding: 4 },
@@ -107,7 +106,7 @@ const ProjectBillingDetail = () => {
       });
 
       const finalY = doc.lastAutoTable.finalY + 15;
-      
+
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10);
       doc.text("Total", 130, finalY);
@@ -117,7 +116,7 @@ const ProjectBillingDetail = () => {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.text("PAYMENT & DELIVERY INFO :", 14, finalY + 25);
-      
+
       doc.setFont('helvetica', 'normal');
       const infoList = [
         "Pembayaran melalui Cash / Transfer",
@@ -143,17 +142,16 @@ const ProjectBillingDetail = () => {
       }
 
       doc.save(`${invoice.invoiceNumber}.pdf`);
-      
+
     } catch (error) {
       console.error("PDF Error:", error);
       Swal.fire('Error', 'Failed to generate PDF', 'error');
     }
   };
 
-  // Handle generate next invoice
   const handleGenerateNext = async () => {
     const nextStage = data?.stages?.find(s => s.canGenerate);
-    
+
     const result = await Swal.fire({
       title: 'Generate Invoice?',
       html: `Create invoice for <strong>${nextStage?.name || 'next stage'}</strong><br/>Amount: <strong>Rp ${nextStage?.expectedAmount?.toLocaleString()}</strong>`,
@@ -171,10 +169,10 @@ const ProjectBillingDetail = () => {
         const res = await axios.post(`http://localhost:5000/api/project-billing/${projectId}/generate-next`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         if (res.data.invoice) {
           generateInvoicePDF(res.data.invoice);
-          
+
           await Swal.fire({
             icon: 'success',
             title: 'Invoice Generated!',
@@ -188,12 +186,12 @@ const ProjectBillingDetail = () => {
             showConfirmButton: false
           });
         }
-        
+
         const refreshRes = await axios.get(`http://localhost:5000/api/project-billing/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setData(refreshRes.data);
-        
+
       } catch (err) {
         Swal.fire({
           icon: 'error',
@@ -226,8 +224,8 @@ const ProjectBillingDetail = () => {
       <Header />
 
       <div className="p-6 md:p-10 lg:p-12">
-        <button 
-          onClick={() => navigate('/project-billing')} 
+        <button
+          onClick={() => navigate('/project-billing')}
           className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[10px] uppercase tracking-widest mb-6"
         >
           <ArrowLeft size={16} /> Back to Billing List

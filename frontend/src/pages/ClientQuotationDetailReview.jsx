@@ -33,7 +33,7 @@ const ClientQuotationDetailReview = () => {
     const isApprove = action === 'Approved';
     const result = await Swal.fire({
       title: `${isApprove ? 'APPROVE' : 'REJECT'} QUOTATION?`,
-      html: isApprove 
+      html: isApprove
         ? 'This quotation will be available for <strong>Client Invoice</strong> creation.'
         : 'Please provide a reason for rejection:',
       icon: 'warning',
@@ -51,11 +51,11 @@ const ClientQuotationDetailReview = () => {
         if (!isApprove && result.value) {
           payload.rejectionReason = result.value;
         }
-        
+
         await axios.patch(`http://localhost:5000/api/client_quotation/${id}/approve`, payload, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         Swal.fire({
           icon: 'success',
           title: 'PROCESSED',
@@ -82,7 +82,7 @@ const ClientQuotationDetailReview = () => {
       </div>
     </div>
   );
-  
+
   if (!quo) return (
     <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="text-center">
@@ -93,31 +93,20 @@ const ClientQuotationDetailReview = () => {
     </div>
   );
 
-  // --- LOGIKA KALKULASI YANG BENAR & STERIL DARI BUG ---
   const totalSales = quo.clientPrice || 0;
   const shippingFee = quo.shippingFee || 0;
   const taxAmount = quo.taxAmount || 0;
-  const taxPercentage = quo.taxPercentage || 0; // <-- INI YANG BIKIN WHITE SCREEN TADI!
+  const taxPercentage = quo.taxPercentage || 0;
 
-  // 1. REVENUE KLIEN MURNI (Harga Jual Barang Saja, Tanpa Ongkir & Pajak)
-  //    FIX: shippingFee adalah pass-through ke ekspedisi, BUKAN pendapatan
-  //    bisnis — sebelumnya ikut ditambahkan ke netRevenue sehingga Gross
-  //    Profit jadi lebih besar dari seharusnya (selisih = nilai shippingFee).
-  //    Sekarang konsisten dengan financialController.js: Gross Profit =
-  //    clientPrice (item sales price) − totalModal (COGS), TANPA shipping.
   const netRevenue = totalSales;
 
-  // 2. MODAL MURNI (Didapat dari Backend, sudah All-in barang & ongkir supplier tanpa PPN supplier)
   const totalModal = quo.totalModal || (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
 
-  // 3. GROSS PROFIT & MARGIN ASLI
   const grossProfit = netRevenue - totalModal;
   const marginPercent = netRevenue > 0 ? ((grossProfit / netRevenue) * 100).toFixed(1) : 0;
 
-  // 4. GRAND TOTAL TAGIHAN KE KLIEN (Termasuk Ongkir & Pajak — pass-through)
   const grandTotal = totalSales + shippingFee + taxAmount;
 
-  // Subtotal COGS Items murni (untuk tabel breakdown)
   const totalItemsCOGS = (quo.items || []).reduce((sum, item) => sum + ((item.cogs || 0) * (item.quantity || 0)), 0);
 
   const isPending = quo.approvalStatus === 'Pending';
@@ -127,17 +116,15 @@ const ClientQuotationDetailReview = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
       <Header />
-      
+
       <div className="p-6 md:p-10 lg:p-12">
-        {/* BACK BUTTON */}
-        <button 
-          onClick={() => navigate('/client-quotation-approval')} 
+        <button
+          onClick={() => navigate('/client-quotation-approval')}
           className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[10px] uppercase tracking-widest mb-6 transition-all group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform"/> Back to Approval Queue
         </button>
 
-        {/* STATUS BANNER */}
         {!isPending && (
           <div className={`mb-6 p-5 rounded-2xl border-l-8 ${
             isApproved ? 'bg-emerald-50 border-emerald-500' : 'bg-red-50 border-red-500'
@@ -149,8 +136,8 @@ const ClientQuotationDetailReview = () => {
                   {isApproved ? 'QUOTATION APPROVED' : 'QUOTATION REJECTED'}
                 </p>
                 <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-1">
-                  {isApproved 
-                    ? 'This quotation is now available for Client Invoice creation' 
+                  {isApproved
+                    ? 'This quotation is now available for Client Invoice creation'
                     : `Reason: ${quo.rejectionReason || 'No reason provided'}`}
                 </p>
               </div>
@@ -159,12 +146,11 @@ const ClientQuotationDetailReview = () => {
         )}
 
         <div className="max-w-6xl mx-auto">
-          {/* HEADER SECTION */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-3 mb-3 flex-wrap">
                 <span className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider ${
-                  isPending ? 'bg-amber-100 text-amber-700' : 
+                  isPending ? 'bg-amber-100 text-amber-700' :
                   isApproved ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
                 }`}>
                   {quo.approvalStatus || 'Pending'}
@@ -195,12 +181,9 @@ const ClientQuotationDetailReview = () => {
             </div>
           </div>
 
-          {/* TWO COLUMN LAYOUT */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* LEFT COLUMN - ITEMS & DETAILS */}
+
             <div className="lg:col-span-2 space-y-8">
-              {/* INFO CARDS */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Term of Payment</label>
@@ -222,7 +205,6 @@ const ClientQuotationDetailReview = () => {
                 </div>
               </div>
 
-              {/* ITEMS TABLE */}
               <div>
                 <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2 mb-5">
                   <span className="w-6 h-0.5 bg-indigo-600"></span> Itemized Price Breakdown
@@ -300,7 +282,6 @@ const ClientQuotationDetailReview = () => {
                 </div>
               </div>
 
-              {/* REMARKS */}
               {quo.remarks && (
                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -311,9 +292,7 @@ const ClientQuotationDetailReview = () => {
               )}
             </div>
 
-            {/* RIGHT COLUMN - SUMMARY & ACTION */}
             <div className="space-y-6">
-              {/* FINANCIAL SUMMARY CARD - UPDATED WITH EXACT MARGIN LOGIC */}
               <div className="bg-linear-to-r from-slate-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                   <DollarSign size={14}/> Financial Summary
@@ -357,20 +336,19 @@ const ClientQuotationDetailReview = () => {
                 </div>
               </div>
 
-              {/* ACTION BUTTONS */}
               {isPending && (
                 <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 shadow-lg sticky top-6">
                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <FileText size={14}/> Management Action
                   </h3>
                   <div className="space-y-3">
-                    <button 
+                    <button
                       onClick={() => handleAction('Approved')}
                       className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                     >
                       <CheckCircle size={16}/> APPROVE QUOTATION
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleAction('Rejected')}
                       className="w-full py-4 bg-red-500 hover:bg-red-600 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                     >
@@ -383,7 +361,6 @@ const ClientQuotationDetailReview = () => {
                 </div>
               )}
 
-              {/* ALREADY PROCESSED INFO */}
               {!isPending && (
                 <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -412,7 +389,6 @@ const ClientQuotationDetailReview = () => {
                 </div>
               )}
 
-              {/* BACK BUTTON */}
               <button
                 onClick={() => navigate('/client-quotation-approval')}
                 className="w-full py-4 border-2 border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all active:scale-95"

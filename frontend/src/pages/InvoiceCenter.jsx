@@ -10,10 +10,9 @@ const InvoiceCenter = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
-      
-      {/* HEADER - SAMA SEPERTI QUOTATION CENTER */}
+
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
-        <button 
+        <button
           onClick={() => navigate('/dashboard')}
           className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
         >
@@ -29,9 +28,8 @@ const InvoiceCenter = () => {
 
       <main className="flex-1 p-8 md:p-12 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          
-          {/* CARD KIRI: CREATE INVOICE */}
-          <div 
+
+          <div
             onClick={() => navigate('/create-invoice')}
             className="group relative bg-white border-2 border-slate-100 rounded-3xl p-8 cursor-pointer hover:border-indigo-600 hover:shadow-2xl transition-all overflow-hidden"
           >
@@ -50,8 +48,7 @@ const InvoiceCenter = () => {
             </div>
           </div>
 
-          {/* CARD KANAN: INVOICE LOG */}
-          <div 
+          <div
             onClick={() => navigate('/invoice-log')}
             className="group relative bg-white border-2 border-slate-100 rounded-3xl p-8 cursor-pointer hover:border-indigo-600 hover:shadow-2xl transition-all overflow-hidden"
           >
@@ -72,7 +69,7 @@ const InvoiceCenter = () => {
 
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

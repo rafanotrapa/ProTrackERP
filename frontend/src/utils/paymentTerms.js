@@ -1,6 +1,3 @@
-// Mirror dari backend utils/paymentTerms.js — jaga tetap identik.
-// Parse Term of Payment → daftar tahap pembayaran. Dipakai AddClientInvoice
-// untuk menghitung nominal tahap berikutnya (live preview).
 export function parsePaymentStages(topOption, total) {
   const t = (topOption || '').toUpperCase();
   const num = Number(total) || 0;

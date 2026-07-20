@@ -22,7 +22,6 @@ const DeliveryManagement = () => {
       const res = await axios.get('http://localhost:5000/api/po', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Hanya tampilkan PO yang barangnya udah LULUS QC (siap dikirim ke klien)
       const readyToDeliver = (res.data || []).filter((po) => po.qcStatus === 'Passed');
       setDeliveries(readyToDeliver);
     } catch (err) {
@@ -71,7 +70,7 @@ const DeliveryManagement = () => {
 
     if (formValues) {
       const ok = await updateStatus(po._id, 'Scheduled', formValues);
-      if (ok) generateBastPDF(po, formValues); // BAST otomatis setelah jadwal tersimpan
+      if (ok) generateBastPDF(po, formValues);
     }
   };
 
@@ -80,7 +79,6 @@ const DeliveryManagement = () => {
       const token = localStorage.getItem('token');
       let body;
       if ('photoFile' in extraData) {
-        // Path Schedule: kirim multipart (ada kemungkinan foto)
         body = new FormData();
         body.append('status', newStatus);
         body.append('deliveryDate', extraData.deliveryDate);
@@ -103,7 +101,6 @@ const DeliveryManagement = () => {
     }
   };
 
-  // ── BAST (Berita Acara Serah Terima) PDF — pola sama dengan invoice/quotation ──
   const generateBastPDF = (po, values) => {
     try {
       const doc = new jsPDF();
@@ -155,7 +152,7 @@ const DeliveryManagement = () => {
         head: [['Qty', 'Description', 'Unit']],
         body: tableRows,
         theme: 'plain',
-        margin: { left: 15 }, // tabel 180mm di halaman 210mm → center
+        margin: { left: 15 },
         headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
         bodyStyles: { halign: 'center' },
         styles: { fontSize: 9, cellPadding: 4 },
@@ -193,7 +190,7 @@ const DeliveryManagement = () => {
 
       try {
         doc.addImage("/stample-batavia.png", 'PNG', 15, signY + 3, 45, 45);
-      } catch { /* stamp opsional */ }
+      } catch { }
 
       doc.setFont('helvetica', 'normal');
       doc.text("(________________)", 40, signY + 45, { align: 'center' });
@@ -211,7 +208,6 @@ const DeliveryManagement = () => {
     return new Date(dateString).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = deliveries.filter((po) => {
     const term = searchTerm.toLowerCase();
     const matchSearch =
@@ -267,7 +263,6 @@ const DeliveryManagement = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -301,7 +296,6 @@ const DeliveryManagement = () => {
           </div>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <Truck size={48} className="text-slate-300 mx-auto" />

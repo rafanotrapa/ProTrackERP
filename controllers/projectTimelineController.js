@@ -17,16 +17,9 @@ const getVerifiedPayment = async (invoiceId) => {
   return Payment.findOne({ invoiceId, status: 'Verified' }).sort({ paymentDate: -1 });
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPER: hitung Grand Total kontrak — SAMA PERSIS dengan helper di
-// projectBillingController.js & financialController.js.
-// clientPrice + shippingFee + taxAmount.
-// ─────────────────────────────────────────────────────────────────────────────
 const getContractGrandTotal = (q) =>
   Number(q?.clientPrice || 0) + Number(q?.shippingFee || 0) + Number(q?.taxAmount || 0);
 
-// Parser dipindah ke utils/paymentTerms.js (parsePaymentStages) — konsisten
-// dengan Project Billing, kini mendukung N termin (3x/4x).
 const parseTopOption = parsePaymentStages;
 
 exports.getProjectTimeline = async (req, res) => {
@@ -47,9 +40,6 @@ exports.getProjectTimeline = async (req, res) => {
     const taxAmount     = clientQuotation?.taxAmount   || 0;
     const taxPercentage = clientQuotation?.taxPercentage || 0;
 
-    // FIX: pakai helper yang sama persis dengan projectBillingController.js
-    // dan financialController.js, supaya grandTotal & payment stages
-    // konsisten di ketiga halaman (Billing, Timeline, Financial Report).
     const grandTotal = getContractGrandTotal(clientQuotation || { clientPrice, shippingFee, taxAmount });
 
     const topOption = clientQuotation?.topOption || '—';
@@ -71,7 +61,7 @@ exports.getProjectTimeline = async (req, res) => {
           dueDate: inv.dueDate,
           createdAt: inv.createdAt,
           status: payStatus,
-          paymentDate, // ← konsisten dengan ProjectBillingDetail
+          paymentDate,
           topOption: inv.topOption
         };
       })
@@ -85,10 +75,6 @@ exports.getProjectTimeline = async (req, res) => {
       .filter(inv => inv.status === 'Unpaid')
       .reduce((sum, inv) => sum + inv.amount, 0);
 
-    // FIX: expectedStages sekarang dihitung dari grandTotal yang konsisten
-    // dengan Project Billing (sebelumnya sudah benar di sini, tapi
-    // projectBillingController.js yang salah pakai clientPrice saja —
-    // sudah diperbaiki juga di sana).
     const expectedStages = parseTopOption(topOption, grandTotal);
     const paymentStages = expectedStages.map((stage, idx) => {
       const invoice = clientInvoices[idx] || null;
@@ -115,7 +101,6 @@ exports.getProjectTimeline = async (req, res) => {
     const progressPercent = totalStages > 0 ? Math.round((paidStages / totalStages) * 100) : 0;
     const isComplete = paidStages >= totalStages && totalStages > 0;
 
-    // Tanggal payment client terakhir yang Verified — acuan mulai garansi 1 tahun
     const lastClientPaymentDate = clientInvoices.reduce((latest, inv) => {
       if (!inv.paymentDate) return latest;
       return !latest || new Date(inv.paymentDate) > new Date(latest) ? inv.paymentDate : latest;
@@ -146,12 +131,6 @@ exports.getProjectTimeline = async (req, res) => {
       createdAt: po.timestamp
     }));
 
-    // ─────────────────────────────────────────────────────────────────────
-    // SUPPLIER QUOTATION — ini ESTIMASI/BUDGET modal (sebelum barang
-    // sampai). Bea cukai BELUM ada di sini karena memang belum bisa
-    // diketahui — bea cukai baru muncul saat vendor submit Supplier
-    // Invoice setelah barang tiba (lihat blok SupplierInvoice di bawah).
-    // ─────────────────────────────────────────────────────────────────────
     const supplierQuotations = await SupplierQuotation.find({
       projectId,
       approvalStatus: 'Approved'
@@ -181,17 +160,6 @@ exports.getProjectTimeline = async (req, res) => {
       createdAt: sq.createdAt
     }));
 
-    // ─────────────────────────────────────────────────────────────────────
-    // SUPPLIER INVOICE — ini AKTUAL (uang yang benar-benar dibayar ke
-    // vendor). Bea cukai (importDutyAmount) ada di sini karena baru
-    // diketahui setelah barang sampai dan vendor submit tagihan.
-    //
-    // FIX KRITIS: totalSupplierPaid SEBELUMNYA hanya pakai si.amount
-    // (base, tanpa pajak & bea cukai) padahal label-nya "Total Terbayar".
-    // Sekarang konsisten dengan financialController.js: pakai amount +
-    // importDutyAmount sebagai expense aktual, taxAmount dipisah sebagai
-    // pass-through (sama logic dengan Financial Report).
-    // ─────────────────────────────────────────────────────────────────────
     const supplierInvoices = await SupplierInvoice.find({ projectId }).sort({ createdAt: -1 });
 
     const paidSupplierInvoices    = supplierInvoices.filter(si => si.status === 'Paid');
@@ -224,9 +192,6 @@ exports.getProjectTimeline = async (req, res) => {
       paymentDate: si.paymentDate || null
     }));
 
-    // ─────────────────────────────────────────────────────────────────────
-    // EXPENSE SUBMISSION (Reimburse / Meeting / Entertainment dll)
-    // ─────────────────────────────────────────────────────────────────────
     const expenseSubmissions = await ExpenseSubmission.find({ projectId })
       .sort({ createdAt: -1 });
 
@@ -257,16 +222,6 @@ exports.getProjectTimeline = async (req, res) => {
       .filter(e => e.status === 'Pending Verification')
       .reduce((sum, e) => sum + (e.amount || 0), 0);
 
-    // ─────────────────────────────────────────────────────────────────────
-    // PROFIT MARGIN — FIX: sekarang pakai actualCOGS + actualImportDuty
-    // (dari Supplier Invoice Paid) sebagai modal RIIL, BUKAN estimatedCOGS
-    // (dari Supplier Quotation). Ini SAMA PERSIS dengan logic di
-    // financialController.js → getProjectProfitability, supaya angka
-    // Net Profit di Project Timeline dan Financial Report match.
-    //
-    // estimatedCOGS tetap disertakan terpisah sebagai pembanding
-    // "Estimasi vs Aktual" untuk procurement/marketing melihat deviasi.
-    // ─────────────────────────────────────────────────────────────────────
     const totalActualExpense = actualCOGS + actualImportDuty + totalOtherExpenseApproved;
     const grossProfit = clientPrice - actualCOGS;
     const netProfit    = clientPrice - totalActualExpense;
@@ -278,7 +233,6 @@ exports.getProjectTimeline = async (req, res) => {
       ? parseFloat(((netProfit / clientPrice) * 100).toFixed(2))
       : 0;
 
-    // Estimasi (dari Supplier Quotation) — untuk pembanding budget vs aktual
     const estimatedNetProfit = clientPrice - estimatedCOGS - totalOtherExpenseApproved;
     const estimatedMarginPct = clientPrice > 0
       ? parseFloat(((estimatedNetProfit / clientPrice) * 100).toFixed(2))
@@ -291,12 +245,6 @@ exports.getProjectTimeline = async (req, res) => {
       isFinalPaid: project.isFinalPaid || false
     };
 
-    // ─────────────────────────────────────────────────────────────────────
-    // PROGRESS PROSES (REAL) — bukan cuma pembayaran client, tapi seluruh
-    // alur: quotation → PO → QC → bayar supplier → delivery → bayar client.
-    // Tiap step bobot sama; step pembayaran client dihitung fraksional
-    // (paidStages/totalStages) supaya DP yang sudah masuk tetap terhitung.
-    // ─────────────────────────────────────────────────────────────────────
     const processStepsRaw = [
       { label: 'Quotation Approved', fraction: clientQuotation ? 1 : 0 },
       { label: 'PO Terbit',          fraction: purchaseOrders.length > 0 ? 1 : 0 },
@@ -340,8 +288,8 @@ exports.getProjectTimeline = async (req, res) => {
       },
 
       progress: {
-        percent: processPercent,        // progress keseluruhan proses (real)
-        paymentPercent: progressPercent, // progress pembayaran client saja
+        percent: processPercent,
+        paymentPercent: progressPercent,
         paidStages,
         totalStages,
         isComplete,
@@ -353,20 +301,17 @@ exports.getProjectTimeline = async (req, res) => {
       clientInvoices,
       purchaseOrders: poSummary,
 
-      // Estimasi (Supplier Quotation) — budget sebelum barang datang
       supplierQuotations: sqSummary,
       cogs: {
-        total: estimatedCOGS,   // tetap nama "cogs" untuk backward-compat frontend lama
+        total: estimatedCOGS,
         breakdown: sqSummary
       },
 
-      // Aktual (Supplier Invoice) — uang riil yang sudah/akan dibayar
       supplierInvoices: siSummary,
       cashOut: {
         totalPaid: totalSupplierPaid,
         totalPending: totalSupplierPending,
         total: totalSupplierPaid + totalSupplierPending,
-        // breakdown tambahan biar transparan apa isi totalPaid
         breakdownPaid: {
           cogs: actualCOGS,
           taxAmount: actualTaxPassThru,
@@ -384,7 +329,6 @@ exports.getProjectTimeline = async (req, res) => {
       profitMargin: {
         salesPrice:    clientPrice,
 
-        // Aktual (dipakai sebagai angka utama, match dengan Financial Report)
         cogs:          actualCOGS,
         importDuty:    actualImportDuty,
         otherExpense:  totalOtherExpenseApproved,
@@ -393,7 +337,6 @@ exports.getProjectTimeline = async (req, res) => {
         marginPercent:    profitMarginPct,
         netMarginPercent: netMarginPct,
 
-        // Estimasi (Supplier Quotation) — untuk pembanding budget vs aktual
         estimatedCOGS,
         estimatedNetProfit,
         estimatedMarginPct,

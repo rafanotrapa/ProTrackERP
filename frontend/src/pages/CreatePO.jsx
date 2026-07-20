@@ -23,7 +23,7 @@ const CreatePO = () => {
   const [formData, setFormData] = useState({
     poNumber: generatePONumber(),
     quotationId: '',
-    shippingAddress: '' 
+    shippingAddress: ''
   });
 
   useEffect(() => {
@@ -62,9 +62,9 @@ const CreatePO = () => {
       await axios.post('http://localhost:5000/api/po', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       Swal.fire({ icon: 'success', title: 'PO ISSUED', text: 'Purchase Order resmi diterbitkan berdasarkan quotation marketing.', confirmButtonColor: '#0f172a' });
-      navigate('/dashboard'); 
+      navigate('/dashboard');
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || "Gagal membuat PO" });
     } finally { setLoading(false); }
@@ -88,11 +88,10 @@ const CreatePO = () => {
       <main className="flex-1 p-8 md:p-12 lg:p-16">
         <form onSubmit={handleSubmit} className="mx-auto space-y-8 max-w-6xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            
-            {/* LEFT COL: PO DETAILS */}
+
             <div className="p-8 space-y-6 bg-white border border-slate-200 shadow-sm rounded-4xl h-fit">
               <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-blue-600"></span> 01. Order Identity</h3>
-              
+
               <div className="space-y-1">
                 <label className="mb-1.5 ml-1 text-[10px] font-black italic leading-none tracking-widest uppercase text-slate-400">PO Number</label>
                 <input type="text" readOnly value={formData.poNumber} className="w-full p-4 font-mono font-bold outline-none bg-slate-50 border-slate-200 rounded-xl text-blue-600" />
@@ -115,7 +114,6 @@ const CreatePO = () => {
               </div>
             </div>
 
-            {/* RIGHT COL: ITEMS PREVIEW DARI QUOTATION */}
             <div className="p-8 bg-slate-900 border border-slate-800 shadow-xl rounded-4xl flex flex-col">
                <h3 className="text-[11px] font-black text-slate-300 uppercase tracking-[0.3em] flex items-center gap-3 italic mb-6"><span className="w-8 h-1 bg-blue-500"></span> 02. Goods Summary</h3>
                {selectedQuote ? (
@@ -124,7 +122,7 @@ const CreatePO = () => {
                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Vendor ID / Supplier</p>
                        <p className="text-white font-bold">{selectedQuote.vendorId}</p>
                     </div>
-                    
+
                     <div className="flex-1 space-y-3 overflow-y-auto max-h-55 pr-2 custom-scrollbar">
                        {selectedQuote.items?.map((item, i) => (
                          <div key={i} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/10 hover:bg-white/10 transition-colors">
@@ -142,14 +140,12 @@ const CreatePO = () => {
                        ))}
                     </div>
 
-                    {/* REKAP TOTAL BESERTA FEE & PPN */}
                     <div className="mt-6 pt-4 border-t border-slate-700 space-y-2">
                        <div className="flex justify-between items-center text-slate-400">
                           <p className="text-[10px] font-black uppercase tracking-widest">Subtotal Barang</p>
                           <p className="text-xs font-bold">{formatRupiah(selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0))}</p>
                        </div>
-                       
-                       {/* PPN REVIEW */}
+
                        {selectedQuote.isTaxIncluded && (
                          <div className="flex justify-between items-center text-slate-300">
                             <p className="text-[10px] font-black uppercase tracking-widest">PPN ({selectedQuote.taxPercentage}%)</p>
@@ -157,7 +153,6 @@ const CreatePO = () => {
                          </div>
                        )}
 
-                       {/* ADDITIONAL FEE REVIEW */}
                        {selectedQuote.additionalFee > 0 && (
                          <div className="flex justify-between items-center text-amber-500">
                             <p className="text-[10px] font-black uppercase tracking-widest">
@@ -171,7 +166,7 @@ const CreatePO = () => {
                           <p className="text-[10px] font-black text-white uppercase tracking-widest italic">Grand Total</p>
                           <p className="text-2xl font-black text-white italic">
                             {formatRupiah(
-                               (selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0) || 0) + 
+                               (selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0) || 0) +
                                (selectedQuote.taxAmount || 0) +
                                (selectedQuote.additionalFee || 0)
                             )}

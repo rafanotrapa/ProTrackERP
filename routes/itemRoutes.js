@@ -3,7 +3,6 @@ const router = express.Router();
 const Item = require('../models/Item');
 const { protect } = require('../middleware/auth');
 
-// Semua route item butuh login. Pemanggil frontend sudah mengirim token.
 router.use(protect);
 
 router.get('/', async (req, res) => {
@@ -22,7 +21,7 @@ router.post('/', async (req, res) => {
 
     const newItem = new Item({
       ...req.body,
-      itemId: generatedID 
+      itemId: generatedID
     });
 
     await newItem.save();

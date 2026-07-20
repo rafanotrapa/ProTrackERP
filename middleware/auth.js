@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Log = require('../models/Log');
 
-// Peta base-URL → nama modul ramah dibaca untuk audit log.
 const MODULE_MAP = {
   '/api/auth':               'Account',
   '/api/project':            'Project',
@@ -23,7 +22,6 @@ const MODULE_MAP = {
   '/api/inventory':          'Inventory',
 };
 
-// Verb HTTP → kata kerja audit
 const ACTION_VERB = { POST: 'CREATE', PUT: 'UPDATE', PATCH: 'UPDATE', DELETE: 'DELETE' };
 
 const protect = (req, res, next) => {
@@ -34,10 +32,6 @@ const protect = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
 
-    // Audit lintas modul: catat aksi ubah-data (bukan GET) ke System Logs
-    // supaya terlihat siapa mengubah modul apa. Dicatat SETELAH response
-    // selesai & HANYA jika sukses (status < 400) agar aksi gagal tidak
-    // mengotori audit. GET tidak dicatat agar log tidak banjir.
     const verb = ACTION_VERB[req.method];
     if (verb) {
       const moduleName = MODULE_MAP[req.baseUrl] || req.baseUrl || 'System';
@@ -49,8 +43,6 @@ const protect = (req, res, next) => {
           category: moduleName,
           type:     verb,
         }).catch(() => {});
-        // Token baru sudah membawa username → tak perlu query DB.
-        // Token lama (belum re-login) → ambil dari DB.
         if (decoded.username) writeLog(decoded.username);
         else User.findById(decoded.id).select('username').then((u) => writeLog(u?.username)).catch(() => {});
       });

@@ -1,9 +1,6 @@
 const ClientQuotation  = require('../models/ClientQuotation');
 const SupplierQuotation = require('../models/SupplierQuotation');
 
-// ─────────────────────────────────────────────────────────────
-//  HELPERS
-// ─────────────────────────────────────────────────────────────
 const calculateClientPrice = (items = []) =>
   items.reduce((total, item) => total + (item.quantity || 0) * (item.salesPrice || 0), 0);
 
@@ -33,18 +30,13 @@ const injectSupplierModal = async (quo) => {
   return quoObj;
 };
 
-// ─────────────────────────────────────────────────────────────
-//  1. CREATE — draft pertama kali
-//  FIX: terima taxAmount sebagai nominal langsung dari frontend
-//       tidak lagi hitung dari taxPercentage
-// ─────────────────────────────────────────────────────────────
 exports.createQuotation = async (req, res) => {
   try {
     const {
       quotationId, projectId, projectName, clientName,
       items, currency, topOption, customTop, remarks,
       bankAccount, quotationMode, shippingFee,
-      taxAmount,   // ← nominal langsung, bukan percentage
+      taxAmount,
     } = req.body;
 
     const calculatedClientPrice = calculateClientPrice(items);
@@ -66,7 +58,7 @@ exports.createQuotation = async (req, res) => {
       approvalStatus: req.body.approvalStatus || 'Draft',
       quotationMode:  quotationMode || 'auto',
       shippingFee:    Number(shippingFee) || 0,
-      taxPercentage:  0,           // selalu 0, tidak dipakai
+      taxPercentage:  0,
       taxAmount:      cleanTaxAmount,
     });
 
@@ -78,9 +70,6 @@ exports.createQuotation = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  2. GET ALL
-// ─────────────────────────────────────────────────────────────
 exports.getAllQuotations = async (req, res) => {
   try {
     const quotations = await ClientQuotation.find().sort({ createdAt: -1 });
@@ -92,9 +81,6 @@ exports.getAllQuotations = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  3. GET BY ID
-// ─────────────────────────────────────────────────────────────
 exports.getQuotationById = async (req, res) => {
   try {
     const quotation = await ClientQuotation.findById(req.params.id);
@@ -108,9 +94,6 @@ exports.getQuotationById = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  4. GET BY PROJECT ID — hanya Approved
-// ─────────────────────────────────────────────────────────────
 exports.getQuotationByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -127,9 +110,6 @@ exports.getQuotationByProject = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  5. GET PENDING APPROVALS
-// ─────────────────────────────────────────────────────────────
 exports.getPendingApprovals = async (req, res) => {
   try {
     const pending  = await ClientQuotation.find({ approvalStatus: 'Pending' }).sort({ createdAt: -1 });
@@ -141,9 +121,6 @@ exports.getPendingApprovals = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  6. APPROVE / REJECT
-// ─────────────────────────────────────────────────────────────
 exports.approveQuotation = async (req, res) => {
   try {
     const { status, rejectionReason } = req.body;
@@ -159,10 +136,6 @@ exports.approveQuotation = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  7. UPDATE ITEMS (save draft / revisi)
-//  FIX: terima taxAmount sebagai nominal langsung
-// ─────────────────────────────────────────────────────────────
 exports.updateQuotationItems = async (req, res) => {
   try {
     const { id } = req.params;
@@ -170,7 +143,7 @@ exports.updateQuotationItems = async (req, res) => {
       items, topOption, customTop, currency, remarks,
       bankAccount, clientName, projectName, quotationMode,
       shippingFee,
-      taxAmount,   // ← nominal langsung
+      taxAmount,
     } = req.body;
 
     const existing = await ClientQuotation.findById(id);
@@ -209,9 +182,6 @@ exports.updateQuotationItems = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  8. GET DRAFT BY PROJECT ID
-// ─────────────────────────────────────────────────────────────
 exports.getDraftByProject = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -227,10 +197,6 @@ exports.getDraftByProject = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  9. SUBMIT DRAFT FOR APPROVAL
-//  FIX: terima taxAmount sebagai nominal langsung
-// ─────────────────────────────────────────────────────────────
 exports.submitQuotation = async (req, res) => {
   try {
     const { id } = req.params;
@@ -238,7 +204,7 @@ exports.submitQuotation = async (req, res) => {
       quotationId, projectId, projectName, clientName,
       items, currency, topOption, customTop, remarks,
       bankAccount, quotationMode, shippingFee,
-      taxAmount,   // ← nominal langsung
+      taxAmount,
     } = req.body;
 
     const calculatedClientPrice = calculateClientPrice(items || []);
@@ -276,17 +242,13 @@ exports.submitQuotation = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  10. UPDATE APPROVED QUOTATION
-//  FIX: terima taxAmount sebagai nominal langsung
-// ─────────────────────────────────────────────────────────────
 exports.updateApprovedQuotation = async (req, res) => {
   try {
     const { id } = req.params;
     const {
       items, topOption, customTop, currency, remarks,
       bankAccount, clientPrice, shippingFee,
-      taxAmount,   // ← nominal langsung
+      taxAmount,
     } = req.body;
 
     const existing = await ClientQuotation.findById(id);
@@ -321,9 +283,6 @@ exports.updateApprovedQuotation = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-//  11. GET MY QUOTATIONS (list ringan, limit 50)
-// ─────────────────────────────────────────────────────────────
 exports.getMyQuotations = async (req, res) => {
   try {
     const quotations = await ClientQuotation.find().sort({ createdAt: -1 }).limit(50);

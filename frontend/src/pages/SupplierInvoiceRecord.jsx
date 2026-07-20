@@ -6,12 +6,8 @@ import { FileText, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// ─────────────────────────────────────────────────────────────
-//  HELPER
-// ─────────────────────────────────────────────────────────────
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
-// Preview + download bukti transfer dari Finance
 const viewPaymentProof = (inv) => {
   const url = `http://localhost:5000/uploads/documents/${inv.paymentProof}`;
   const isPdf = inv.paymentProof.toLowerCase().endsWith('.pdf');
@@ -53,7 +49,6 @@ const SupplierInvoiceRecord = () => {
     fetchInvoices();
   }, []);
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = invoices.filter((inv) => {
     const q = searchTerm.toLowerCase();
     const matchSearch =
@@ -109,7 +104,6 @@ const SupplierInvoiceRecord = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -142,7 +136,6 @@ const SupplierInvoiceRecord = () => {
           </div>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <FileText size={48} className="text-slate-300 mx-auto" />

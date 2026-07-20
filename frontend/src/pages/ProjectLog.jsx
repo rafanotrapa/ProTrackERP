@@ -6,9 +6,6 @@ import Swal from 'sweetalert2';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// ─────────────────────────────────────────────────────────────
-//  HELPERS
-// ─────────────────────────────────────────────────────────────
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const statusBadge = (status) => {
@@ -46,7 +43,6 @@ const ProjectLog = () => {
     fetchProjects();
   }, []);
 
-  // ── Edit budget / contract value ─────────────────────────
   const handleEditBudget = async (p) => {
     const { value } = await Swal.fire({
       title: 'Edit Contract Value',
@@ -65,7 +61,7 @@ const ProjectLog = () => {
       },
     });
 
-    if (value === undefined) return; // batal
+    if (value === undefined) return;
 
     const amount = Number(String(value).replace(/[^0-9]/g, ''));
     try {
@@ -83,7 +79,6 @@ const ProjectLog = () => {
     }
   };
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = projects.filter((p) => {
     const q = searchTerm.toLowerCase();
     const matchSearch =
@@ -139,7 +134,6 @@ const ProjectLog = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -172,7 +166,6 @@ const ProjectLog = () => {
           </div>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <FolderOpen size={48} className="text-slate-300 mx-auto" />

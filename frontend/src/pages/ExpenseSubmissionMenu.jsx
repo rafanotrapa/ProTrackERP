@@ -70,7 +70,6 @@ const ExpenseSubmissionMenu = () => {
           ))}
         </div>
 
-        {/* Info banner */}
         <div className="mt-8 bg-amber-50 border border-amber-200 rounded-2xl p-4">
           <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
             <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />

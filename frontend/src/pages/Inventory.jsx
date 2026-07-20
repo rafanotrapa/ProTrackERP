@@ -11,7 +11,7 @@ const Inventory = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState('all'); // all | available | depleted
+  const [filter, setFilter] = useState('all');
 
   const fetchInventory = async () => {
     try {
@@ -121,7 +121,6 @@ const Inventory = () => {
       </div>
 
       <main className="flex-1 p-8 md:p-12">
-        {/* Filter & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[

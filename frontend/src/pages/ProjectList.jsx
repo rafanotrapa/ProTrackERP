@@ -128,7 +128,6 @@ const ProjectList = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Header />
 
-      {/* PAGE HEADER */}
       <div className="sticky top-16 z-10 bg-white border-b border-slate-100 px-6 md:px-10 py-4 flex items-center gap-4 shadow-sm">
         <button
           onClick={() => navigate('/dashboard')}
@@ -148,7 +147,6 @@ const ProjectList = () => {
 
       <main className="flex-1 p-6 md:p-10">
 
-        {/* TOOLBAR */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -179,7 +177,6 @@ const ProjectList = () => {
           </div>
         </div>
 
-        {/* TABLE */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center bg-white rounded-2xl border border-slate-100">
             <FolderOpen size={36} className="text-slate-200 mx-auto mb-3" />

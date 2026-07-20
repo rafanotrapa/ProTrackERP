@@ -1,8 +1,5 @@
 const SupplierInvoice = require('../models/SupplierInvoice');
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. SUBMIT TAGIHAN
-// ─────────────────────────────────────────────────────────────────────────────
 exports.submitInvoice = async (req, res) => {
   try {
     const userId   = req.user ? (req.user._id || req.user.id) : null;
@@ -52,18 +49,12 @@ exports.submitInvoice = async (req, res) => {
 
     const submission = await newInvoice.save();
 
-    // (Dihapus) update PurchaseOrder.paymentTerms — field itu tidak ada di schema
-    // PO, jadi selama ini no-op. Dibuang agar tidak menyesatkan.
-
     res.status(201).json({ success: true, msg: 'Tagihan berhasil di-submit ke Finance', data: submission });
   } catch (error) {
     res.status(500).json({ msg: `Gagal simpan invoice: ${error.message}` });
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. LIST SEMUA INVOICE
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getAllInvoices = async (req, res) => {
   try {
     const invoices = await SupplierInvoice.find()
@@ -76,9 +67,6 @@ exports.getAllInvoices = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 3. UPDATE STATUS
-// ─────────────────────────────────────────────────────────────────────────────
 exports.updateStatus = async (req, res) => {
   try {
     const userId   = req.user ? (req.user._id || req.user.id) : null;
@@ -111,9 +99,6 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 4. PENDING PAYMENTS
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getPendingPayments = async (req, res) => {
   try {
     const pendingInvoices = await SupplierInvoice.find({ status: 'Pending Verification' })
@@ -125,9 +110,6 @@ exports.getPendingPayments = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 5. CONFIRM PAYMENT
-// ─────────────────────────────────────────────────────────────────────────────
 exports.confirmPayment = async (req, res) => {
   try {
     const userId   = req.user ? (req.user._id || req.user.id) : null;
@@ -161,13 +143,10 @@ exports.confirmPayment = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 6. GET BY ID
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getInvoiceById = async (req, res) => {
   try {
     const invoice = await SupplierInvoice.findById(req.params.id)
-      .populate('user', 'name username'); 
+      .populate('user', 'name username');
 
     if (!invoice) return res.status(404).json({ msg: 'Invoice tidak ditemukan' });
     res.json(invoice);
@@ -180,9 +159,6 @@ exports.getInvoiceById = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 7. GET TRACK RECORD
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getInvoiceRecord = async (req, res) => {
   try {
     const { status, vendorName, projectId } = req.query;

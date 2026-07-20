@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const navigate = useNavigate();
-  
+
   const user = JSON.parse(localStorage.getItem('user')) || { username: 'User', role: 'Guest' };
 
   const handleLogout = () => {
@@ -14,8 +14,7 @@ const Header = () => {
 
   return (
     <nav className="flex sticky top-0 z-50 justify-between items-center p-4 bg-slate-900 border-b border-slate-800 shadow-xl">
-      {/* LEFT: LOGO SECTION */}
-      <div 
+      <div
         className="flex items-center gap-3 cursor-pointer transition-all active:scale-95"
         onClick={() => navigate('/dashboard')}
       >
@@ -27,8 +26,7 @@ const Header = () => {
           <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Enterprise Resource Planning</p>
         </div>
       </div>
-      
-      {/* RIGHT: USER PROFILE & LOGOUT */}
+
       <div className="flex items-center gap-6">
         <div className="hidden pr-6 text-right border-r sm:block border-slate-800">
           <p className="text-sm font-black uppercase leading-none text-white tracking-wide">
@@ -43,7 +41,7 @@ const Header = () => {
           {(user.username || user.name || 'U').charAt(0).toUpperCase()}
         </div>
 
-        <button 
+        <button
           onClick={handleLogout}
           className="px-6 py-2.5 bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all hover:bg-red-600 active:scale-95"
         >

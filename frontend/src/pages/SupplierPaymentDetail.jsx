@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { 
-  Building2, FileText, Calendar, 
+import {
+  Building2, FileText, Calendar,
   Clock, CheckCircle, User,
   Download, Eye, CreditCard
 } from 'lucide-react';
@@ -38,7 +38,6 @@ const SupplierPaymentDetail = () => {
   }, [id]);
 
   const handleConfirmPayment = async () => {
-    // ── Step 1: upload bukti transfer ──
     const step1 = await Swal.fire({
       title: 'Upload Bukti Transfer',
       html: `
@@ -56,7 +55,6 @@ const SupplierPaymentDetail = () => {
     if (!step1.isConfirmed) return;
     const proofFile = step1.value;
 
-    // ── Step 2: konfirmasi ──
     const step2 = await Swal.fire({
       title: 'Confirm Payment?',
       html: `
@@ -163,11 +161,10 @@ const SupplierPaymentDetail = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
-      
-      {/* HEADER */}
+
       <div className="w-full border-b border-slate-100 px-8 py-8 flex flex-wrap items-center justify-between gap-4 bg-slate-50/30">
         <div className="flex items-center gap-6">
-          <button 
+          <button
             onClick={() => navigate('/supplier-payment')}
             className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
           >
@@ -183,7 +180,7 @@ const SupplierPaymentDetail = () => {
           </div>
         </div>
         {isPending && (
-          <button 
+          <button
             onClick={handleConfirmPayment}
             className="flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
           >
@@ -198,8 +195,7 @@ const SupplierPaymentDetail = () => {
       </div>
 
       <main className="flex-1 p-8 md:p-12">
-        
-        {/* STATUS BANNER */}
+
         <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
           {getStatusBadge(invoice.status)}
           <div className="flex items-center gap-4 text-[9px] text-slate-500">
@@ -215,11 +211,9 @@ const SupplierPaymentDetail = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* LEFT COLUMN */}
+
           <div className="lg:col-span-2 space-y-8">
 
-            {/* Vendor & Project Info */}
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
               <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
                 <Building2 size={14} /> Vendor Information
@@ -244,7 +238,6 @@ const SupplierPaymentDetail = () => {
               </div>
             </div>
 
-            {/* Customs Duty Note */}
             {invoice.isImportEnabled && invoice.customsDutyNote && (
               <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100">
                 <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -254,7 +247,6 @@ const SupplierPaymentDetail = () => {
               </div>
             )}
 
-            {/* Remarks */}
             {invoice.remarks && (
               <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
@@ -264,7 +256,6 @@ const SupplierPaymentDetail = () => {
               </div>
             )}
 
-            {/* Submission Info */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <div className="p-5 border-b border-slate-100 bg-slate-50">
                 <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
@@ -306,10 +297,8 @@ const SupplierPaymentDetail = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN */}
           <div className="space-y-6">
 
-            {/* Financial Summary */}
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl sticky top-24">
               <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">
                 Financial Summary
@@ -321,13 +310,11 @@ const SupplierPaymentDetail = () => {
                   <span className="font-black text-white">{invoice.currency || 'IDR'}</span>
                 </div>
 
-                {/* Base amount */}
                 <div className="flex justify-between py-2 border-b border-white/10">
                   <span className="text-[10px] font-bold text-slate-300">Base Amount</span>
                   <span className="font-black text-white">Rp {formatRupiah(invoice.amount)}</span>
                 </div>
 
-                {/* Tax — pakai isTaxEnabled & taxAmount */}
                 {invoice.isTaxEnabled && invoice.taxAmount > 0 && (
                   <div className="flex justify-between py-2 border-b border-white/10">
                     <span className="text-[10px] font-bold text-slate-300">PPN / Tax</span>
@@ -335,7 +322,6 @@ const SupplierPaymentDetail = () => {
                   </div>
                 )}
 
-                {/* Import / Customs Duty — pakai isImportEnabled & importDutyAmount */}
                 {invoice.isImportEnabled && invoice.importDutyAmount > 0 && (
                   <div className="flex justify-between py-2 border-b border-white/10">
                     <span className="text-[10px] font-bold text-slate-300">Bea Masuk / Import Duty</span>
@@ -343,7 +329,6 @@ const SupplierPaymentDetail = () => {
                   </div>
                 )}
 
-                {/* Grand Total */}
                 <div className="flex justify-between py-3 mt-2 bg-indigo-500/20 -mx-3 px-3 rounded-xl">
                   <span className="text-[11px] font-black text-indigo-300 uppercase tracking-wider">TOTAL</span>
                   <span className="text-xl font-black text-indigo-300">
@@ -362,7 +347,6 @@ const SupplierPaymentDetail = () => {
               )}
             </div>
 
-            {/* File Attachment */}
             {invoice.file && (
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b border-slate-100 bg-slate-50">
@@ -439,7 +423,6 @@ const SupplierPaymentDetail = () => {
               </div>
             )}
 
-            {/* Foto Barang (opsional dari Procurement) */}
             {invoice.itemPhoto && (
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b border-slate-100 bg-slate-50">
@@ -465,7 +448,6 @@ const SupplierPaymentDetail = () => {
               </div>
             )}
 
-            {/* Bukti Transfer (diupload Finance saat confirm) */}
             {invoice.paymentProof && (
               <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden">
                 <div className="p-5 border-b border-emerald-100 bg-emerald-50">
@@ -501,7 +483,7 @@ const SupplierPaymentDetail = () => {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

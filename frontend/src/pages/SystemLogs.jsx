@@ -12,8 +12,6 @@ const SystemLogs = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // Kategori DINAMIS dari data — selalu cocok dengan modul yang benar-benar
-  // ada di log (bug lama: opsi statis MARKETING/PROCUREMENT tak pernah cocok).
   const categories = [
     { label: 'ALL MODULES', value: 'ALL' },
     ...[...new Set(logs.map((l) => l.category).filter(Boolean))]
@@ -55,18 +53,16 @@ const SystemLogs = () => {
     return matchCat && matchSearch;
   });
 
-  // dropdown value mungkin tidak lagi ada di kategori dinamis → fallback label
   const currentCat = categories.find((c) => c.value === filter);
   const currentLabel = currentCat ? currentCat.label : 'ALL MODULES';
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans flex flex-col text-slate-900 pb-16">
-      
-      {/* HEADER KONSISTEN */}
+
       <header className="w-full px-8 py-8 md:px-12 lg:px-16 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
         <div className="flex items-center gap-6">
-          <button 
-            onClick={() => navigate('/dashboard')} 
+          <button
+            onClick={() => navigate('/dashboard')}
             className="flex justify-center items-center w-12 h-12 bg-white rounded-2xl border transition-all active:scale-90 shadow-sm group border-slate-200 hover:bg-slate-50 flex-shrink-0"
           >
             <span className="text-xl font-black italic transition-colors text-slate-400 group-hover:text-red-600">←</span>
@@ -78,9 +74,8 @@ const SystemLogs = () => {
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2 italic">Security Monitoring • Cross-Module Activity</p>
           </div>
         </div>
-        
+
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
-          {/* SEARCH */}
           <input
             type="text"
             placeholder="Cari user / aksi / modul..."
@@ -89,7 +84,6 @@ const SystemLogs = () => {
             className="w-full md:w-64 px-5 py-4 bg-white border border-slate-200 rounded-2xl text-[11px] font-bold outline-none focus:border-red-300 shadow-sm"
           />
 
-          {/* CUSTOM DROPDOWN UI FILTER */}
           <div className="relative w-full md:w-auto" ref={dropdownRef}>
             <div
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -104,7 +98,7 @@ const SystemLogs = () => {
             {isDropdownOpen && (
               <div className="absolute z-50 mt-2 w-full md:w-56 right-0 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in slide-in-from-top-2">
                 {categories.map((c) => (
-                  <div 
+                  <div
                     key={c.value}
                     onClick={() => { setFilter(c.value); setIsDropdownOpen(false); }}
                     className="px-5 py-4 text-[10px] font-black uppercase italic tracking-widest text-slate-500 hover:bg-red-600 hover:text-white cursor-pointer transition-all border-b border-slate-50 last:border-none"
@@ -118,11 +112,9 @@ const SystemLogs = () => {
         </div>
       </header>
 
-      {/* MAIN CONTENT: FULL PAGE LIST CARD */}
       <main className="flex-1 w-full px-8 md:px-12 lg:px-16">
         <div className="mx-auto w-full max-w-7xl bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden min-h-[500px]">
-          
-          {/* SUB-HEADER INSIDE CARD */}
+
           <div className="px-8 py-8 md:px-10 border-b border-slate-50">
              <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic">Activity Records</span>
           </div>

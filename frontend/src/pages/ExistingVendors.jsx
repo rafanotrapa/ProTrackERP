@@ -33,7 +33,6 @@ const ExistingVendors = () => {
     return new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = vendors.filter((v) => {
     const term = searchTerm.toLowerCase();
     return (
@@ -80,7 +79,6 @@ const ExistingVendors = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Search & Action */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="relative w-full md:w-72">
             <input
@@ -101,7 +99,6 @@ const ExistingVendors = () => {
           </button>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <Building2 size={48} className="text-slate-300 mx-auto" />

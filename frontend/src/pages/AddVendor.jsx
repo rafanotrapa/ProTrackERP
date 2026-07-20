@@ -21,20 +21,20 @@ const VENDOR_CATEGORIES = [
 const AddVendor = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [projects, setProjects] = useState([]); 
-  const [existingVendors, setExistingVendors] = useState([]); 
+  const [projects, setProjects] = useState([]);
+  const [existingVendors, setExistingVendors] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
         const headers = { Authorization: `Bearer ${token}` };
-        
+
         const [resProj, resVend] = await Promise.all([
           axios.get('http://localhost:5000/api/project', { headers }),
           axios.get('http://localhost:5000/api/vendor', { headers })
         ]);
-        
+
         setProjects(resProj.data);
         setExistingVendors(resVend.data);
       } catch (err) {
@@ -53,19 +53,19 @@ const AddVendor = () => {
 
   const [formData, setFormData] = useState({
     vendorId: generateVendorID(),
-    projectId: '', 
+    projectId: '',
     vendorName: '',
     companyType: 'PT',
     contactPerson: '',
     email: '',
     phone: '',
     address: '',
-    category: 'Software Development' // <-- Default disesuaikan dengan list pertama
+    category: 'Software Development'
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'phone') {
       const onlyNums = value.replace(/[^0-9]/g, '');
       if (onlyNums.length <= 15) {
@@ -73,7 +73,7 @@ const AddVendor = () => {
       }
       return;
     }
-    
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -82,10 +82,10 @@ const AddVendor = () => {
     if (!formData.projectId) return Swal.fire('Warning', 'Pilih Project Target terlebih dahulu!', 'warning');
 
     const selectedProj = projects.find(p => p.projectId === formData.projectId);
-    
+
     if (selectedProj && selectedProj.quotationMode === 'auto') {
       const linkedVendorsCount = existingVendors.filter(v => v.projectId === formData.projectId).length;
-      
+
       if (linkedVendorsCount >= 1) {
         return Swal.fire({
           icon: 'error',
@@ -106,7 +106,7 @@ const AddVendor = () => {
         icon: 'success',
         title: 'REGISTERED',
         text: `Vendor ${formData.vendorName} successfully registered to the system.`,
-        confirmButtonColor: '#0f172a' 
+        confirmButtonColor: '#0f172a'
       });
       navigate('/existing-vendors');
     } catch (err) {
@@ -134,12 +134,12 @@ const AddVendor = () => {
 
       <main className="flex-1 p-8 md:p-12 lg:p-16">
         <form onSubmit={handleSubmit} className="max-w-none w-full space-y-12">
-          
+
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 01. Company Profile & Target
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Vendor ID</label>
@@ -207,8 +207,8 @@ const AddVendor = () => {
           </div>
 
           <div className="flex justify-end pt-10 border-t border-slate-100">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className={`px-12 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
                 loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'

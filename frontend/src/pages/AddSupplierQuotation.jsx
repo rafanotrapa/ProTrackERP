@@ -10,12 +10,12 @@ import StyledSelect from '../components/StyledSelect';
 const AddSupplierQuotation = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  
+
   const [projects, setProjects] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [items, setItems] = useState([]);
 
-  const [openDropdown, setOpenDropdown] = useState(null); 
+  const [openDropdown, setOpenDropdown] = useState(null);
   const [searchTerms, setSearchTerms] = useState({ project: '' });
   const dropdownRef = useRef(null);
 
@@ -35,16 +35,16 @@ const AddSupplierQuotation = () => {
   const [formData, setFormData] = useState({
     quotationId: generateSQID(),
     projectId: '',
-    vendorId: '', 
+    vendorId: '',
     currency: 'IDR',
     topOption: 'Termin 30 Days',
     customTop: '',
-    additionalFee: '', 
-    additionalFeeRemarks: '', 
-    isTaxIncluded: false, 
-    taxAmount: '', 
+    additionalFee: '',
+    additionalFeeRemarks: '',
+    isTaxIncluded: false,
+    taxAmount: '',
     remarks: '',
-    document: null 
+    document: null
   });
 
   const [quotationItems, setQuotationItems] = useState([
@@ -71,9 +71,9 @@ const AddSupplierQuotation = () => {
     const addFee = Number(formData.additionalFee) || 0;
     const taxNominal = calculateTaxNominal();
     const grandTotal = subTotal + addFee + taxNominal;
-    
+
     if (subTotal === 0 || quotationItems.length === 0) return [];
-    
+
     return quotationItems.map(item => {
       const itemSubtotal = (item.cogs || 0) * (item.quantity || 1);
       const proportion = itemSubtotal / subTotal;
@@ -113,20 +113,17 @@ const AddSupplierQuotation = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredProjects = useMemo(() => 
+  const filteredProjects = useMemo(() =>
     projects.filter(p => `${p.projectId || ''} ${p.projectName || ''}`.toLowerCase().includes((searchTerms.project || '').toLowerCase())),
   [projects, searchTerms.project]);
 
-  // --- LOGIKA SINGLE vs MULTI SUPPLIER ---
   const handleProjectSelect = (pId) => {
     const selectedProj = projects.find(p => p.projectId === pId);
-    const projMode = selectedProj?.quotationMode || 'auto'; 
-    
-    // Tarik semua vendor yang terikat dengan project ini (TANPA cek approvalStatus)
+    const projMode = selectedProj?.quotationMode || 'auto';
+
     const linkedVendors = vendors.filter(v => v.projectId === pId);
 
     if (projMode === 'auto') {
-      // SINGLE SUPPLIER: Auto-fill vendor
       setFormData(prev => ({
         ...prev,
         projectId: pId,
@@ -142,11 +139,10 @@ const AddSupplierQuotation = () => {
         });
       }
     } else {
-      // MULTI SUPPLIER: Kosongkan vendorId agar user milih dari dropdown
       setFormData(prev => ({
         ...prev,
         projectId: pId,
-        vendorId: '' 
+        vendorId: ''
       }));
     }
 
@@ -171,7 +167,7 @@ const AddSupplierQuotation = () => {
     } else {
       updatedItems[index][name] = value;
     }
-    
+
     setQuotationItems(updatedItems);
   };
 
@@ -191,7 +187,7 @@ const AddSupplierQuotation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.projectId || !formData.vendorId) {
        return Swal.fire('Warning', 'Project dan Vendor harus lengkap!', 'warning');
     }
@@ -211,7 +207,7 @@ const AddSupplierQuotation = () => {
             data.append(key, formData[key]);
         }
     });
-    
+
     data.append('additionalFee', formData.additionalFee || 0);
     data.append('taxAmount', formData.taxAmount || 0);
     data.append('isTaxIncluded', formData.isTaxIncluded);
@@ -226,7 +222,7 @@ const AddSupplierQuotation = () => {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       Swal.fire({ icon: 'success', title: 'SAVED', text: 'Quotation recorded. Database updated.', confirmButtonColor: '#0f172a' });
-      navigate('/supplier-quotation-menu'); 
+      navigate('/supplier-quotation-menu');
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || "Gagal simpan quotation!" });
     } finally { setLoading(false); }
@@ -235,7 +231,6 @@ const AddSupplierQuotation = () => {
   const hasAdditionalFee = Number(formData.additionalFee) > 0;
   const hasTax = formData.isTaxIncluded && Number(formData.taxAmount) > 0;
 
-  // Cek Status Project Mode
   const selectedProjObj = projects.find(p => p.projectId === formData.projectId);
   const isManualMode = selectedProjObj?.quotationMode === 'manual';
   const linkedVendorsToProject = vendors.filter(v => v.projectId === formData.projectId);
@@ -256,7 +251,7 @@ const AddSupplierQuotation = () => {
 
       <main className="flex-1 p-8 md:p-12 lg:p-16" ref={dropdownRef}>
         <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-12">
-          
+
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
             <p className="text-[9px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-2">
               <Info size={12}/>
@@ -267,7 +262,7 @@ const AddSupplierQuotation = () => {
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Source Identity</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              
+
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">SQ ID</label>
                 <input type="text" readOnly value={formData.quotationId} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-indigo-600 font-bold outline-none" />
@@ -308,7 +303,6 @@ const AddSupplierQuotation = () => {
                 />
               </div>
 
-              {/* RENDER VENDOR INPUT BERDASARKAN MODE PROJECT */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">
                   {isManualMode ? 'Select Supplier (Multi)' : 'Auto-Mapped Supplier'}
@@ -324,8 +318,8 @@ const AddSupplierQuotation = () => {
                 ) : (
                   <div className="w-full p-3.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-500 shadow-inner cursor-not-allowed flex items-center">
                     <span className="truncate">
-                      {formData.vendorId 
-                        ? vendors.find(v => v.vendorId === formData.vendorId)?.vendorName || formData.vendorId 
+                      {formData.vendorId
+                        ? vendors.find(v => v.vendorId === formData.vendorId)?.vendorName || formData.vendorId
                         : '-- Auto Fill from Project --'}
                     </span>
                   </div>
@@ -337,7 +331,7 @@ const AddSupplierQuotation = () => {
 
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Goods & Commercials</h3>
-            
+
             <div className="space-y-4">
               {quotationItems.map((item, index) => (
                 <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 bg-slate-50 border border-slate-200 rounded-2xl items-end relative transition-all hover:border-indigo-300">
@@ -384,28 +378,28 @@ const AddSupplierQuotation = () => {
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Subtotal (Item)</span>
                 <span className="text-sm font-bold text-slate-600">{formData.currency} {formatRupiah(calculateSubTotal())}</span>
               </div>
-              
+
               <div className="flex flex-col md:flex-row justify-between items-end md:items-center w-full md:w-2/3 lg:w-1/2 gap-3">
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     id="ppnCheckbox"
-                    checked={formData.isTaxIncluded} 
-                    onChange={(e) => setFormData({ ...formData, isTaxIncluded: e.target.checked, taxAmount: e.target.checked ? formData.taxAmount : '' })} 
+                    checked={formData.isTaxIncluded}
+                    onChange={(e) => setFormData({ ...formData, isTaxIncluded: e.target.checked, taxAmount: e.target.checked ? formData.taxAmount : '' })}
                     className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-600 cursor-pointer"
                   />
                   <label htmlFor="ppnCheckbox" className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic cursor-pointer flex items-center gap-1">
                     <Receipt size={12}/> Include Tax
                   </label>
                 </div>
-                
+
                 <div className="flex items-center gap-3 w-full md:w-1/2 justify-end">
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     disabled={!formData.isTaxIncluded}
-                    value={formatRupiah(formData.taxAmount)} 
-                    onChange={(e) => setFormData({...formData, taxAmount: e.target.value.replace(/[^0-9]/g, '')})} 
-                    placeholder="Nominal Tax" 
+                    value={formatRupiah(formData.taxAmount)}
+                    onChange={(e) => setFormData({...formData, taxAmount: e.target.value.replace(/[^0-9]/g, '')})}
+                    placeholder="Nominal Tax"
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-indigo-600 outline-none focus:border-indigo-600 text-right shadow-inner transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
@@ -416,19 +410,19 @@ const AddSupplierQuotation = () => {
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic mb-1 flex items-center gap-1">
                     <Truck size={12}/> Additional Fee <span className="text-slate-300 font-medium normal-case">(Opsional)</span>
                   </span>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={formData.additionalFeeRemarks}
                     onChange={(e) => setFormData({...formData, additionalFeeRemarks: e.target.value})}
                     placeholder="Keterangan (ex: Ongkir)"
                     className="p-2.5 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 outline-none focus:border-indigo-600 transition-all"
                   />
                 </div>
-                <input 
-                  type="text" 
-                  value={formatRupiah(formData.additionalFee)} 
-                  onChange={(e) => setFormData({...formData, additionalFee: e.target.value.replace(/[^0-9]/g, '')})} 
-                  placeholder="Nominal Fee" 
+                <input
+                  type="text"
+                  value={formatRupiah(formData.additionalFee)}
+                  onChange={(e) => setFormData({...formData, additionalFee: e.target.value.replace(/[^0-9]/g, '')})}
+                  placeholder="Nominal Fee"
                   className="w-full md:w-1/2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-bold text-indigo-600 outline-none focus:border-indigo-600 text-right shadow-inner transition-all"
                 />
               </div>
@@ -463,13 +457,13 @@ const AddSupplierQuotation = () => {
                 </p>
               </div>
             )}
-            
+
           </div>
 
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 03. Documentation & Terms</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              
+
               <div className="space-y-6">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Term of Payment (TOP) <span className="text-red-500">*</span></label>
@@ -499,7 +493,7 @@ const AddSupplierQuotation = () => {
                     )}
                   </div>
                 </div>
-                
+
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Quotation File (PDF/IMG)</label>
                   <div className="relative group">

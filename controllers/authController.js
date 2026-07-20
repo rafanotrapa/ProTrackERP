@@ -5,11 +5,6 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 
-// ============================================================
-// KONFIGURASI NODEMAILER
-// ============================================================
-// Kredensial email diambil sepenuhnya dari .env (EMAIL_HOST/PORT/USER/PASS)
-// — tidak lagi hardcoded di source code.
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: process.env.EMAIL_PORT,
@@ -19,9 +14,6 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// ============================================================
-// HELPER: RESET LOGIN ATTEMPTS
-// ============================================================
 const resetLoginAttempts = async (userId) => {
   await User.findByIdAndUpdate(userId, {
     loginAttempts: 0,
@@ -30,9 +22,6 @@ const resetLoginAttempts = async (userId) => {
   });
 };
 
-// ============================================================
-// 1. REGISTER (Admin Adds Employee)
-// ============================================================
 exports.register = async (req, res) => {
   try {
     const { username, email, password, role } = req.body;
@@ -47,7 +36,7 @@ exports.register = async (req, res) => {
 
     try {
         await Log.create({
-          user: req.user ? req.user.username : 'Admin', 
+          user: req.user ? req.user.username : 'Admin',
           action: `REGISTERED NEW EMPLOYEE: ${username} (${role})`,
           category: 'ACCOUNT',
           type: 'CREATE'
@@ -63,21 +52,18 @@ exports.register = async (req, res) => {
   }
 };
 
-// ============================================================
-// 2. LOGIN
-// ============================================================
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    
+
     if (!user) {
       return res.status(401).json({ msg: 'Email atau password salah!' });
     }
 
     if (user.isLocked && user.lockedUntil > Date.now()) {
       const remainingMinutes = Math.ceil((user.lockedUntil - Date.now()) / 60000);
-      return res.status(423).json({ 
+      return res.status(423).json({
         msg: `Akun Anda telah diblokir. Silakan hubungi Admin untuk membuka blokir.`,
         isLocked: true,
         remainingMinutes
@@ -91,35 +77,35 @@ exports.login = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    
+
     if (!isMatch) {
       user.loginAttempts = (user.loginAttempts || 0) + 1;
       user.lastLoginAttempt = new Date();
-      
+
       const remainingAttempts = 3 - user.loginAttempts;
-      
+
       if (user.loginAttempts >= 3) {
         user.isLocked = true;
-        user.lockedUntil = new Date(Date.now() + 30 * 60 * 1000); 
+        user.lockedUntil = new Date(Date.now() + 30 * 60 * 1000);
         await user.save();
-        
+
         await Log.create({
           user: user.username,
           action: `ACCOUNT LOCKED - 3 failed login attempts`,
           category: 'ACCOUNT',
           type: 'SECURITY'
         });
-        
-        return res.status(423).json({ 
+
+        return res.status(423).json({
           msg: `Akun Anda telah diblokir karena 3 kali gagal login. Silakan hubungi Admin untuk membuka blokir.`,
           isLocked: true,
           remainingAttempts: 0
         });
       }
-      
+
       await user.save();
-      
-      return res.status(401).json({ 
+
+      return res.status(401).json({
         msg: `Password salah! ${remainingAttempts} kesempatan lagi sebelum akun diblokir.`,
         remainingAttempts
       });
@@ -149,9 +135,6 @@ exports.login = async (req, res) => {
   }
 };
 
-// ============================================================
-// 3. GET ALL USERS
-// ============================================================
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find().select('-password').sort({ created_at: -1 });
@@ -162,9 +145,6 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// ============================================================
-// 4. DELETE USER (Revoke Access)
-// ============================================================
 exports.deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -179,7 +159,7 @@ exports.deleteUser = async (req, res) => {
 
     try {
         await Log.create({
-          user: req.user.username, 
+          user: req.user.username,
           action: `REVOKED ACCESS / DELETED ACCOUNT: ${deletedUsername}`,
           category: 'ACCOUNT',
           type: 'DELETE'
@@ -195,9 +175,6 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// ============================================================
-// 5. ADMIN FORCE RESET PASSWORD (Override) + UNLOCK ACCOUNT
-// ============================================================
 exports.adminResetPassword = async (req, res) => {
   try {
     const { password } = req.body;
@@ -231,9 +208,6 @@ exports.adminResetPassword = async (req, res) => {
   }
 };
 
-// ============================================================
-// 6. ADMIN UNLOCK ACCOUNT (tanpa reset password)
-// ============================================================
 exports.adminUnlockAccount = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -248,7 +222,7 @@ exports.adminUnlockAccount = async (req, res) => {
 
     try {
       await Log.create({
-        user: req.user.username, 
+        user: req.user.username,
         action: `UNLOCKED ACCOUNT FOR: ${user.username}`,
         category: 'ACCOUNT',
         type: 'SECURITY'
@@ -264,22 +238,19 @@ exports.adminUnlockAccount = async (req, res) => {
   }
 };
 
-// ============================================================
-// 7. FORGOT PASSWORD - Kirim email reset link
-// ============================================================
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(200).json({ 
-        msg: 'Jika email terdaftar, kami akan kirimkan link reset password.' 
+      return res.status(200).json({
+        msg: 'Jika email terdaftar, kami akan kirimkan link reset password.'
       });
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
-    
+
     const hashedToken = crypto
       .createHash('sha256')
       .update(resetToken)
@@ -303,26 +274,26 @@ exports.forgotPassword = async (req, res) => {
             </div>
             <h2 style="color: #1e293b; margin: 0;">ProTrack ERP</h2>
           </div>
-          
+
           <h3 style="color: #1e293b;">Halo ${user.username},</h3>
           <p style="color: #475569; line-height: 1.6;">
-            Kami menerima permintaan untuk mereset password akun ProTrack Anda. 
+            Kami menerima permintaan untuk mereset password akun ProTrack Anda.
             Klik tombol di bawah untuk melanjutkan:
           </p>
-          
+
           <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetUrl}" 
-               style="background-color: #4f46e5; color: white; padding: 12px 24px; 
-                      text-decoration: none; border-radius: 12px; font-weight: bold; 
+            <a href="${resetUrl}"
+               style="background-color: #4f46e5; color: white; padding: 12px 24px;
+                      text-decoration: none; border-radius: 12px; font-weight: bold;
                       display: inline-block;">
               🔐 Reset Password Sekarang
             </a>
           </div>
-          
+
           <p style="color: #475569; font-size: 12px; margin-top: 20px;">
             Link ini akan kadaluarsa dalam <strong>10 menit</strong>.
           </p>
-          
+
           <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
           <p style="color: #94a3b8; font-size: 10px; text-align: center;">
             &copy; 2026 ProTrack ERP
@@ -340,8 +311,8 @@ exports.forgotPassword = async (req, res) => {
       type: 'SECURITY'
     });
 
-    res.status(200).json({ 
-      msg: 'Jika email terdaftar, kami akan kirimkan link reset password.' 
+    res.status(200).json({
+      msg: 'Jika email terdaftar, kami akan kirimkan link reset password.'
     });
 
   } catch (err) {
@@ -350,9 +321,6 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// ============================================================
-// 8. RESET PASSWORD
-// ============================================================
 exports.resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
@@ -369,8 +337,8 @@ exports.resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ 
-        msg: 'Token tidak valid atau sudah kadaluarsa.' 
+      return res.status(400).json({
+        msg: 'Token tidak valid atau sudah kadaluarsa.'
       });
     }
 
@@ -392,8 +360,8 @@ exports.resetPassword = async (req, res) => {
       type: 'SECURITY'
     });
 
-    res.status(200).json({ 
-      msg: 'Password berhasil direset! Silakan login dengan password baru Anda.' 
+    res.status(200).json({
+      msg: 'Password berhasil direset! Silakan login dengan password baru Anda.'
     });
 
   } catch (err) {

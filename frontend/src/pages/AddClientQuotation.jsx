@@ -9,9 +9,6 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
-// ─────────────────────────────────────────────────────────────
-//  HELPERS
-// ─────────────────────────────────────────────────────────────
 const formatRupiah = (value) => {
   if (!value && value !== 0) return '';
   const numberString = value.toString().replace(/[^0-9]/g, '');
@@ -21,13 +18,9 @@ const formatRupiah = (value) => {
 
 const stripNonNumeric = (str) => str.toString().replace(/[^0-9]/g, '');
 
-// ─────────────────────────────────────────────────────────────
-//  KOMPONEN UTAMA
-// ─────────────────────────────────────────────────────────────
 const AddClientQuotation = () => {
   const navigate = useNavigate();
 
-  
   const [projects, setProjects]           = useState([]);
   const [loading, setLoading]             = useState(false);
   const [fetching, setFetching]           = useState(false);
@@ -35,10 +28,8 @@ const AddClientQuotation = () => {
   const [quotationMode, setQuotationMode] = useState('auto');
   const [manualItems, setManualItems]     = useState([]);
   const [shippingFee, setShippingFee]     = useState(0);
-  const [terminRows, setTerminRows]       = useState([50, 50]); // builder termin (N tahap)
+  const [terminRows, setTerminRows]       = useState([50, 50]);
 
-  // ── Builder termin (2x–6x). 2 baris → "DP X%" (label DP/Pelunasan, perilaku
-  //    lama); 3+ baris → "Termin a% b% c% ...". Total wajib 100%. ──
   const composeTermin = (rows) =>
     rows.length === 2
       ? `DP ${rows[0] || 0}%`
@@ -55,10 +46,8 @@ const AddClientQuotation = () => {
   const addTerminRow = () => { if (terminRows.length < 6) applyTermin([...terminRows, 0]); };
   const removeTerminRow = (idx) => { if (terminRows.length > 2) applyTermin(terminRows.filter((_, i) => i !== idx)); };
 
-  
   const [taxAmount, setTaxAmount]         = useState(0);
 
-  
   const [formData, setFormData] = useState({
     quotationId:    `CQ-${Date.now()}`,
     projectId:      '',
@@ -76,21 +65,17 @@ const AddClientQuotation = () => {
     approvalStatus: 'Draft',
   });
 
-  
   const lastProjectIdRef = useRef(null);
   const isFetchingRef    = useRef(false);
-
 
   const activeItems = quotationMode === 'auto' ? formData.items : manualItems;
   const subtotal    = activeItems.reduce(
     (sum, item) => sum + (Number(item.quantity) || 0) * (Number(item.salesPrice) || 0), 0
   );
-  
+
   const grandTotal  = subtotal + (Number(shippingFee) || 0) + (Number(taxAmount) || 0);
 
-  
   const isPPN = Number(taxAmount) > 0;
-
 
   useEffect(() => {
     const fetchProjectsList = async () => {
@@ -107,9 +92,6 @@ const AddClientQuotation = () => {
     fetchProjectsList();
   }, []);
 
-  // ─────────────────────────────────────────────────────────
-  //  MAIN EFFECT — fetch data saat projectId berubah
-  // ─────────────────────────────────────────────────────────
   useEffect(() => {
     const projectId = formData.projectId;
     if (!projectId) return;
@@ -190,12 +172,8 @@ const AddClientQuotation = () => {
     };
 
     fetchAllDetails();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.projectId]);
 
-  // ─────────────────────────────────────────────────────────
-  //  LOAD DRAFT
-  // ─────────────────────────────────────────────────────────
   const loadDraftSilently = async (projectId, mode) => {
     if (!projectId) return;
     setLoadingDraft(true);
@@ -236,7 +214,6 @@ const AddClientQuotation = () => {
         }
 
         if (draft.shippingFee !== undefined) setShippingFee(draft.shippingFee);
-        // Load taxAmount sebagai nominal
         if (draft.taxAmount   !== undefined) setTaxAmount(draft.taxAmount);
 
         Swal.fire({
@@ -248,15 +225,11 @@ const AddClientQuotation = () => {
         });
       }
     } catch {
-      // Tidak ada draft — normal
     } finally {
       setLoadingDraft(false);
     }
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  VALIDASI FORM
-  // ─────────────────────────────────────────────────────────
   const isFormComplete = useCallback(() => {
     if (!formData.projectId) return false;
     if (!formData.topOption)  return false;
@@ -283,9 +256,6 @@ const AddClientQuotation = () => {
     isPPN,
   ]);
 
-  // ─────────────────────────────────────────────────────────
-  //  CRUD MANUAL ITEMS
-  // ─────────────────────────────────────────────────────────
   const addManualItem = () => {
     setManualItems((prev) => [
       ...prev,
@@ -310,9 +280,6 @@ const AddClientQuotation = () => {
     setManualItems((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  SALES PRICE (AUTO MODE)
-  // ─────────────────────────────────────────────────────────
   const handleSalesPriceChange = (index, value) => {
     const raw = stripNonNumeric(value);
     setFormData((prev) => {
@@ -323,13 +290,9 @@ const AddClientQuotation = () => {
     });
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  HANDLE FORM CHANGE GENERIK
-  // ─────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (name === 'topOption') {
-      // Saat pilih "Termin", langsung komposisi customTop dari baris termin.
       const custom = value === 'Termin' ? composeTermin(terminRows) : '';
       setFormData((prev) => ({ ...prev, topOption: value, customTop: custom }));
       return;
@@ -337,9 +300,6 @@ const AddClientQuotation = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  HANDLE TAX CHANGE — nominal langsung
-  // ─────────────────────────────────────────────────────────
   const handleTaxChange = (e) => {
     const raw = stripNonNumeric(e.target.value);
     const val = raw ? Number(raw) : 0;
@@ -349,9 +309,6 @@ const AddClientQuotation = () => {
     }
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  HANDLE PROJECT SELECT
-  // ─────────────────────────────────────────────────────────
   const handleProjectChange = (e) => {
     const newProjectId = e.target.value;
     if (newProjectId !== formData.projectId) {
@@ -376,9 +333,6 @@ const AddClientQuotation = () => {
     setQuotationMode('auto');
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  BUILD PAYLOAD
-  // ─────────────────────────────────────────────────────────
   const buildPayload = (status) => {
     const finalTop   = formData.topOption === 'Termin' ? formData.customTop : formData.topOption;
     const itemsToUse = quotationMode === 'auto' ? formData.items : manualItems;
@@ -397,15 +351,12 @@ const AddClientQuotation = () => {
       approvalStatus: status,
       quotationMode,
       shippingFee,
-      taxPercentage:  0,          // tidak lagi dipakai, dikirim 0
+      taxPercentage:  0,
       taxAmount:      Number(taxAmount) || 0,
-      clientPrice:    subtotal,   // simpan subtotal sebagai clientPrice
+      clientPrice:    subtotal,
     };
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  SAVE DRAFT
-  // ─────────────────────────────────────────────────────────
   const handleSaveDraft = async () => {
     if (!formData.projectId) {
       Swal.fire({ icon: 'warning', title: 'Pilih Project', text: 'Silakan pilih project terlebih dahulu!' });
@@ -455,10 +406,6 @@ const AddClientQuotation = () => {
     }
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  GENERATE PDF — bisa dipanggil kapan saja
-  //  isDraft: jika true → watermark DRAFT; jika false → clean PDF
-  // ─────────────────────────────────────────────────────────
   const generatePDF = (forceFinal = false) => {
     const currentItems = quotationMode === 'auto' ? formData.items : manualItems;
 
@@ -474,12 +421,10 @@ const AddClientQuotation = () => {
 
     try {
       const doc      = new jsPDF();
-      // forceFinal = true → tidak ada watermark/catatan draft sama sekali
       const isDraft  = !forceFinal && formData.approvalStatus !== 'Approved';
       const taxVal   = Number(taxAmount) || 0;
       const grandPDF = subtotal + (Number(shippingFee) || 0) + taxVal;
 
-      // ── Header ──────────────────────────────────────────
       try {
         doc.addImage('/header-batavia.png', 'PNG', 0, 0, 210, 40);
       } catch {
@@ -492,7 +437,6 @@ const AddClientQuotation = () => {
         doc.setTextColor(0, 0, 0);
       }
 
-      // ── Draft watermark (hanya jika bukan forceFinal) ───
       if (isDraft) {
         doc.saveGraphicsState();
         doc.setGState(new doc.GState({ opacity: 0.07 }));
@@ -504,7 +448,6 @@ const AddClientQuotation = () => {
         doc.setTextColor(0, 0, 0);
       }
 
-      // ── Judul ──────────────────────────────────────────
       doc.setFontSize(26);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(15, 23, 42);
@@ -534,7 +477,6 @@ const AddClientQuotation = () => {
       doc.text('Project ID',  120, infoY + 12);
       doc.text(`: ${formData.projectId || '-'}`, 150, infoY + 12);
 
-      // Status hanya ditampilkan jika bukan forceFinal
       if (!forceFinal) {
         doc.text('Status', 120, infoY + 18);
         doc.setFont('helvetica', 'bold');
@@ -543,7 +485,6 @@ const AddClientQuotation = () => {
         doc.setTextColor(0, 0, 0);
       }
 
-      // ── Tabel ──────────────────────────────────────────
       const tableStartY = forceFinal ? infoY + 22 : infoY + 28;
       const tableRows = currentItems.map((item) => [
         item.quantity || 0,
@@ -558,7 +499,7 @@ const AddClientQuotation = () => {
         head:       [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Line Total (IDR)']],
         body:       tableRows,
         theme:      'plain',
-        margin:     { left: 7.5 }, // tabel 195mm di halaman 210mm → center
+        margin:     { left: 7.5 },
         headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
         styles:     { fontSize: 9, cellPadding: 4 },
         columnStyles: {
@@ -576,7 +517,6 @@ const AddClientQuotation = () => {
         },
       });
 
-      // ── Totals ─────────────────────────────────────────
       const finalY   = doc.lastAutoTable.finalY + 15;
       let   currentY = finalY;
 
@@ -604,7 +544,6 @@ const AddClientQuotation = () => {
       doc.text('GRAND TOTAL', 130, currentY);
       doc.text(`Rp ${grandPDF.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
 
-      // ── Footer ─────────────────────────────────────────
       doc.setTextColor(0);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
@@ -631,7 +570,6 @@ const AddClientQuotation = () => {
         doc.text(splitRemarks, 14, currentY + remarkOffsetY + 7);
       }
 
-      // ── Stempel ────────────────────────────────────────
       const stampY = currentY + (formData.remarks ? remarkOffsetY + 20 : remarkOffsetY + 10);
       try {
         doc.addImage('/stample-batavia.png', 'PNG', 140, stampY, 55, 55);
@@ -652,9 +590,6 @@ const AddClientQuotation = () => {
     }
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  SUBMIT FOR APPROVAL
-  // ─────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -695,7 +630,6 @@ const AddClientQuotation = () => {
         );
       }
 
-      // ── Alert custom setelah submit berhasil ─────────
       await Swal.fire({
         title:              '<span style="font-family:sans-serif;font-weight:900;font-size:18px;color:#0f172a;text-transform:uppercase;letter-spacing:0.05em;">Quotation Submitted!</span>',
         html: `
@@ -725,7 +659,6 @@ const AddClientQuotation = () => {
         allowOutsideClick: false,
       }).then((result) => {
         if (result.isConfirmed) {
-          // Download PDF clean (forceFinal = true, tanpa watermark / status apapun)
           generatePDF(true);
           navigate('/dashboard');
         } else {
@@ -741,16 +674,12 @@ const AddClientQuotation = () => {
     }
   };
 
-  // ─────────────────────────────────────────────────────────
-  //  RENDER
-  // ─────────────────────────────────────────────────────────
   const hasItems = quotationMode === 'auto' ? formData.items.length > 0 : manualItems.length > 0;
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
 
-      {/* Page Header */}
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6">
         <button
           onClick={() => navigate('/dashboard')}
@@ -771,7 +700,6 @@ const AddClientQuotation = () => {
       <main className="flex-1 p-8 md:p-12">
         <form onSubmit={handleSubmit} className="max-w-6xl space-y-10">
 
-          {/* Mode Banner */}
           {quotationMode === 'manual' && (
             <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4">
               <p className="text-[9px] font-black text-purple-700 uppercase tracking-widest flex items-center gap-2">
@@ -790,7 +718,6 @@ const AddClientQuotation = () => {
             </div>
           )}
 
-          {/* ── SECTION 1: PROJECT SOURCE ─────────────────── */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600" /> 01. Project Source
@@ -822,7 +749,6 @@ const AddClientQuotation = () => {
             </div>
           </div>
 
-          {/* ── SECTION 2: ITEMS & PRICING ────────────────── */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600" /> 02. Items & Pricing
@@ -874,7 +800,6 @@ const AddClientQuotation = () => {
                 </div>
               )
             ) : (
-              /* MANUAL MODE */
               <div className="space-y-4">
                 {manualItems.map((item) => (
                   <div key={item.id} className="grid grid-cols-12 gap-3 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-end">
@@ -955,13 +880,11 @@ const AddClientQuotation = () => {
               </div>
             )}
 
-            {/* ── Total Summary ── */}
             <div className="flex justify-end mt-6 pt-4 border-t border-slate-200">
               <div className="text-right w-80 space-y-2">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Subtotal</p>
                 <p className="text-2xl font-black text-slate-800">Rp {formatRupiah(subtotal)}</p>
 
-                {/* Shipping Fee */}
                 <div className="flex items-center justify-between gap-4 pt-2">
                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Shipping Fee</label>
                   <input
@@ -973,7 +896,6 @@ const AddClientQuotation = () => {
                   />
                 </div>
 
-                {/* Tax — input nominal langsung */}
                 <div className="flex items-center justify-between gap-4">
                   <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
                     Tax / PPN (Rp)
@@ -990,7 +912,6 @@ const AddClientQuotation = () => {
                   />
                 </div>
 
-                {/* PPN badge */}
                 {isPPN && (
                   <div className="flex justify-end">
                     <span className="text-[8px] font-black bg-orange-100 text-orange-600 border border-orange-200 rounded-full px-2 py-0.5 uppercase tracking-widest">
@@ -1015,13 +936,11 @@ const AddClientQuotation = () => {
             </div>
           </div>
 
-          {/* ── SECTION 3: TERMS & COMMERCIALS ───────────── */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600" /> 03. Terms & Commercials
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Currency */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Currency</label>
                 <StyledSelect
@@ -1038,7 +957,6 @@ const AddClientQuotation = () => {
                 />
               </div>
 
-              {/* TOP */}
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-amber-500 uppercase tracking-widest ml-1 italic">
                   Term of Payment (TOP) <span className="text-red-500">*</span>
@@ -1066,7 +984,6 @@ const AddClientQuotation = () => {
                   </div>
                 </div>
 
-                {/* BUILDER TERMIN — muncul saat pilih Termin. Dukung 2x–6x, wajib total 100% */}
                 {formData.topOption === 'Termin' && (
                   <div className="mt-3 p-4 border-2 border-amber-200 rounded-2xl bg-amber-50/40 space-y-2">
                     <div className="flex items-center justify-between">
@@ -1103,7 +1020,6 @@ const AddClientQuotation = () => {
               </div>
             </div>
 
-            {/* Rekening Bank — aktif hanya jika kena pajak */}
             <div className="space-y-1">
               <label className={`text-[10px] font-black uppercase tracking-widest ml-1 italic flex items-center gap-2 ${
                 isPPN ? 'text-orange-500' : 'text-slate-300'
@@ -1147,7 +1063,6 @@ const AddClientQuotation = () => {
             </div>
           </div>
 
-          {/* ── SECTION 4: ADDITIONAL NOTES ───────────────── */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600" /> 04. Additional Notes
@@ -1167,9 +1082,7 @@ const AddClientQuotation = () => {
             </div>
           </div>
 
-          {/* ── BUTTONS ───────────────────────────────────── */}
           <div className="flex justify-end gap-4 pt-8 border-t border-slate-100">
-            {/* Save Draft */}
             <button
               type="button"
               onClick={handleSaveDraft}
@@ -1183,7 +1096,6 @@ const AddClientQuotation = () => {
               💾 Save Draft
             </button>
 
-            {/* Download PDF (draft preview) */}
             <button
               type="button"
               onClick={() => generatePDF(false)}
@@ -1200,7 +1112,6 @@ const AddClientQuotation = () => {
               📄 Download PDF
             </button>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading || !isFormComplete()}
@@ -1214,7 +1125,6 @@ const AddClientQuotation = () => {
             </button>
           </div>
 
-          {/* INFO BANNER */}
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />

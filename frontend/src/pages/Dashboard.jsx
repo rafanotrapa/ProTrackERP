@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FolderPlus, FileText, Receipt, CreditCard, Calendar, 
-  Truck, Package, ClipboardCheck, FileCheck, 
+import {
+  FolderPlus, FileText, Receipt, CreditCard, Calendar,
+  Truck, Package, ClipboardCheck, FileCheck,
   Users, Logs, Award, Shield, DollarSign, BarChart3,
   ArrowRight, CircleDot, Layers, Briefcase, Sparkles, TrendingUp, Boxes
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// ── UI labels per bahasa (istilah teknis: invoice, quotation, PO, dll. tetap Inggris) ──
 const UI_TEXT = {
   id: {
     quickAccess: 'Akses Cepat',
@@ -46,7 +45,6 @@ const Dashboard = () => {
   };
   const t = UI_TEXT[lang];
 
-  // desc = Indonesia (istilah teknis tetap Inggris), descEn = English
   const allModules = {
     Marketing: [
       { title: 'Project Center', icon: FolderPlus, desc: 'Tambah project baru & lihat log', descEn: 'Add new projects & view logs', path: '/project-center' },
@@ -79,7 +77,8 @@ const Dashboard = () => {
       { title: 'System Logs', icon: Logs, desc: 'Audit aktivitas sistem', descEn: 'Audit system activity', path: '/logs' }
     ],
     Owner: [
-      { title: 'Executive Summary', icon: Award, desc: 'Analisis profit & performa', descEn: 'Profit & performance analysis', path: '/owner-insight' }
+      { title: 'Financial Report', icon: BarChart3, desc: 'Laporan laba rugi & cash flow', descEn: 'Profit & loss reports', path: '/financial-report' },
+      { title: 'Project Timeline', icon: Calendar, desc: 'Pantau progress & milestone project', descEn: 'Monitor progress & milestones', path: '/timeline' }
     ],
     Management: [
       { title: 'Supplier Quotation Approval', icon: FileCheck, desc: 'Approve quotation dari supplier', descEn: 'Approve supplier quotations', path: '/quotation-approval' },
@@ -93,7 +92,7 @@ const Dashboard = () => {
   } else if (user.role === 'Management') {
     userModules = [...allModules.Management];
   } else if (user.role === 'Owner') {
-    userModules = [...allModules.Owner, ...allModules.Finance.filter(f => f.title === 'Financial Report')];
+    userModules = [...allModules.Owner];
   } else {
     userModules = allModules[user.role] || [];
   }
@@ -118,7 +117,7 @@ const Dashboard = () => {
       <main className="flex-1 px-6 md:px-10 py-8 max-w-7xl mx-auto w-full">
         <div className="relative mb-10 bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-100 overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-          
+
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -134,7 +133,6 @@ const Dashboard = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Toggle bahasa EN / ID */}
               <div className="flex items-center bg-slate-100 rounded-full p-1 border border-slate-200">
                 {['id', 'en'].map((l) => (
                   <button
@@ -167,11 +165,11 @@ const Dashboard = () => {
             <div className="flex-1 h-px bg-slate-200"></div>
             <span className="text-[8px] font-black text-slate-400">{userModules.length} {t.modules}</span>
           </div>
-          
+
           {userModules.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {userModules.map((mod, idx) => (
-                <div 
+                <div
                   key={`${mod.path}-${idx}`}
                   onClick={() => navigate(mod.path)}
                   className="group relative bg-white rounded-xl p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-slate-100"

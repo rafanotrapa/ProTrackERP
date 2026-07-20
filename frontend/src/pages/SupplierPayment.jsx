@@ -32,7 +32,6 @@ const SupplierPayment = () => {
   }, []);
 
   const handleConfirmPayment = async (id, invoiceNumber, vendorName) => {
-    // ── Step 1: upload bukti transfer ──
     const step1 = await Swal.fire({
       title: 'Upload Bukti Transfer',
       html: `
@@ -50,7 +49,6 @@ const SupplierPayment = () => {
     if (!step1.isConfirmed) return;
     const proofFile = step1.value;
 
-    // ── Step 2: konfirmasi ──
     const step2 = await Swal.fire({
       title: 'Confirm Payment?',
       html: `
@@ -103,7 +101,6 @@ const SupplierPayment = () => {
     return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black bg-amber-100 text-amber-600"><Clock size={12} /> PENDING</span>;
   };
 
-  // ── Filter ───────────────────────────────────────────────
   const filtered = payments.filter((p) => {
     const term = searchTerm.toLowerCase();
     const matchSearch =
@@ -157,7 +154,6 @@ const SupplierPayment = () => {
 
       <main className="flex-1 p-8 md:p-12">
 
-        {/* Filter pills & Search */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
@@ -190,7 +186,6 @@ const SupplierPayment = () => {
           </div>
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <CheckCircle size={48} className="text-emerald-300 mx-auto" />

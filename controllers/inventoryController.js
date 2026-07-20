@@ -2,10 +2,6 @@ const PurchaseOrder  = require('../models/PurchaseOrder');
 const Item           = require('../models/Item');
 const InventoryUsage = require('../models/InventoryUsage');
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Agregasi jumlah awal per item dari SEMUA Purchase Order.
-// Idempoten: dihitung ulang tiap request, jadi selalu sinkron dengan PO.
-// ─────────────────────────────────────────────────────────────────────────────
 const aggregatePOItems = () =>
   PurchaseOrder.aggregate([
     { $unwind: '$items' },
@@ -19,9 +15,6 @@ const aggregatePOItems = () =>
     { $sort: { _id: 1 } },
   ]);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GET /api/inventory — daftar stok gabungan (PO qty + terpakai → sisa)
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getInventory = async (req, res) => {
   try {
     const [poItems, masterItems, usages] = await Promise.all([
@@ -30,7 +23,6 @@ exports.getInventory = async (req, res) => {
       InventoryUsage.find(),
     ]);
 
-    // category ("jenis") diambil dari master Item bila cocok namanya
     const categoryByName = {};
     masterItems.forEach(it => { if (it.itemName) categoryByName[it.itemName.toLowerCase()] = it.category; });
 
@@ -58,16 +50,11 @@ exports.getInventory = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PATCH /api/inventory/use — set nilai "terpakai" (absolut) untuk satu item.
-// Guard: 0 <= usedQty <= initialQty (dihitung ulang dari PO).
-// ─────────────────────────────────────────────────────────────────────────────
 exports.updateUsage = async (req, res) => {
   try {
     const { itemName, usedQty } = req.body;
     if (!itemName) return res.status(400).json({ msg: 'itemName wajib diisi' });
 
-    // initialQty untuk item ini (dari semua PO)
     const agg = await PurchaseOrder.aggregate([
       { $unwind: '$items' },
       { $match: { 'items.itemName': itemName } },

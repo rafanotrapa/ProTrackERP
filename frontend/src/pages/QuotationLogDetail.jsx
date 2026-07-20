@@ -97,7 +97,7 @@ const QuotationLogDetail = () => {
   const handleUpdate = async () => {
     try {
       const token = localStorage.getItem('token');
-      
+
       const payload = {
         items: editItems,
         clientPrice: calculateSubtotal(),
@@ -107,26 +107,25 @@ const QuotationLogDetail = () => {
         taxPercentage: Number(editForm.taxPercentage),
         taxAmount: (calculateSubtotal() * Number(editForm.taxPercentage)) / 100
       };
-      
+
       await axios.patch(`http://localhost:5000/api/client_quotation/${id}/revision`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       Swal.fire({
         icon: 'success',
         title: 'Updated!',
         text: 'Quotation has been updated successfully',
         confirmButtonColor: '#0f172a'
       });
-      
+
       setIsEditing(false);
-      
-      // Refresh data
+
       const res = await axios.get(`http://localhost:5000/api/client_quotation/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setQuotation(res.data);
-      
+
     } catch (err) {
       Swal.fire({
         icon: 'error',
@@ -154,7 +153,7 @@ const QuotationLogDetail = () => {
         await axios.delete(`http://localhost:5000/api/client_quotation/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Deleted!',
@@ -162,7 +161,7 @@ const QuotationLogDetail = () => {
           confirmButtonColor: '#0f172a'
         });
         navigate('/quotation-log');
-        
+
       } catch (err) {
         Swal.fire({
           icon: 'error',
@@ -180,7 +179,6 @@ const QuotationLogDetail = () => {
   const taxAmount = (subtotal * taxPercentage) / 100;
   const grandTotal = calculateGrandTotal();
 
-  // Template sama dengan PDF di Create Quotation
   const handleDownloadPDF = () => {
     try {
       const doc = new jsPDF();
@@ -255,7 +253,7 @@ const QuotationLogDetail = () => {
         head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Line Total (IDR)']],
         body: tableRows,
         theme: 'plain',
-        margin: { left: 7.5 }, // tabel 195mm di halaman 210mm → center
+        margin: { left: 7.5 },
         headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
         styles: { fontSize: 9, cellPadding: 4 },
         columnStyles: {
@@ -370,10 +368,10 @@ const QuotationLogDetail = () => {
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
-      
+
       <div className="w-full border-b border-slate-100 px-8 py-8 flex flex-wrap items-center justify-between gap-4 bg-slate-50/30">
         <div className="flex items-center gap-6">
-          <button 
+          <button
             onClick={() => navigate('/quotation-log')}
             className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
           >
@@ -416,7 +414,7 @@ const QuotationLogDetail = () => {
       </div>
 
       <main className="flex-1 p-8 md:p-12">
-        
+
         <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
           {getStatusBadge(quotation.approvalStatus)}
           <div className="flex items-center gap-4 text-[9px] text-slate-500">
@@ -428,8 +426,7 @@ const QuotationLogDetail = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* LEFT COLUMN */}
+
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -473,7 +470,6 @@ const QuotationLogDetail = () => {
               </div>
             </div>
 
-            {/* Items Table with Edit Capability */}
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <div className="p-5 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                 <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
@@ -520,7 +516,6 @@ const QuotationLogDetail = () => {
               </div>
             </div>
 
-            {/* Remarks */}
             <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Remarks / Notes</p>
               {isEditing ? (
@@ -531,19 +526,18 @@ const QuotationLogDetail = () => {
             </div>
           </div>
 
-          {/* RIGHT COLUMN - SUMMARY */}
           <div className="space-y-6">
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl sticky top-24">
               <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">
                 Financial Summary
               </h3>
-              
+
               <div className="space-y-3">
                 <div className="flex justify-between py-2 border-b border-white/10">
                   <span className="text-[10px] font-bold text-slate-300">Subtotal</span>
                   <span className="font-black text-white">Rp {formatRupiah(subtotal)}</span>
                 </div>
-                
+
                 {isEditing ? (
                   <div className="flex justify-between py-2 border-b border-white/10">
                     <span className="text-[10px] font-bold text-slate-300 flex items-center gap-1"><Truck size={12} /> Shipping</span>
@@ -557,7 +551,7 @@ const QuotationLogDetail = () => {
                     </div>
                   )
                 )}
-                
+
                 {isEditing ? (
                   <div className="flex justify-between py-2 border-b border-white/10">
                     <span className="text-[10px] font-bold text-slate-300 flex items-center gap-1"><Receipt size={12} /> PPN %</span>
@@ -571,13 +565,13 @@ const QuotationLogDetail = () => {
                     </div>
                   )
                 )}
-                
+
                 <div className="flex justify-between py-3 mt-2 bg-indigo-500/20 -mx-3 px-3 rounded-xl">
                   <span className="text-[11px] font-black text-indigo-300 uppercase tracking-wider">GRAND TOTAL</span>
                   <span className="text-xl font-black text-indigo-300">Rp {formatRupiah(grandTotal)}</span>
                 </div>
               </div>
-              
+
               {quotation.approvalStatus === 'Approved' && !isEditing && (
                 <p className="text-[8px] text-slate-500 text-center mt-4 pt-3 border-t border-white/10">
                   ⚠️ Setelah edit, quotation akan berstatus Revised dan perlu approval ulang dari Management.
@@ -587,7 +581,7 @@ const QuotationLogDetail = () => {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

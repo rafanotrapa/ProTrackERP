@@ -8,9 +8,6 @@ import autoTable from 'jspdf-autotable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
-// ─────────────────────────────────────────────────────────────
-//  HELPERS
-// ─────────────────────────────────────────────────────────────
 const rp  = (v) => `Rp ${(Number(v) || 0).toLocaleString('id-ID')}`;
 const pct = (n, d) => d > 0 ? ((n / d) * 100).toFixed(1) + '%' : '—';
 const monthLabel = (k) => {
@@ -19,9 +16,6 @@ const monthLabel = (k) => {
   return new Date(+y, +m - 1).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
 };
 
-// ─────────────────────────────────────────────────────────────
-//  KPI CARD
-// ─────────────────────────────────────────────────────────────
 const KPI = ({ label, value, sub, tone = 'default' }) => {
   const tones = {
     default: 'bg-white border-slate-100 text-slate-900',
@@ -48,9 +42,6 @@ const KPI = ({ label, value, sub, tone = 'default' }) => {
   );
 };
 
-// ─────────────────────────────────────────────────────────────
-//  SECTION HEADER
-// ─────────────────────────────────────────────────────────────
 const SectionHead = ({ title, badge }) => (
   <div className="flex items-center justify-between mb-4">
     <div className="flex items-center gap-3">
@@ -65,9 +56,6 @@ const SectionHead = ({ title, badge }) => (
   </div>
 );
 
-// ─────────────────────────────────────────────────────────────
-//  PASS-THROUGH ROW
-// ─────────────────────────────────────────────────────────────
 const PTRow = ({ label, value }) => (
   <div className="flex justify-between items-center py-2.5 border-b border-dashed border-slate-100 last:border-0">
     <span className="text-[10px] text-slate-400 italic">{label}</span>
@@ -75,28 +63,6 @@ const PTRow = ({ label, value }) => (
   </div>
 );
 
-// ─────────────────────────────────────────────────────────────
-//  MAIN
-//
-//  ⚠️ FIX UTAMA: field name disesuaikan persis dengan response
-//  dari controllers/financialController.js (getProjectProfitability,
-//  getCashFlow, getReceivables, getMonthlyTrend).
-//
-//  Mapping field LAMA (salah) → BARU (sesuai controller):
-//    p.revenueItems     → p.clientRevenue
-//    p.revenueShipping  → p.clientShipping
-//    p.revenueTax       → p.clientTax
-//    p.grandTotal       → p.grandTotalBilled
-//    p.cogs             → p.supplierCOGS
-//    p.importDuty       → p.supplierImportDuty
-//    p.supplierTax      → p.supplierTaxPassThru
-//    p.cashIn           → p.cashReceived
-//    cashFlow.cashIn/cashOut (per entry) → cashFlow.entries[].amount
-//    trend.cashIn/cashOut → trend.revenue / trend.expense
-//
-//  Plus: otherExpenseTotal (biaya reimburse/meeting dari ExpenseSubmission)
-//  ditambahkan sebagai breakdown baru di Expense Detail.
-// ─────────────────────────────────────────────────────────────
 const FinancialReport = () => {
   const navigate = useNavigate();
 
@@ -135,7 +101,6 @@ const FinancialReport = () => {
     load();
   }, []);
 
-  // ── Derived totals — FIELD NAME SUDAH DISESUAIKAN KE CONTROLLER ──
   const totalRevenue     = projects.reduce((s, p) => s + (p.clientRevenue      || 0), 0);
   const totalShipping    = projects.reduce((s, p) => s + (p.clientShipping     || 0), 0);
   const totalClientTax   = projects.reduce((s, p) => s + (p.clientTax          || 0), 0);
@@ -150,7 +115,6 @@ const FinancialReport = () => {
   const totalOutstanding  = projects.reduce((s, p) => s + (p.outstanding        || 0), 0);
   const netMargin         = totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0;
 
-  // ── PDF ────────────────────────────────────────────────────
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16); doc.setFont('helvetica', 'bold');
@@ -218,15 +182,12 @@ const FinancialReport = () => {
     </div>
   );
 
-  // Monthly trend di controller pakai field: revenue, expense, netProfit
-  // (bukan cashIn/cashOut — itu untuk getCashFlow, bukan getMonthlyTrend)
   const maxTrend = Math.max(...trend.map(m => Math.max(m.revenue || 0, m.expense || 0)), 1);
 
   return (
     <div className="min-h-screen bg-[#f8f8f7] flex flex-col font-sans">
       <Header />
 
-      {/* ── Top Bar ──────────────────────────────────────── */}
       <div className="sticky top-0 z-20 bg-white border-b border-slate-100 shadow-sm px-6 md:px-10 py-4 flex items-center gap-4">
         <button
           onClick={() => navigate('/dashboard')}
@@ -252,15 +213,11 @@ const FinancialReport = () => {
 
       <main className="flex-1 px-6 md:px-10 py-8 space-y-10 w-full">
 
-        {/* ════════════════════════════════════════════════
-            SECTION 1 — P&L SUMMARY (angka utama)
-            ════════════════════════════════════════════════ */}
         <section>
           <SectionHead title="Ringkasan Laba Rugi" />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* P&L Statement */}
             <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-slate-900 text-white">
                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Income Statement</p>
@@ -270,7 +227,6 @@ const FinancialReport = () => {
               </div>
 
               <div className="px-6 py-5 space-y-0 divide-y divide-slate-50">
-                {/* Revenue */}
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Revenue Bisnis</p>
@@ -279,7 +235,6 @@ const FinancialReport = () => {
                   <p className="text-sm font-black text-emerald-600">{rp(totalRevenue)}</p>
                 </div>
 
-                {/* COGS */}
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Cost of Goods Sold (COGS)</p>
@@ -288,7 +243,6 @@ const FinancialReport = () => {
                   <p className="text-sm font-black text-rose-500">({rp(totalCOGS)})</p>
                 </div>
 
-                {/* Gross Profit */}
                 <div className="flex justify-between items-center py-3 bg-slate-50 -mx-6 px-6">
                   <p className="text-xs font-black text-slate-700">Gross Profit</p>
                   <p className="text-sm font-black text-slate-900">
@@ -299,7 +253,6 @@ const FinancialReport = () => {
                   </p>
                 </div>
 
-                {/* Bea Masuk */}
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Bea Masuk / Import Duty</p>
@@ -308,7 +261,6 @@ const FinancialReport = () => {
                   <p className="text-sm font-black text-amber-600">({rp(totalDuty)})</p>
                 </div>
 
-                {/* Biaya Lain — dari ExpenseSubmission */}
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Biaya Lain (Reimburse / Meeting / dll)</p>
@@ -317,13 +269,11 @@ const FinancialReport = () => {
                   <p className="text-sm font-black text-orange-600">({rp(totalOtherExpense)})</p>
                 </div>
 
-                {/* Total Expense */}
                 <div className="flex justify-between items-center py-3">
                   <p className="text-xs font-black text-slate-700">Total Expense</p>
                   <p className="text-sm font-black text-rose-600">({rp(totalExpense)})</p>
                 </div>
 
-                {/* Net Profit */}
                 <div className={`flex justify-between items-center py-4 -mx-6 px-6 border-t-2 border-slate-200 mt-1 ${
                   totalNetProfit >= 0 ? 'bg-emerald-50' : 'bg-rose-50'
                 }`}>
@@ -343,7 +293,6 @@ const FinancialReport = () => {
               </div>
             </div>
 
-            {/* Right: pass-throughs + cash status */}
             <div className="space-y-4">
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">
@@ -395,9 +344,6 @@ const FinancialReport = () => {
           </div>
         </section>
 
-        {/* ════════════════════════════════════════════════
-            SECTION 2 — KPI CARDS
-            ════════════════════════════════════════════════ */}
         <section>
           <SectionHead title="Indikator Kinerja" />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -428,9 +374,6 @@ const FinancialReport = () => {
           </div>
         </section>
 
-        {/* ════════════════════════════════════════════════
-            SECTION 3 — P&L PER PROJECT (table, expandable)
-            ════════════════════════════════════════════════ */}
         <section>
           <SectionHead title="P&L per Project" badge={`${projects.length} projects`} />
 
@@ -507,13 +450,11 @@ const FinancialReport = () => {
                           </td>
                         </tr>
 
-                        {/* Expanded row */}
                         {isOpen && (
                           <tr className="bg-slate-50/50">
                             <td colSpan={9} className="px-6 py-5">
                               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-                                {/* Revenue breakdown */}
                                 <div className="bg-white rounded-xl border border-slate-100 p-4">
                                   <p className="text-[8px] font-black uppercase tracking-widest text-emerald-600 mb-3">Revenue Detail</p>
                                   <div className="space-y-2">
@@ -535,7 +476,6 @@ const FinancialReport = () => {
                                   </div>
                                 </div>
 
-                                {/* Expense breakdown */}
                                 <div className="bg-white rounded-xl border border-slate-100 p-4">
                                   <p className="text-[8px] font-black uppercase tracking-widest text-rose-600 mb-3">Expense Detail</p>
                                   <div className="space-y-2">
@@ -558,7 +498,6 @@ const FinancialReport = () => {
                                   </div>
                                 </div>
 
-                                {/* Other expense breakdown detail — multi-item per submission */}
                                 <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3 max-h-64 overflow-y-auto">
                                   <p className="text-[8px] font-black uppercase tracking-widest text-orange-500 mb-3">
                                     Detail Biaya Lain ({(p.otherExpenseBreakdown || []).length} submission)
@@ -583,8 +522,6 @@ const FinancialReport = () => {
                                     ))
                                   )}
                                 </div>
-                                {/* Estimasi vs Aktual — pembanding budget Supplier Quotation
-                                    vs realisasi Supplier Invoice yang sudah Paid */}
                                 <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3">
                                   <p className="text-[8px] font-black uppercase tracking-widest text-indigo-500 mb-3">
                                     Estimasi vs Aktual
@@ -630,7 +567,6 @@ const FinancialReport = () => {
                   })}
                 </tbody>
 
-                {/* Footer totals */}
                 {projects.length > 0 && (
                   <tfoot>
                     <tr className="bg-slate-900 text-[9px] font-black text-white">
@@ -651,11 +587,6 @@ const FinancialReport = () => {
           </div>
         </section>
 
-        {/* ════════════════════════════════════════════════
-            SECTION 4 — MONTHLY TREND
-            (controller getMonthlyTrend mengembalikan: revenue, expense, netProfit
-             — bukan cashIn/cashOut)
-            ════════════════════════════════════════════════ */}
         {trend.length > 0 && (
           <section>
             <SectionHead title="Tren Bulanan" badge="12 bulan terakhir" />
@@ -713,9 +644,6 @@ const FinancialReport = () => {
           </section>
         )}
 
-        {/* ════════════════════════════════════════════════
-            SECTION 5 — OUTSTANDING RECEIVABLES
-            ════════════════════════════════════════════════ */}
         {receivables && receivables.invoices && receivables.invoices.length > 0 && (
           <section>
             <SectionHead
@@ -777,9 +705,6 @@ const FinancialReport = () => {
           </section>
         )}
 
-        {/* ════════════════════════════════════════════════
-            FOOTER NOTE
-            ════════════════════════════════════════════════ */}
         <div className="bg-slate-100 rounded-2xl p-5 text-[9px] text-slate-500 leading-relaxed">
           <p className="font-black text-slate-600 uppercase tracking-wider mb-1">Catatan Metodologi</p>
           <p>

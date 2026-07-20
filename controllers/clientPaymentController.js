@@ -1,13 +1,10 @@
-// Model invoice client sebenarnya bernama CreateInvoice (collection client_invoice).
-// Sebelumnya require '../models/ClientInvoice' yang TIDAK ADA → server crash bila
-// controller ini di-load. Diperbaiki agar tidak jadi landmine.
 const ClientInvoice = require('../models/CreateInvoice');
 const Log = require('../models/Log');
 
 exports.verifyPayment = async (req, res) => {
     try {
         const { invoiceId, bankName, amountPaid } = req.body;
-        const file = req.file; 
+        const file = req.file;
 
         if (!invoiceId) {
             return res.status(400).json({ msg: "ID Invoice tidak ditemukan!" });

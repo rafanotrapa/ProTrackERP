@@ -41,17 +41,15 @@ const AddClientInvoice = () => {
         const res = await axios.get('http://localhost:5000/api/client_quotation', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
-        // Filter hanya yang approvalStatus === 'Approved'
+
         const approvedQuotes = res.data.filter(q => q.approvalStatus === 'Approved');
-        
-        // Hitung remaining amount berdasarkan GRAND TOTAL (include shipping & tax)
+
         const quotesWithBalance = await Promise.all(approvedQuotes.map(async (quote) => {
           try {
             const invoicesRes = await axios.get(`http://localhost:5000/api/client_invoice/project/${quote.projectId}`, {
               headers: { Authorization: `Bearer ${token}` }
             });
-            
+
             const shippingFee = quote.shippingFee || 0;
             const taxAmount = quote.taxAmount || 0;
             const grandTotal = quote.clientPrice + shippingFee + taxAmount;
@@ -63,7 +61,7 @@ const AddClientInvoice = () => {
               grandTotal: grandTotal,
               remainingAmount: remainingAmount,
               totalPaid: totalPaid,
-              invoiceCount: invoicesRes.data.summary?.count || 0, // jumlah invoice yg sudah ada → tahap berikutnya
+              invoiceCount: invoicesRes.data.summary?.count || 0,
               hasPartialPayment: totalPaid > 0
             };
           } catch (err) {
@@ -71,7 +69,7 @@ const AddClientInvoice = () => {
             const shippingFee = quote.shippingFee || 0;
             const taxAmount = quote.taxAmount || 0;
             const grandTotal = quote.clientPrice + shippingFee + taxAmount;
-            
+
             return {
               ...quote,
               grandTotal: grandTotal,
@@ -82,7 +80,7 @@ const AddClientInvoice = () => {
             };
           }
         }));
-        
+
         const availableQuotes = quotesWithBalance.filter(q => q.remainingAmount > 0);
         setQuotations(availableQuotes);
       } catch (err) {
@@ -108,25 +106,20 @@ const AddClientInvoice = () => {
 
       const hasPartialPayment = selectedQuote.totalPaid > 0;
 
-      // Hitung tahap dari TOP. Mendukung N termin (3x/4x): ambil tahap
-      // BERIKUTNYA sesuai jumlah invoice yang sudah dibuat (bukan lump sisa).
       const stages = parsePaymentStages(rawTop, grandTotal);
 
       if (stages.length > 1) {
-        // Installment (DP / termin N) — pilih tahap ke-(invoiceCount)
         const nextIdx = Math.min(selectedQuote.invoiceCount || 0, stages.length - 1);
         const stage = stages[nextIdx];
         calculatedAmount = stage.amount;
         phase = stage.name;
         percent = stage.percentage;
       } else {
-        // Full payment (COD/CBD/CIA/Net/2-10)
         calculatedAmount = hasPartialPayment ? selectedQuote.remainingAmount : grandTotal;
         phase = hasPartialPayment ? `REMAINING BALANCE (${topText})` : `FULL PAYMENT (${topText})`;
         percent = grandTotal > 0 ? (calculatedAmount / grandTotal) * 100 : 100;
       }
 
-      // Mapping items dengan salesPrice dari client quotation
       const itemsWithSalesPrice = (selectedQuote.items || []).map(item => ({
         itemName: item.itemName,
         quantity: item.quantity,
@@ -172,7 +165,7 @@ const AddClientInvoice = () => {
   const generatePDF = (data) => {
     try {
       const doc = new jsPDF();
-      
+
       doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
       doc.setFontSize(26);
       doc.setFont('helvetica', 'bold');
@@ -183,18 +176,17 @@ const AddClientInvoice = () => {
       doc.text("To :", 14, 65);
       doc.setFont(undefined, 'bold');
       doc.text((data.clientName || '').toUpperCase(), 14, 71);
-      
+
       doc.setFont(undefined, 'normal');
-      doc.text("Date", 120, 65);     
+      doc.text("Date", 120, 65);
       doc.text(`: ${new Date().toLocaleDateString('en-GB')}`, 150, 65);
-      doc.text("INVOICE #", 120, 71); 
+      doc.text("INVOICE #", 120, 71);
       doc.text(`: ${data.invoiceNumber}`, 150, 71);
-      doc.text("Due Date", 120, 77);  
+      doc.text("Due Date", 120, 77);
       doc.text(`: ${data.dueDate || '-'}`, 150, 77);
-      doc.text("TOP", 120, 83);  
+      doc.text("TOP", 120, 83);
       doc.text(`: ${data.topOption || '-'}`, 150, 83);
 
-      // TABEL ITEMS
       const tableRows = (data.items || []).map(item => [
         item.quantity || 0,
         (item.itemName || '').toUpperCase(),
@@ -208,7 +200,7 @@ const AddClientInvoice = () => {
         head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Total (IDR)']],
         body: tableRows,
         theme: 'plain',
-        margin: { left: 5 }, // tabel 200mm di halaman 210mm → center
+        margin: { left: 5 },
         headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
         bodyStyles: { halign: 'center' },
         styles: { fontSize: 9, cellPadding: 4 },
@@ -229,30 +221,30 @@ const AddClientInvoice = () => {
 
       const finalY = doc.lastAutoTable.finalY + 15;
       let currentY = finalY;
-      
+
       doc.setFont(undefined, 'bold');
       doc.setFontSize(10);
       doc.text("Subtotal", 130, currentY);
       doc.text(`Rp ${Number(data.totalContractValue - (data.shippingFee || 0) - (data.taxAmount || 0)).toLocaleString()}`, 196, currentY, { align: 'right' });
-      
+
       if (data.shippingFee > 0) {
         currentY += 7;
         doc.text("Shipping Fee", 130, currentY);
         doc.text(`Rp ${Number(data.shippingFee).toLocaleString()}`, 196, currentY, { align: 'right' });
       }
-      
+
       if (data.taxAmount > 0) {
         currentY += 7;
         doc.text(`PPN ${data.taxPercentage || 0}%`, 130, currentY);
         doc.text(`Rp ${Number(data.taxAmount).toLocaleString()}`, 196, currentY, { align: 'right' });
       }
-      
+
       currentY += 10;
       doc.setFontSize(11);
       doc.setTextColor(15, 23, 42);
-      
+
       const isProgress = data.billingPhase?.includes('REMAINING');
-      
+
       if (isProgress) {
         doc.text("REMAINING BALANCE", 130, currentY);
         doc.text(`Rp ${Number(data.amount).toLocaleString()}`, 196, currentY, { align: 'right' });
@@ -267,7 +259,7 @@ const AddClientInvoice = () => {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.text("PAYMENT & DELIVERY INFO :", 14, paymentStartY);
-      
+
       doc.setFont(undefined, 'normal');
       const infoList = [
         "Pembayaran melalui Cash / Transfer",
@@ -279,7 +271,6 @@ const AddClientInvoice = () => {
       ];
       doc.text(infoList, 14, paymentStartY + 7);
 
-      // Stempel
       const stampY = paymentStartY + (infoList.length * 4) + 10;
       try {
         doc.addImage("/stample-batavia.png", 'PNG', 140, stampY, 55, 55);
@@ -302,8 +293,7 @@ const AddClientInvoice = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // VALIDASI: Pastikan due date diisi
+
     if (!formData.dueDate) {
       Swal.fire({
         icon: 'warning',
@@ -313,8 +303,7 @@ const AddClientInvoice = () => {
       });
       return;
     }
-    
-    // Validasi amount tidak 0
+
     if (formData.amount <= 0) {
       Swal.fire({
         icon: 'warning',
@@ -324,12 +313,12 @@ const AddClientInvoice = () => {
       });
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       const token = localStorage.getItem('token');
-      
+
       const payload = {
         invoiceNumber: formData.invoiceNumber,
         projectId: formData.projectId,
@@ -354,7 +343,7 @@ const AddClientInvoice = () => {
         taxAmount: formData.taxAmount,
         taxPercentage: formData.taxPercentage
       };
-      
+
       await axios.post('http://localhost:5000/api/client_invoice', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -374,17 +363,17 @@ const AddClientInvoice = () => {
         confirmButtonColor: '#0f172a',
         cancelButtonColor: '#64748b'
       });
-      
+
       if (result.isConfirmed) {
         generatePDF(formData);
       }
-      
+
       navigate('/dashboard');
     } catch (err) {
-      Swal.fire({ 
-        icon: 'error', 
-        title: 'FAILED', 
-        text: err.response?.data?.msg || 'Gagal membuat invoice' 
+      Swal.fire({
+        icon: 'error',
+        title: 'FAILED',
+        text: err.response?.data?.msg || 'Gagal membuat invoice'
       });
     } finally {
       setLoading(false);
@@ -409,8 +398,7 @@ const AddClientInvoice = () => {
 
       <main className="flex-1 p-8 md:p-12">
         <form onSubmit={handleSubmit} className="max-w-6xl space-y-10">
-          
-          {/* Info Banner untuk Progress Invoice */}
+
           {formData.isProgressInvoice && (
             <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 flex items-center gap-3">
               <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center text-white font-black text-xl">!</div>
@@ -423,7 +411,6 @@ const AddClientInvoice = () => {
             </div>
           )}
 
-          {/* SECTION 1: SOURCE */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 01. Billing Source
@@ -454,7 +441,6 @@ const AddClientInvoice = () => {
             </div>
           </div>
 
-          {/* SECTION 2: INVOICE DETAILS */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 02. Invoice Details
@@ -499,20 +485,19 @@ const AddClientInvoice = () => {
             </div>
           </div>
 
-          {/* SECTION 3: DUE DATE & PRICING */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 03. Due Date & Pricing
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Payment Due Date</label>
-                <input 
-                  type="date" 
-                  required 
-                  className="w-full p-4 border border-slate-300 rounded-xl outline-none font-bold text-slate-800 focus:border-indigo-600 shadow-sm" 
-                  onChange={(e) => setFormData({...formData, dueDate: e.target.value})} 
+                <input
+                  type="date"
+                  required
+                  className="w-full p-4 border border-slate-300 rounded-xl outline-none font-bold text-slate-800 focus:border-indigo-600 shadow-sm"
+                  onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
                 />
               </div>
 
@@ -523,13 +508,13 @@ const AddClientInvoice = () => {
                   {formData.isProgressInvoice ? 'REMAINING BALANCE' : 'Current Billing Amount'} ({formData.billingPhase || 'Full Payment'})
                 </label>
                 <div className="relative">
-                  <input 
-                    type="text" 
-                    readOnly 
+                  <input
+                    type="text"
+                    readOnly
                     className={`w-full p-4 bg-slate-50 border-2 rounded-xl font-black text-4xl outline-none shadow-inner ${
                       formData.isProgressInvoice ? 'border-amber-500 text-amber-600' : 'border-emerald-500 text-emerald-600'
-                    }`} 
-                    value={`Rp ${Number(formData.amount || 0).toLocaleString()}`} 
+                    }`}
+                    value={`Rp ${Number(formData.amount || 0).toLocaleString()}`}
                   />
                   <div className="flex justify-between items-center mt-2 px-1">
                     <p className="text-[9px] font-bold text-slate-400 uppercase italic">
@@ -543,11 +528,10 @@ const AddClientInvoice = () => {
               </div>
             </div>
           </div>
-          
-          {/* BUTTONS */}
+
           <div className="flex justify-end items-stretch gap-3 pt-8 border-t border-slate-100">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading || formData.amount <= 0 || !formData.dueDate}
               className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
                 loading || formData.amount <= 0 || !formData.dueDate ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
@@ -556,8 +540,8 @@ const AddClientInvoice = () => {
               {loading ? 'GENERATING...' : formData.isProgressInvoice ? 'Generate Progress Invoice' : 'Generate Client Invoice'}
             </button>
 
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => generatePDF(formData)}
               disabled={formData.amount <= 0 || formData.items.length === 0}
               className={`px-6 py-4 text-white rounded-xl transition-all active:scale-95 flex items-center justify-center group ${
@@ -565,12 +549,12 @@ const AddClientInvoice = () => {
               }`}
               title="Download PDF Only"
             >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                strokeWidth={3} 
-                stroke="currentColor" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={3}
+                stroke="currentColor"
                 className="w-5 h-5 group-hover:translate-y-1 transition-transform"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />

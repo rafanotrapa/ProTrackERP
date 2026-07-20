@@ -3,9 +3,6 @@ const Payment = require('../models/Payment');
 const ClientQuotation = require('../models/ClientQuotation');
 const { parsePaymentStages } = require('../utils/paymentTerms');
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPER: cek status pembayaran invoice + ambil tanggal bayar (Verified)
-// ─────────────────────────────────────────────────────────────────────────────
 const getInvoicePaymentStatus = async (invoiceId) => {
   const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
   return payment ? 'Paid' : 'Unpaid';
@@ -15,13 +12,6 @@ const getVerifiedPayment = async (invoiceId) => {
   return Payment.findOne({ invoiceId, status: 'Verified' }).sort({ paymentDate: -1 });
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPER: hitung Grand Total kontrak — HARUS konsisten dengan
-// projectTimelineController.js (clientPrice + shippingFee + taxAmount).
-// SEBELUMNYA: fungsi ini hanya pakai clientPrice saja, sehingga payment
-// stages (DP/Termin) di Project Billing tidak sinkron dengan Project Timeline
-// ketika project punya shippingFee atau taxAmount.
-// ─────────────────────────────────────────────────────────────────────────────
 const getContractGrandTotal = (quotation) => {
   const clientPrice = Number(quotation?.clientPrice || 0);
   const shippingFee = Number(quotation?.shippingFee || 0);
@@ -29,36 +19,28 @@ const getContractGrandTotal = (quotation) => {
   return clientPrice + shippingFee + taxAmount;
 };
 
-// Parser dipindah ke utils/paymentTerms.js (parsePaymentStages) — satu sumber
-// kebenaran bersama Timeline & Invoice, sekarang mendukung N termin (3x/4x).
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 1. GET ALL PROJECTS BILLING (list)
-//    FIX: totalContractValue sekarang grand total (clientPrice + shippingFee
-//    + taxAmount), bukan clientPrice saja. Konsisten dengan Project Timeline.
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getAllProjectsBilling = async (req, res) => {
   try {
     const quotations = await ClientQuotation.find({ approvalStatus: 'Approved' });
-    
+
     const projectMap = new Map();
-    
+
     for (const quote of quotations) {
       if (!projectMap.has(quote.projectId)) {
         projectMap.set(quote.projectId, {
           projectId: quote.projectId,
           projectName: quote.projectName,
           clientName: quote.clientName,
-          totalContractValue: getContractGrandTotal(quote), // ← FIX: grand total
+          totalContractValue: getContractGrandTotal(quote),
           topOption: quote.topOption,
           invoices: [],
           totalPaid: 0
         });
       }
     }
-    
+
     const invoices = await CreateInvoice.find().sort({ createdAt: 1 });
-    
+
     for (const invoice of invoices) {
       const project = projectMap.get(invoice.projectId);
       if (project) {
@@ -74,17 +56,17 @@ exports.getAllProjectsBilling = async (req, res) => {
         }
       }
     }
-    
+
     const result = Array.from(projectMap.values()).map(project => {
       const totalContract = project.totalContractValue || 0;
       const totalPaid = project.totalPaid || 0;
       const remainingAmount = totalContract - totalPaid;
-      
+
       const stages = parsePaymentStages(project.topOption, totalContract);
       const totalStages = stages.length;
       const paidStages = project.invoices.filter(inv => inv.status === 'Paid').length;
       const progressPercent = totalStages > 0 ? (paidStages / totalStages) * 100 : 0;
-      
+
       return {
         ...project,
         remainingAmount,
@@ -94,7 +76,7 @@ exports.getAllProjectsBilling = async (req, res) => {
         isComplete: paidStages >= totalStages
       };
     });
-    
+
     res.json(result);
   } catch (err) {
     console.error("Error get all projects billing:", err);
@@ -102,42 +84,35 @@ exports.getAllProjectsBilling = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 2. GET PROJECT BILLING DETAIL
-//    FIX 1: totalContractValue = grand total (sama seperti di atas).
-//    FIX 2: invoiceData sekarang menyertakan paymentDate dari Payment
-//    Verified, sehingga kolom "Tanggal Bayar" bisa ditampilkan di frontend.
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getProjectBillingDetail = async (req, res) => {
   try {
     const { projectId } = req.params;
-    
-    const quotation = await ClientQuotation.findOne({ 
-      projectId, 
-      approvalStatus: 'Approved' 
+
+    const quotation = await ClientQuotation.findOne({
+      projectId,
+      approvalStatus: 'Approved'
     }).sort({ createdAt: -1 });
-    
+
     if (!quotation) {
       return res.status(404).json({ msg: 'No approved quotation found for this project' });
     }
-    
-    const totalContractValue = getContractGrandTotal(quotation); // ← FIX: grand total
+
+    const totalContractValue = getContractGrandTotal(quotation);
     const topOption = quotation.topOption;
-    
+
     const invoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
-    
+
     const expectedStages = parsePaymentStages(topOption, totalContractValue);
 
     const stagesWithStatus = await Promise.all(expectedStages.map(async (stage, idx) => {
       const invoice = invoices[idx];
       let status = 'Pending';
       let invoiceData = null;
-      
+
       if (invoice) {
         const paymentStatus = await getInvoicePaymentStatus(invoice._id);
         status = paymentStatus;
 
-        // ── FIX: ambil paymentDate dari Payment Verified ──
         let paymentDate = null;
         if (paymentStatus === 'Paid') {
           const verifiedPayment = await getVerifiedPayment(invoice._id);
@@ -153,7 +128,7 @@ exports.getProjectBillingDetail = async (req, res) => {
           paymentDate
         };
       }
-      
+
       return {
         stageNumber: idx + 1,
         name: stage.name,
@@ -165,21 +140,20 @@ exports.getProjectBillingDetail = async (req, res) => {
         canGenerate: !invoice && idx === invoices.length
       };
     }));
-    
+
     const totalPaid = invoices
       .filter(inv => inv.status === 'Paid')
       .reduce((sum, inv) => sum + inv.amount, 0);
-    
+
     const totalStages = expectedStages.length;
     const paidStages = stagesWithStatus.filter(s => s.status === 'Paid').length;
     const progressPercent = totalStages > 0 ? (paidStages / totalStages) * 100 : 0;
-    
+
     res.json({
       projectId: quotation.projectId,
       projectName: quotation.projectName,
       clientName: quotation.clientName,
       totalContractValue,
-      // ── Breakdown agar frontend bisa tampilkan rincian, bukan hanya total ──
       clientPrice: Number(quotation.clientPrice || 0),
       shippingFee: Number(quotation.shippingFee || 0),
       taxAmount:   Number(quotation.taxAmount   || 0),
@@ -193,37 +167,31 @@ exports.getProjectBillingDetail = async (req, res) => {
         nextStageCanGenerate: stagesWithStatus.some(s => s.canGenerate)
       }
     });
-    
+
   } catch (err) {
     console.error("Error get project billing detail:", err);
     res.status(500).json({ msg: err.message });
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// 3. GENERATE NEXT INVOICE
-//    FIX: totalContractValue = grand total (sama seperti di atas), agar
-//    nominal invoice yang digenerate konsisten dengan Project Timeline
-//    dan Project Billing Detail.
-// ─────────────────────────────────────────────────────────────────────────────
 exports.generateNextInvoice = async (req, res) => {
   try {
     const { projectId } = req.params;
-    
-    const quotation = await ClientQuotation.findOne({ 
-      projectId, 
-      approvalStatus: 'Approved' 
+
+    const quotation = await ClientQuotation.findOne({
+      projectId,
+      approvalStatus: 'Approved'
     }).sort({ createdAt: -1 });
-    
+
     if (!quotation) {
       return res.status(404).json({ msg: 'No approved quotation found for this project' });
     }
-    
-    const totalContractValue = getContractGrandTotal(quotation); // ← FIX: grand total
+
+    const totalContractValue = getContractGrandTotal(quotation);
     const topOption = quotation.topOption;
-    
+
     const existingInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
-    
+
     const expectedStages = parsePaymentStages(topOption, totalContractValue);
     const nextStageIndex = existingInvoices.length;
 
@@ -232,7 +200,7 @@ exports.generateNextInvoice = async (req, res) => {
     }
 
     const nextStage = expectedStages[nextStageIndex];
-    
+
     if (existingInvoices.length > 0) {
       const previousInvoice = existingInvoices[existingInvoices.length - 1];
       const previousPaymentStatus = await getInvoicePaymentStatus(previousInvoice._id);
@@ -240,13 +208,13 @@ exports.generateNextInvoice = async (req, res) => {
         return res.status(400).json({ msg: 'Previous stage must be paid before generating next invoice' });
       }
     }
-    
+
     const invoiceCount = existingInvoices.length + 1;
     const invoiceNumber = `INV-${Date.now()}-${invoiceCount}`;
-    
+
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30);
-    
+
     const itemsWithSalesPrice = (quotation.items || []).map(item => ({
       itemName: item.itemName,
       quantity: item.quantity,
@@ -254,7 +222,7 @@ exports.generateNextInvoice = async (req, res) => {
       price: item.salesPrice || item.cogs,
       cogs: item.cogs
     }));
-    
+
     const newInvoice = new CreateInvoice({
       invoiceNumber,
       projectId,
@@ -268,9 +236,9 @@ exports.generateNextInvoice = async (req, res) => {
       billingPhase: nextStage.name,
       topOption
     });
-    
+
     await newInvoice.save();
-    
+
     res.status(201).json({
       success: true,
       msg: `Invoice for ${nextStage.name} generated successfully`,
@@ -285,7 +253,7 @@ exports.generateNextInvoice = async (req, res) => {
         items: itemsWithSalesPrice
       }
     });
-    
+
   } catch (err) {
     console.error("Error generate next invoice:", err);
     res.status(500).json({ msg: err.message });

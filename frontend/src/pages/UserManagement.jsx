@@ -28,13 +28,10 @@ const UserManagement = () => {
     }
   };
 
-  useEffect(() => { 
-    fetchUsers(); 
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
-  // ============================================================
-  // FUNGSI: RESET PASSWORD MANUAL (ADMIN)
-  // ============================================================
   const resetPasswordManual = async (id, username) => {
     const { value: newPass } = await Swal.fire({
       title: 'FORCE RESET PASSWORD',
@@ -63,10 +60,10 @@ const UserManagement = () => {
           confirmButtonColor: '#ef4444'
         });
       }
-      
+
       try {
         const token = localStorage.getItem('token');
-        await axios.patch(`http://localhost:5000/api/auth/reset-admin/${id}`, 
+        await axios.patch(`http://localhost:5000/api/auth/reset-admin/${id}`,
           { password: newPass },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -88,9 +85,6 @@ const UserManagement = () => {
     }
   };
 
-  // ============================================================
-  // FUNGSI: UNLOCK ACCOUNT (BUKA BLOKIR)
-  // ============================================================
   const unlockAccount = async (id, username) => {
     const result = await Swal.fire({
       title: 'BUKA BLOKIR AKUN?',
@@ -132,9 +126,6 @@ const UserManagement = () => {
     }
   };
 
-  // ============================================================
-  // FUNGSI: DELETE USER (REVOKE ACCESS)
-  // ============================================================
   const deleteUser = async (id, username) => {
     const result = await Swal.fire({
       title: 'CABUT AKSES?',
@@ -165,7 +156,7 @@ const UserManagement = () => {
           confirmButtonColor: '#4f46e5'
         });
         fetchUsers();
-      } catch (err) { 
+      } catch (err) {
         Swal.fire({
           icon: 'error',
           title: 'GAGAL!',
@@ -176,17 +167,13 @@ const UserManagement = () => {
     }
   };
 
-  // ============================================================
-  // RENDER
-  // ============================================================
   return (
     <div className="min-h-screen bg-slate-50 font-sans flex flex-col text-slate-900 pb-16">
-      
-      {/* HEADER */}
+
       <header className="w-full px-8 py-8 md:px-12 lg:px-16 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
         <div className="flex items-center gap-6">
-          <button 
-            onClick={() => navigate('/dashboard')} 
+          <button
+            onClick={() => navigate('/dashboard')}
             className="flex justify-center items-center w-12 h-12 bg-white rounded-2xl border transition-all active:scale-90 shadow-sm group border-slate-200 hover:bg-slate-50 flex-shrink-0"
           >
             <span className="text-xl font-black italic transition-colors text-slate-400 group-hover:text-indigo-600">←</span>
@@ -198,10 +185,10 @@ const UserManagement = () => {
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2 italic">Administrative Control • Password Override</p>
           </div>
         </div>
-        
+
         <div>
-          <button 
-            onClick={() => navigate('/register')} 
+          <button
+            onClick={() => navigate('/register')}
             className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 shadow-xl shadow-indigo-100 transition-all active:scale-95 whitespace-nowrap"
           >
             + Add New Employee
@@ -209,11 +196,9 @@ const UserManagement = () => {
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
       <main className="flex-1 w-full px-8 md:px-12 lg:px-16">
         <div className="mx-auto w-full max-w-7xl bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
-          
-          {/* SUB-HEADER */}
+
           <div className="px-8 py-8 md:px-10">
              <span className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] italic">Registered Personnel</span>
           </div>
@@ -244,12 +229,11 @@ const UserManagement = () => {
                 ) : (
                   users.map((u) => (
                     <tr key={u._id} className="hover:bg-indigo-50/30 transition-all group">
-                      {/* Karyawan / Division */}
                       <td className="px-8 md:px-10 py-6">
                         <div className="flex flex-col">
                           <span className="font-black text-slate-800 italic uppercase tracking-tight text-lg">{u.username}</span>
                           <span className={`w-fit mt-1 px-3 py-0.5 rounded-full text-[9px] font-black uppercase shadow-sm ${
-                            u.role === 'Admin' ? 'bg-red-500 text-white shadow-red-100' : 
+                            u.role === 'Admin' ? 'bg-red-500 text-white shadow-red-100' :
                             u.role === 'Management' ? 'bg-purple-600 text-white shadow-purple-100' :
                             'bg-indigo-600 text-white shadow-indigo-100'
                           }`}>
@@ -257,11 +241,9 @@ const UserManagement = () => {
                           </span>
                         </div>
                       </td>
-                      
-                      {/* Email */}
+
                       <td className="px-8 md:px-10 py-6 font-bold text-slate-500">{u.email}</td>
-                      
-                      {/* Status (LOCKED / ACTIVE) */}
+
                       <td className="px-8 md:px-10 py-6 text-center">
                         {u.isLocked ? (
                           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black bg-red-100 text-red-600 shadow-sm">
@@ -273,13 +255,11 @@ const UserManagement = () => {
                           </span>
                         )}
                       </td>
-                      
-                      {/* Actions */}
+
                       <td className="px-8 md:px-10 py-6">
                         <div className="flex justify-center gap-4">
-                          {/* Unlock Button (hanya muncul jika akun terkunci) */}
                           {u.isLocked && (
-                            <button 
+                            <button
                               onClick={() => unlockAccount(u._id, u.username)}
                               className="flex flex-col items-center group/btn"
                             >
@@ -289,9 +269,8 @@ const UserManagement = () => {
                               <span className="text-[9px] opacity-30 italic font-bold">Buka Blokir</span>
                             </button>
                           )}
-                          
-                          {/* Reset Password Button */}
-                          <button 
+
+                          <button
                             onClick={() => resetPasswordManual(u._id, u.username)}
                             className="flex flex-col items-center group/btn"
                           >
@@ -300,12 +279,10 @@ const UserManagement = () => {
                             </span>
                             <span className="text-[9px] opacity-30 italic font-bold">Override</span>
                           </button>
-                          
-                          {/* Divider */}
+
                           <div className="w-px h-8 bg-slate-100"></div>
-                          
-                          {/* Delete User Button */}
-                          <button 
+
+                          <button
                             onClick={() => deleteUser(u._id, u.username)}
                             className="flex flex-col items-center group/del"
                           >

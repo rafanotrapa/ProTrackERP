@@ -7,9 +7,6 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
-// ─────────────────────────────────────────────────────────────
-//  HELPER
-// ─────────────────────────────────────────────────────────────
 const formatRupiah = (value) => {
   if (!value && value !== 0) return '';
   const numberString = value.toString().replace(/[^0-9]/g, '');
@@ -30,7 +27,6 @@ const AddExpenseSubmission = () => {
   const [loading, setLoading]   = useState(false);
   const [projects, setProjects] = useState([]);
 
-  // ── Project searchable dropdown ──────────────────────────
   const [openDropdown, setOpenDropdown] = useState(false);
   const [searchTerm, setSearchTerm]     = useState('');
   const dropdownRef = useRef(null);
@@ -44,7 +40,6 @@ const AddExpenseSubmission = () => {
     file:         null,
   });
 
-  // ── Multi-item — mirip konsep ClientQuotation/SupplierQuotation ──
   const [items, setItems] = useState([emptyItem()]);
 
   const totalAmount = useMemo(
@@ -52,7 +47,6 @@ const AddExpenseSubmission = () => {
     [items]
   );
 
-  // ── Load project list (semua project — fleksibel, tidak terikat status) ──
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -108,7 +102,6 @@ const AddExpenseSubmission = () => {
     }
   };
 
-  // ── CRUD items ────────────────────────────────────────────
   const addItem = () => setItems((prev) => [...prev, emptyItem()]);
 
   const removeItem = (id) => {
@@ -128,7 +121,6 @@ const AddExpenseSubmission = () => {
     );
   };
 
-  // ── Submit ────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -186,7 +178,6 @@ const AddExpenseSubmission = () => {
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
 
-      {/* Page Header */}
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6">
         <button
           onClick={() => navigate('/expense-submission-menu')}
@@ -207,7 +198,6 @@ const AddExpenseSubmission = () => {
       <main className="flex-1 p-8 md:p-12">
         <form onSubmit={handleSubmit} className="max-w-4xl space-y-10">
 
-          {/* ── SECTION 1: PROJECT ─────────────────────────── */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-amber-600" /> 01. Project Reference
@@ -285,7 +275,6 @@ const AddExpenseSubmission = () => {
             </div>
           </div>
 
-          {/* ── SECTION 2: DAFTAR BIAYA (MULTI-ITEM) ───────── */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
@@ -358,7 +347,6 @@ const AddExpenseSubmission = () => {
               </button>
             </div>
 
-            {/* Total Summary */}
             <div className="flex justify-end pt-4 border-t border-slate-200">
               <div className="text-right w-72">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Pengajuan</p>
@@ -369,7 +357,6 @@ const AddExpenseSubmission = () => {
             </div>
           </div>
 
-          {/* ── SECTION 3: LAMPIRAN ────────────────────────── */}
           <div className="space-y-6">
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-amber-600" /> 03. Lampiran / Bukti
@@ -415,7 +402,6 @@ const AddExpenseSubmission = () => {
             </div>
           </div>
 
-          {/* ── BUTTON ──────────────────────────────────────── */}
           <div className="flex justify-end gap-4 pt-8 border-t border-slate-100">
             <button
               type="submit"
@@ -431,7 +417,6 @@ const AddExpenseSubmission = () => {
             </button>
           </div>
 
-          {/* INFO BANNER */}
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />

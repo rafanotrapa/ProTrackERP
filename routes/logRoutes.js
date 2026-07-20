@@ -3,7 +3,6 @@ const router = express.Router();
 const Log = require('../models/Log');
 const { protect } = require('../middleware/auth');
 
-// System Logs boleh dilihat Admin, Management, Owner (sama seperti akses halaman)
 const canViewLogs = (req, res, next) => {
   if (req.user && ['Admin', 'Management', 'Owner'].includes(req.user.role)) return next();
   return res.status(403).json({ msg: 'Akses ditolak! Khusus Admin / Management / Owner.' });

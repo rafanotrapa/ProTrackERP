@@ -11,7 +11,6 @@ const ProjectCenter = () => {
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
 
-      {/* HEADER - SAMA SEPERTI MODUL LAIN */}
       <div className="w-full border-b border-slate-100 px-8 py-8 flex items-center gap-6 bg-slate-50/30">
         <button
           onClick={() => navigate('/dashboard')}
@@ -30,7 +29,6 @@ const ProjectCenter = () => {
       <main className="flex-1 p-8 md:p-12 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
-          {/* CARD KIRI: ADD PROJECT */}
           <div
             onClick={() => navigate('/add-project')}
             className="group relative bg-white border-2 border-slate-100 rounded-3xl p-8 cursor-pointer hover:border-indigo-600 hover:shadow-2xl transition-all overflow-hidden"
@@ -50,7 +48,6 @@ const ProjectCenter = () => {
             </div>
           </div>
 
-          {/* CARD KANAN: PROJECT LOG */}
           <div
             onClick={() => navigate('/project-log')}
             className="group relative bg-white border-2 border-slate-100 rounded-3xl p-8 cursor-pointer hover:border-indigo-600 hover:shadow-2xl transition-all overflow-hidden"

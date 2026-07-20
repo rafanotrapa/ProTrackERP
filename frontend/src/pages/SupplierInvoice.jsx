@@ -32,7 +32,8 @@ const InvoiceSubmission = () => {
     isImportEnabled: false,
     importDutyAmount: '',
     remarks: '',
-    file: null
+    file: null,
+    itemPhoto: null
   });
 
   useEffect(() => {
@@ -128,8 +129,8 @@ const InvoiceSubmission = () => {
     setLoading(true);
     const data = new FormData();
     Object.keys(formData).forEach(key => {
-        if (key === 'file') {
-            data.append(key, formData[key]);
+        if (key === 'file' || key === 'itemPhoto') {
+            if (formData[key]) data.append(key, formData[key]);
         } else {
             data.append(key, formData[key] || '');
         }
@@ -313,6 +314,23 @@ const InvoiceSubmission = () => {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* FOTO BARANG (OPSIONAL) */}
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block leading-none">Foto Barang (Opsional)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const f = e.target.files[0];
+                    if (f) setFormData(prev => ({ ...prev, itemPhoto: f }));
+                  }}
+                  className="w-full p-3 bg-white border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-600 file:text-[10px] file:font-black file:uppercase"
+                />
+                {formData.itemPhoto && (
+                  <p className="text-[9px] font-bold text-indigo-500 uppercase italic ml-1 truncate">📷 {formData.itemPhoto.name}</p>
+                )}
               </div>
             </div>
           </div>

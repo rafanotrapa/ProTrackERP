@@ -14,7 +14,7 @@ const upload = require('../middleware/uploadMiddleware');
 
 // --- ROUTE UTAMA ---
 router.route('/')
-  .post(protect, upload.single('file'), submitInvoice)
+  .post(protect, upload.fields([{ name: 'file', maxCount: 1 }, { name: 'itemPhoto', maxCount: 1 }]), submitInvoice)
   .get(protect, getAllInvoices); // Endpoint ini dipanggil buat tabel Track Record!
 
 router.route('/:id').patch(protect, updateStatus);

@@ -414,6 +414,66 @@ const SupplierPaymentDetail = () => {
                 </div>
               </div>
             )}
+
+            {/* Foto Barang (opsional dari Procurement) */}
+            {invoice.itemPhoto && (
+              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+                <div className="p-5 border-b border-slate-100 bg-slate-50">
+                  <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
+                    <FileText size={14} /> Foto Barang
+                  </h3>
+                </div>
+                <div className="p-5">
+                  <img
+                    src={getFileUrl(invoice.itemPhoto)}
+                    alt="Foto Barang"
+                    className="w-full rounded-xl border border-slate-200 object-contain"
+                  />
+                  <a
+                    href={getFileUrl(invoice.itemPhoto)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[9px] font-black text-slate-600 transition-all"
+                  >
+                    <Download size={12} /> Download / Open in New Tab
+                  </a>
+                </div>
+              </div>
+            )}
+
+            {/* Bukti Transfer (diupload Finance saat confirm) */}
+            {invoice.paymentProof && (
+              <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden">
+                <div className="p-5 border-b border-emerald-100 bg-emerald-50">
+                  <h3 className="text-[11px] font-black text-emerald-800 uppercase tracking-[0.3em] flex items-center gap-2">
+                    <FileText size={14} /> Bukti Transfer
+                  </h3>
+                </div>
+                <div className="p-5">
+                  {isPDF(invoice.paymentProof) ? (
+                    <iframe
+                      src={getFileUrl(invoice.paymentProof)}
+                      title="Bukti Transfer"
+                      className="w-full h-80 rounded-xl border border-slate-200"
+                    />
+                  ) : (
+                    <img
+                      src={getFileUrl(invoice.paymentProof)}
+                      alt="Bukti Transfer"
+                      className="w-full rounded-xl border border-slate-200 object-contain"
+                    />
+                  )}
+                  <a
+                    href={getFileUrl(invoice.paymentProof)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-emerald-100 hover:bg-emerald-200 rounded-xl text-[9px] font-black text-emerald-700 transition-all"
+                  >
+                    <Download size={12} /> Download / Open in New Tab
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>

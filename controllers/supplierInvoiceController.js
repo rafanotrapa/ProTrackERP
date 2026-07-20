@@ -38,7 +38,8 @@ exports.submitInvoice = async (req, res) => {
       importDutyAmount,
       customsDutyNote: req.body.customsDutyNote || '',
       remarks:         req.body.remarks,
-      file:            req.file ? req.file.filename : null,
+      file:            req.files?.file?.[0]?.filename || null,
+      itemPhoto:       req.files?.itemPhoto?.[0]?.filename || null,
       user:            userId,
       status:          'Pending Verification',
       statusHistory: [{

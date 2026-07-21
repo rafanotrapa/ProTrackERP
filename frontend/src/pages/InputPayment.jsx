@@ -177,13 +177,13 @@ const InputPayment = () => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">3. Transaction Evidence (Image Only)</label>
+            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">3. Transaction Evidence (Image / PDF)</label>
             <div className="relative border-4 border-dashed border-slate-100 rounded-4xl p-16 flex flex-col items-center justify-center hover:border-indigo-200 hover:bg-slate-50 transition-all cursor-pointer group">
               <input
                 type="file"
                 className="absolute inset-0 opacity-0 cursor-pointer"
                 onChange={(e) => setSelectedFile(e.target.files[0])}
-                accept="image/*"
+                accept="image/*,.pdf"
               />
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-indigo-100 transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-slate-400 group-hover:text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">

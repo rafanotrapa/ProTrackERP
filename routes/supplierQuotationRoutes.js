@@ -1,29 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const multer = require('multer');
-const path = require('path');
 const supplierQuotationController = require('../controllers/supplierQuotationController');
 const { protect } = require('../middleware/auth');
+const upload = require('../middleware/uploadMiddleware');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/documents/'); 
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Format file tidak didukung! Hanya PDF dan Gambar.'), false);
-  }
-};
-
-const upload = multer({ storage, fileFilter });
 router.post('/', protect, upload.single('document'), supplierQuotationController.createQuotation);
 
 router.get('/', protect, supplierQuotationController.getAllQuotations);

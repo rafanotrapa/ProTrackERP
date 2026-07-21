@@ -222,7 +222,7 @@ const QuotationDetailReview = () => {
 
             {quo.documentUrl && (
               <a
-                href={`http://localhost:5000${quo.documentUrl.startsWith('/') ? '' : '/'}${quo.documentUrl}`}
+                href={`http://localhost:5000/api/files/${quo.documentUrl.replace(/^.*[\\/]/, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all"

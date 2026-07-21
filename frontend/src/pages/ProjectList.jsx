@@ -37,7 +37,7 @@ const ProjectList = () => {
           const b = billingMap.get(p.projectId) || {};
           return {
             ...p,
-            progressPercent: b.progressPercent || 0,
+            progressPercent: b.processPercent ?? b.progressPercent ?? 0,
             totalContract: b.totalContractValue || p.amount || 0,
             totalPaid: b.summary?.totalPaid || b.totalPaid || 0,
             isComplete: b.summary?.isComplete || b.isComplete || false,

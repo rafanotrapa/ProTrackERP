@@ -121,7 +121,7 @@ const SupplierPaymentDetail = () => {
     if (!filename) return null;
     if (filename.startsWith('http')) return filename;
     if (filename.startsWith('/uploads')) return `http://localhost:5000${filename}`;
-    return `http://localhost:5000/uploads/documents/${filename}`;
+    return `http://localhost:5000/api/files/${filename}`;
   };
 
   const isPDF = (filename) => {

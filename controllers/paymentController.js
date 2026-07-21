@@ -1,5 +1,7 @@
 const Payment = require('../models/Payment');
 const ClientInvoice = require('../models/CreateInvoice');
+const Project = require('../models/Project');
+const ClientQuotation = require('../models/ClientQuotation');
  
 exports.getInvoicesForPayment = async (req, res) => {
   try {
@@ -15,12 +17,21 @@ exports.createPayment = async (req, res) => {
     const { invoiceId, amountPaid, paymentDate, remarks } = req.body;
     if (!req.file) return res.status(400).json({ msg: "Bukti transfer wajib diunggah" });
 
+    const invoice = await ClientInvoice.findById(invoiceId);
+    if (invoice?.projectId && paymentDate) {
+      const projectInvoiceIds = (await ClientInvoice.find({ projectId: invoice.projectId }, '_id')).map(i => i._id);
+      const lastPayment = await Payment.findOne({ invoiceId: { $in: projectInvoiceIds } }).sort({ paymentDate: -1 });
+      if (lastPayment && new Date(paymentDate) < new Date(lastPayment.paymentDate)) {
+        return res.status(400).json({ msg: `Tanggal pembayaran tidak boleh lebih awal dari pembayaran sebelumnya (${new Date(lastPayment.paymentDate).toLocaleDateString('id-ID')})` });
+      }
+    }
+
     const newPayment = new Payment({
       invoiceId,
       amountPaid,
       paymentDate,
       remarks,
-      evidencePath: req.file.path
+      evidencePath: req.file.filename
     });
 
     await newPayment.save();
@@ -61,7 +72,27 @@ exports.verifyPayment = async (req, res) => {
     await payment.save();
 
     if (status === 'Verified') {
-      await ClientInvoice.findByIdAndUpdate(payment.invoiceId, { status: 'Paid' });
+      const invoice = await ClientInvoice.findByIdAndUpdate(
+        payment.invoiceId,
+        { status: 'Paid' },
+        { new: true }
+      );
+
+      if (invoice?.projectId) {
+        const quote = await ClientQuotation.findOne({
+          projectId: invoice.projectId,
+          approvalStatus: 'Approved',
+        });
+        if (quote) {
+          const grandTotal =
+            Number(quote.clientPrice || 0) + Number(quote.shippingFee || 0) + Number(quote.taxAmount || 0);
+          const paidInvoices = await ClientInvoice.find({ projectId: invoice.projectId, status: 'Paid' });
+          const totalPaid = paidInvoices.reduce((s, i) => s + Number(i.amount || 0), 0);
+          if (grandTotal > 0 && totalPaid >= grandTotal - 1) {
+            await Project.findOneAndUpdate({ projectId: invoice.projectId }, { status: 'Completed' });
+          }
+        }
+      }
     }
 
     res.json({ msg: `Payment marked as ${status}` });

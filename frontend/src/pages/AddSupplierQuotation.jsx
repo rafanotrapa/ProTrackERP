@@ -47,6 +47,23 @@ const AddSupplierQuotation = () => {
     document: null
   });
 
+  const [terminRows, setTerminRows] = useState([50, 50]);
+  const composeTermin = (rows) =>
+    rows.length === 2
+      ? `DP ${rows[0] || 0}%`
+      : `Termin ${rows.map((r) => `${r || 0}%`).join(' ')}`;
+  const terminSum = terminRows.reduce((a, r) => a + (Number(r) || 0), 0);
+  const applyTermin = (rows) => {
+    setTerminRows(rows);
+    setFormData((prev) => ({ ...prev, customTop: composeTermin(rows) }));
+  };
+  const setTerminRow = (idx, val) => {
+    const v = Math.max(0, Math.min(100, Number(String(val).replace(/[^0-9]/g, '')) || 0));
+    applyTermin(terminRows.map((r, i) => (i === idx ? v : r)));
+  };
+  const addTerminRow = () => { if (terminRows.length < 6) applyTermin([...terminRows, 0]); };
+  const removeTerminRow = (idx) => { if (terminRows.length > 2) applyTermin(terminRows.filter((_, i) => i !== idx)); };
+
   const [quotationItems, setQuotationItems] = useState([
     { itemName: '', quantity: 1, unit: 'Pcs', cogs: '' }
   ]);
@@ -152,6 +169,11 @@ const AddSupplierQuotation = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'topOption') {
+      const custom = value === 'Termin' ? composeTermin(terminRows) : '';
+      setFormData((prev) => ({ ...prev, topOption: value, customTop: custom }));
+      return;
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -196,8 +218,8 @@ const AddSupplierQuotation = () => {
        return Swal.fire('Data Incomplete', 'Nominal Pajak wajib diisi jika opsi Tax diaktifkan!', 'warning');
     }
 
-    if (formData.topOption === 'Termin' && !formData.customTop) {
-       return Swal.fire('Data Incomplete', 'Harap isi detail termin pembayaran!', 'warning');
+    if (formData.topOption === 'Termin' && terminSum !== 100) {
+       return Swal.fire('Data Incomplete', `Total termin harus 100% (sekarang ${terminSum}%)!`, 'warning');
     }
 
     setLoading(true);
@@ -488,10 +510,41 @@ const AddSupplierQuotation = () => {
                         ]}
                       />
                     </div>
-                    {formData.topOption === 'Termin' && (
-                      <input type="text" placeholder="Ex: DP 30%" name="customTop" className="w-1/3 p-3 border-2 border-amber-400 rounded-xl outline-none font-black text-amber-600" onChange={handleChange} value={formData.customTop} required />
-                    )}
                   </div>
+
+                  {formData.topOption === 'Termin' && (
+                    <div className="mt-3 p-4 border-2 border-amber-200 rounded-2xl bg-amber-50/40 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest italic">Skema Termin ({terminRows.length}x)</span>
+                        <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${terminSum === 100 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                          Total: {terminSum}%
+                        </span>
+                      </div>
+                      {terminRows.map((r, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="text-[9px] font-black text-slate-500 uppercase w-20 shrink-0">
+                            {i === 0 ? 'Termin 1 (DP)' : `Termin ${i + 1}`}
+                          </span>
+                          <input
+                            type="number" min="0" max="100"
+                            value={r}
+                            onChange={(e) => setTerminRow(i, e.target.value)}
+                            className="flex-1 p-2.5 border-2 border-amber-300 rounded-xl outline-none font-black text-amber-600 focus:border-amber-500"
+                          />
+                          <span className="text-xs font-black text-amber-500">%</span>
+                          {terminRows.length > 2 && (
+                            <button type="button" onClick={() => removeTerminRow(i)} className="text-rose-400 hover:text-rose-600 font-black text-sm px-1" title="Hapus termin">✕</button>
+                          )}
+                        </div>
+                      ))}
+                      {terminRows.length < 6 && (
+                        <button type="button" onClick={addTerminRow} className="w-full mt-1 py-2 border-2 border-dashed border-amber-300 rounded-xl text-[9px] font-black text-amber-600 uppercase tracking-widest hover:bg-amber-100 transition-all">
+                          + Tambah Termin
+                        </button>
+                      )}
+                      <p className="text-[8px] font-bold text-slate-400 italic">Total semua termin wajib = 100%. Tersimpan sebagai: <span className="font-black text-slate-500">{composeTermin(terminRows)}</span></p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-1">

@@ -7,6 +7,7 @@ const SupplierQuotation  = require('../models/SupplierQuotation');
 const SupplierInvoice    = require('../models/SupplierInvoice');
 const ExpenseSubmission  = require('../models/ExpenseSubmission');
 const { parsePaymentStages } = require('../utils/paymentTerms');
+const { computeProcessSteps } = require('../utils/processProgress');
 
 const getInvoicePaymentStatus = async (invoiceId) => {
   const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
@@ -245,14 +246,12 @@ exports.getProjectTimeline = async (req, res) => {
       isFinalPaid: project.isFinalPaid || false
     };
 
-    const processStepsRaw = [
-      { label: 'Quotation Approved', fraction: clientQuotation ? 1 : 0 },
-      { label: 'PO Terbit',          fraction: purchaseOrders.length > 0 ? 1 : 0 },
-      { label: 'QC Passed',          fraction: purchaseOrders.length > 0 && purchaseOrders.every(po => po.qcStatus === 'Passed') ? 1 : 0 },
-      { label: 'Supplier Paid',      fraction: supplierInvoices.length > 0 && supplierInvoices.every(si => si.status === 'Paid') ? 1 : 0 },
-      { label: 'Delivered',          fraction: purchaseOrders.length > 0 && purchaseOrders.every(po => po.deliveryStatus === 'Delivered') ? 1 : 0 },
-      { label: 'Client Payment',     fraction: paymentFraction },
-    ];
+    const processStepsRaw = computeProcessSteps({
+      hasQuotation: !!clientQuotation,
+      purchaseOrders,
+      supplierInvoices,
+      paymentFraction,
+    });
     const processPercent = Math.round(
       (processStepsRaw.reduce((s, st) => s + st.fraction, 0) / processStepsRaw.length) * 100
     );

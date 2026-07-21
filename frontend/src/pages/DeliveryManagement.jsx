@@ -70,7 +70,7 @@ const DeliveryManagement = () => {
 
     if (formValues) {
       const ok = await updateStatus(po._id, 'Scheduled', formValues);
-      if (ok) generateBastPDF(po, formValues);
+      if (ok) await generateBastPDF(po, formValues);
     }
   };
 
@@ -101,7 +101,7 @@ const DeliveryManagement = () => {
     }
   };
 
-  const generateBastPDF = (po, values) => {
+  const generateBastPDF = async (po, values) => {
     try {
       const doc = new jsPDF();
 
@@ -195,6 +195,33 @@ const DeliveryManagement = () => {
       doc.setFont('helvetica', 'normal');
       doc.text("(________________)", 40, signY + 45, { align: 'center' });
       doc.text("(________________)", 165, signY + 45, { align: 'center' });
+
+      if (values.photoFile) {
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(values.photoFile);
+        });
+        if (dataUrl) {
+          try {
+            const props = doc.getImageProperties(dataUrl);
+            const ratio = Math.min(80 / props.width, 70 / props.height);
+            const w = props.width * ratio;
+            const h = props.height * ratio;
+            let photoY = signY + 58;
+            if (photoY + h + 10 > 290) { doc.addPage(); photoY = 20; }
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Foto Bukti Pengiriman", 14, photoY);
+            const fmt = (values.photoFile.type || '').includes('png') ? 'PNG' : 'JPEG';
+            doc.addImage(dataUrl, fmt, 14, photoY + 4, w, h);
+          } catch (e) {
+            console.error('BAST photo embed failed:', e);
+          }
+        }
+      }
 
       doc.save(`BAST-${po.poNumber || po._id}.pdf`);
     } catch (error) {
@@ -335,6 +362,16 @@ const DeliveryManagement = () => {
                           <p className="text-[9px] font-bold text-cyan-600 uppercase tracking-widest mt-0.5">
                             {po.courierName} {po.trackingNumber ? `(${po.trackingNumber})` : ''}
                           </p>
+                          {po.deliveryPhoto && (
+                            <a
+                              href={`http://localhost:5000/api/files/${po.deliveryPhoto}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block mt-1 text-[9px] font-black text-indigo-600 hover:underline uppercase tracking-widest"
+                            >
+                              📷 Lihat Foto
+                            </a>
+                          )}
                         </div>
                       )}
                     </td>

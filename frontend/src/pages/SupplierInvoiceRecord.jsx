@@ -9,7 +9,7 @@ import Footer from '../components/Footer';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const viewPaymentProof = (inv) => {
-  const url = `http://localhost:5000/uploads/documents/${inv.paymentProof}`;
+  const url = `http://localhost:5000/api/files/${inv.paymentProof}`;
   const isPdf = inv.paymentProof.toLowerCase().endsWith('.pdf');
   Swal.fire({
     title: `Bukti Transfer — ${inv.invoiceNumber}`,

@@ -4,6 +4,7 @@ dotenv.config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const connectDB = require('./config/db');
 
 const supplierInvoiceRoutes = require('./routes/supplierInvoiceRoutes');
@@ -26,6 +27,18 @@ app.use((req, res, next) => {
 });
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.get('/api/files/:filename', (req, res) => {
+  const filename = path.basename(req.params.filename);
+  const candidates = [
+    path.join(__dirname, 'uploads/documents', filename),
+    path.join(__dirname, 'uploads', filename),
+  ];
+  const found = candidates.find(p => fs.existsSync(p));
+  if (!found) return res.status(404).json({ msg: 'File not found' });
+  res.sendFile(found);
+});
+
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/project', require('./routes/projectRoutes'));
 app.use('/api/vendor', require('./routes/vendorRoutes'));

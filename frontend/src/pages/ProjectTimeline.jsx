@@ -18,7 +18,7 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numer
 const getFileUrl = (filename) => {
   if (!filename) return null;
   if (filename.startsWith('http')) return filename;
-  return `${API}/uploads/documents/${filename}`;
+  return `${API}/api/files/${filename}`;
 };
 
 const StatusPill = ({ status, size = 'sm' }) => {

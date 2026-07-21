@@ -274,8 +274,8 @@ const PaymentVerifyDetail = () => {
   const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    if (path.startsWith('/uploads') || path.startsWith('uploads/')) return `http://localhost:5000/${path.replace(/^\//, '')}`;
-    return `http://localhost:5000/uploads/documents/${path}`;
+    const name = String(path).replace(/^.*[\\/]/, '');
+    return `http://localhost:5000/api/files/${name}`;
   };
 
   const displayInvoice = invoiceData || payment.invoiceId;

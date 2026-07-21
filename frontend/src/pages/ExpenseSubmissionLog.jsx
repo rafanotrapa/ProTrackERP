@@ -15,7 +15,7 @@ const stripNonNumeric = (str) => str.toString().replace(/[^0-9]/g, '');
 const getFileUrl = (filename) => {
   if (!filename) return null;
   if (filename.startsWith('http')) return filename;
-  return `http://localhost:5000/uploads/documents/${filename}`;
+  return `http://localhost:5000/api/files/${filename}`;
 };
 
 const ExpenseSubmissionLog = () => {

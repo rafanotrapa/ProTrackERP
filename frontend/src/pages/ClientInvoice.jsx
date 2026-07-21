@@ -126,7 +126,7 @@ const ClientInvoice = () => {
 
                   <div className="flex gap-4">
                     <a
-                      href={`http://localhost:5000/uploads/documents/${inv.file}`}
+                      href={`http://localhost:5000/api/files/${inv.file}`}
                       target="_blank"
                       rel="noreferrer"
                       className="flex-1 bg-slate-50 hover:bg-slate-100 p-4 rounded-2xl flex items-center justify-center gap-2 border border-slate-200 transition-all"

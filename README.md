@@ -79,14 +79,14 @@ The frontend runs at `http://localhost:5173`.
 Create a `.env` file in the project root with the following:
 
 ```env
-MONGO_URI=mongodb+srv://<user>:<password>@<cluster>/
-JWT_SECRET=<random-secret-for-jwt>
-EMAIL_HOST=<smtp-host>
-EMAIL_PORT=<smtp-port>
-EMAIL_USER=<smtp-user>
-EMAIL_PASS=<smtp-password>
-FRONTEND_URL=http://localhost:5173
-PORT=5000
+MONGO_URI=your_mongo_uri
+JWT_SECRET=your_jwt_secret
+EMAIL_HOST=your_smtp_host
+EMAIL_PORT=your_smtp_port
+EMAIL_USER=<your_smtp_user
+EMAIL_PASS=your_smtp_password
+FRONTEND_URL=your_url
+PORT=your_port
 ```
 
 > The email credentials are used for the forgot/reset-password feature (SMTP, e.g. Mailtrap for development).

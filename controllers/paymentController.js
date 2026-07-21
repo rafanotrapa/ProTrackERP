@@ -20,7 +20,7 @@ exports.createPayment = async (req, res) => {
       amountPaid,
       paymentDate,
       remarks,
-      evidencePath: req.file.path
+      evidencePath: req.file.filename
     });
 
     await newPayment.save();

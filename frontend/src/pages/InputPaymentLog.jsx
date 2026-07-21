@@ -176,7 +176,7 @@ const InputPaymentLog = () => {
                     <td className="px-6 py-5 text-center">
                       {p.evidencePath ? (
                         <a
-                          href={`http://localhost:5000/${p.evidencePath.replace(/\\/g, '/')}`}
+                          href={`http://localhost:5000/uploads/documents/${p.evidencePath.replace(/^.*[\\/]/, '')}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex p-2 text-slate-500 hover:text-indigo-600 transition-all"

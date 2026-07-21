@@ -304,7 +304,7 @@ const InvoiceSubmission = () => {
             <div className="space-y-6">
               <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Digital Evidence</h3>
               <div className="relative h-full min-h-[300px]">
-                <input type="file" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
+                <input type="file" accept="image/*,.pdf" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
                 <div className={`h-full border-4 border-dashed rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-300 ${formData.file ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-100 bg-slate-50 hover:border-indigo-300 group'}`}>
                   {formData.file ? (
                     <div className="text-center animate-in zoom-in duration-300">

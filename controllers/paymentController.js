@@ -1,5 +1,7 @@
 const Payment = require('../models/Payment');
 const ClientInvoice = require('../models/CreateInvoice');
+const Project = require('../models/Project');
+const ClientQuotation = require('../models/ClientQuotation');
  
 exports.getInvoicesForPayment = async (req, res) => {
   try {
@@ -61,7 +63,27 @@ exports.verifyPayment = async (req, res) => {
     await payment.save();
 
     if (status === 'Verified') {
-      await ClientInvoice.findByIdAndUpdate(payment.invoiceId, { status: 'Paid' });
+      const invoice = await ClientInvoice.findByIdAndUpdate(
+        payment.invoiceId,
+        { status: 'Paid' },
+        { new: true }
+      );
+
+      if (invoice?.projectId) {
+        const quote = await ClientQuotation.findOne({
+          projectId: invoice.projectId,
+          approvalStatus: 'Approved',
+        });
+        if (quote) {
+          const grandTotal =
+            Number(quote.clientPrice || 0) + Number(quote.shippingFee || 0) + Number(quote.taxAmount || 0);
+          const paidInvoices = await ClientInvoice.find({ projectId: invoice.projectId, status: 'Paid' });
+          const totalPaid = paidInvoices.reduce((s, i) => s + Number(i.amount || 0), 0);
+          if (grandTotal > 0 && totalPaid >= grandTotal - 1) {
+            await Project.findOneAndUpdate({ projectId: invoice.projectId }, { status: 'Completed' });
+          }
+        }
+      }
     }
 
     res.json({ msg: `Payment marked as ${status}` });

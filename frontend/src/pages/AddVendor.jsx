@@ -7,16 +7,6 @@ import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
 const COMPANY_TYPES = ['PT', 'CV', 'Persero', 'Individual'].map((v) => ({ value: v, label: v }));
-const VENDOR_CATEGORIES = [
-  'Software Development', 'IT Consulting Services', 'System Integrator',
-  'Cloud Computing Services', 'Cyber Security Services', 'Network Infrastructure Provider',
-  'Data Center Services', 'Hardware Distributor', 'Computer & Laptop Supplier',
-  'Server & Storage Solution Provider', 'Managed IT Services', 'Enterprise Application Provider',
-  'Mobile Application Development', 'Artificial Intelligence (AI) Solutions',
-  'Internet of Things (IoT) Solutions', 'IT Support & Maintenance Services',
-  'Database Management Services', 'Digital Transformation Services',
-  'Telecommunications & Unified Communication', 'IT Outsourcing Services',
-].map((v) => ({ value: v, label: v }));
 
 const AddVendor = () => {
   const navigate = useNavigate();
@@ -60,7 +50,7 @@ const AddVendor = () => {
     email: '',
     phone: '',
     address: '',
-    category: 'Software Development'
+    category: ''
   });
 
   const handleChange = (e) => {
@@ -175,11 +165,13 @@ const AddVendor = () => {
                </div>
                <div className="space-y-1">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Category</label>
-                 <StyledSelect
+                 <input
                    name="category"
+                   type="text"
+                   placeholder="e.g. Hardware Supplier, IT Consulting, dll."
+                   className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all"
                    value={formData.category}
                    onChange={handleChange}
-                   options={VENDOR_CATEGORIES}
                  />
                </div>
             </div>

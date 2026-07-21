@@ -17,6 +17,15 @@ exports.createPayment = async (req, res) => {
     const { invoiceId, amountPaid, paymentDate, remarks } = req.body;
     if (!req.file) return res.status(400).json({ msg: "Bukti transfer wajib diunggah" });
 
+    const invoice = await ClientInvoice.findById(invoiceId);
+    if (invoice?.projectId && paymentDate) {
+      const projectInvoiceIds = (await ClientInvoice.find({ projectId: invoice.projectId }, '_id')).map(i => i._id);
+      const lastPayment = await Payment.findOne({ invoiceId: { $in: projectInvoiceIds } }).sort({ paymentDate: -1 });
+      if (lastPayment && new Date(paymentDate) < new Date(lastPayment.paymentDate)) {
+        return res.status(400).json({ msg: `Tanggal pembayaran tidak boleh lebih awal dari pembayaran sebelumnya (${new Date(lastPayment.paymentDate).toLocaleDateString('id-ID')})` });
+      }
+    }
+
     const newPayment = new Payment({
       invoiceId,
       amountPaid,

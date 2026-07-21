@@ -335,6 +335,16 @@ const DeliveryManagement = () => {
                           <p className="text-[9px] font-bold text-cyan-600 uppercase tracking-widest mt-0.5">
                             {po.courierName} {po.trackingNumber ? `(${po.trackingNumber})` : ''}
                           </p>
+                          {po.deliveryPhoto && (
+                            <a
+                              href={`http://localhost:5000/api/files/${po.deliveryPhoto}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-block mt-1 text-[9px] font-black text-indigo-600 hover:underline uppercase tracking-widest"
+                            >
+                              📷 Lihat Foto
+                            </a>
+                          )}
                         </div>
                       )}
                     </td>

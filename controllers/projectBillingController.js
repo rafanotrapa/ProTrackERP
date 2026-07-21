@@ -1,7 +1,10 @@
 const CreateInvoice = require('../models/CreateInvoice');
 const Payment = require('../models/Payment');
 const ClientQuotation = require('../models/ClientQuotation');
+const PurchaseOrder = require('../models/PurchaseOrder');
+const SupplierInvoice = require('../models/SupplierInvoice');
 const { parsePaymentStages } = require('../utils/paymentTerms');
+const { computeProcessPercent } = require('../utils/processProgress');
 
 const getInvoicePaymentStatus = async (invoiceId) => {
   const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
@@ -57,6 +60,13 @@ exports.getAllProjectsBilling = async (req, res) => {
       }
     }
 
+    const allPOs = await PurchaseOrder.find();
+    const allSIs = await SupplierInvoice.find();
+    const posByProject = {};
+    allPOs.forEach(po => { (posByProject[po.projectId] = posByProject[po.projectId] || []).push(po); });
+    const sisByProject = {};
+    allSIs.forEach(si => { (sisByProject[si.projectId] = sisByProject[si.projectId] || []).push(si); });
+
     const result = Array.from(projectMap.values()).map(project => {
       const totalContract = project.totalContractValue || 0;
       const totalPaid = project.totalPaid || 0;
@@ -67,10 +77,18 @@ exports.getAllProjectsBilling = async (req, res) => {
       const paidStages = project.invoices.filter(inv => inv.status === 'Paid').length;
       const progressPercent = totalStages > 0 ? (paidStages / totalStages) * 100 : 0;
 
+      const processPercent = computeProcessPercent({
+        hasQuotation: true,
+        purchaseOrders: posByProject[project.projectId] || [],
+        supplierInvoices: sisByProject[project.projectId] || [],
+        paymentFraction: totalStages > 0 ? paidStages / totalStages : 0,
+      });
+
       return {
         ...project,
         remainingAmount,
         progressPercent: Math.round(progressPercent),
+        processPercent,
         stagesCount: totalStages,
         paidCount: paidStages,
         isComplete: paidStages >= totalStages

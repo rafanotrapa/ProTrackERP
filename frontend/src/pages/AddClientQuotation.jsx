@@ -406,7 +406,7 @@ const AddClientQuotation = () => {
     }
   };
 
-  const generatePDF = (forceFinal = false) => {
+  const generatePDF = async (forceFinal = false) => {
     const currentItems = quotationMode === 'auto' ? formData.items : manualItems;
 
     if (!formData.projectId || currentItems.length === 0) {
@@ -418,6 +418,10 @@ const AddClientQuotation = () => {
       });
       return;
     }
+
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    if (!signRes.isConfirmed) return;
+    const signer = signRes.value || '';
 
     try {
       const doc      = new jsPDF();
@@ -571,15 +575,11 @@ const AddClientQuotation = () => {
       }
 
       const stampY = currentY + (formData.remarks ? remarkOffsetY + 20 : remarkOffsetY + 10);
-      try {
-        doc.addImage('/stample-batavia.png', 'PNG', 140, stampY, 55, 55);
-      } catch {
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.setTextColor(150);
-        doc.text('[Digital Stamp]', 167, stampY + 30, { align: 'center' });
-        doc.setTextColor(0);
-      }
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0);
+      doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
+      doc.text(signer ? `( ${signer} )` : "(________________)", 167, stampY + 45, { align: 'center' });
 
       const suffix = forceFinal ? '' : (isDraft ? '_DRAFT' : '');
       doc.save(`${formData.quotationId}${suffix}.pdf`);

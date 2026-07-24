@@ -43,6 +43,7 @@ const DeliveryManagement = () => {
           <div><label class="text-[10px] font-black uppercase text-slate-400">Jumlah Barang</label><input id="swal-qty" type="number" min="1" value="${totalQtyPO || ''}" placeholder="Total unit yang dikirim" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
           <div><label class="text-[10px] font-black uppercase text-slate-400">Kurir / Ekspedisi</label><input id="swal-courier" placeholder="Misal: Lalamove / Kurir Internal" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
           <div><label class="text-[10px] font-black uppercase text-slate-400">Nomor Resi (Opsional)</label><input id="swal-resi" placeholder="Bisa diisi nanti" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-[10px] font-black uppercase text-slate-400">Nama Penandatangan (Pengirim)</label><input id="swal-signer" placeholder="Nama pihak pengirim" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
           <div><label class="text-[10px] font-black uppercase text-slate-400">Foto Barang</label><input id="swal-photo" type="file" accept="image/*" class="w-full p-3 border rounded-lg outline-none text-xs"></div>
         </div>
       `,
@@ -63,6 +64,7 @@ const DeliveryManagement = () => {
           deliveryQty: qty,
           courierName: courier,
           trackingNumber: document.getElementById('swal-resi').value,
+          signerName: document.getElementById('swal-signer').value,
           photoFile: document.getElementById('swal-photo').files[0] || null
         };
       }
@@ -188,12 +190,8 @@ const DeliveryManagement = () => {
       doc.text("Pihak Pertama (Pengirim)", 40, signY, { align: 'center' });
       doc.text("Pihak Kedua (Penerima)", 165, signY, { align: 'center' });
 
-      try {
-        doc.addImage("/stample-batavia.png", 'PNG', 15, signY + 3, 45, 45);
-      } catch { }
-
       doc.setFont('helvetica', 'normal');
-      doc.text("(________________)", 40, signY + 45, { align: 'center' });
+      doc.text(values.signerName ? `( ${values.signerName} )` : "(________________)", 40, signY + 45, { align: 'center' });
       doc.text("(________________)", 165, signY + 45, { align: 'center' });
 
       if (values.photoFile) {

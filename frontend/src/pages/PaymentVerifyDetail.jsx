@@ -100,6 +100,10 @@ const PaymentVerifyDetail = () => {
       return;
     }
 
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    if (!signRes.isConfirmed) return;
+    const signer = signRes.value || '';
+
     setDownloading(true);
 
     try {
@@ -210,17 +214,11 @@ const PaymentVerifyDetail = () => {
       doc.text(infoList, 14, finalY + 47);
 
       const stampY = finalY + 85;
-      try {
-        doc.addImage("/stample-batavia.png", 'PNG', 140, stampY, 55, 55);
-        doc.setDrawColor(200);
-        doc.line(140, stampY + 50, 195, stampY + 50);
-      } catch {
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.setTextColor(150, 150, 150);
-        doc.text('[Digital Stamp]', 167, stampY + 30, { align: 'center' });
-        doc.setTextColor(0, 0, 0);
-      }
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
+      doc.text(signer ? `( ${signer} )` : "(________________)", 167, stampY + 45, { align: 'center' });
 
       doc.save(`${invoice.invoiceNumber}.pdf`);
 

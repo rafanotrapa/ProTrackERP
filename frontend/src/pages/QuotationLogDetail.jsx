@@ -179,7 +179,10 @@ const QuotationLogDetail = () => {
   const taxAmount = (subtotal * taxPercentage) / 100;
   const grandTotal = calculateGrandTotal();
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    if (!signRes.isConfirmed) return;
+    const signer = signRes.value || '';
     try {
       const doc = new jsPDF();
       const isDraft = quotation.approvalStatus !== 'Approved';
@@ -322,15 +325,11 @@ const QuotationLogDetail = () => {
       }
 
       const stampY = currentY + (quotation.remarks ? remarkOffsetY + 20 : remarkOffsetY + 10);
-      try {
-        doc.addImage('/stample-batavia.png', 'PNG', 140, stampY, 55, 55);
-      } catch {
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.setTextColor(150);
-        doc.text('[Digital Stamp]', 167, stampY + 30, { align: 'center' });
-        doc.setTextColor(0);
-      }
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0);
+      doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
+      doc.text(signer ? `( ${signer} )` : "(________________)", 167, stampY + 45, { align: 'center' });
 
       doc.save(`${quotation.quotationId}${isDraft ? '_DRAFT' : ''}.pdf`);
     } catch (error) {

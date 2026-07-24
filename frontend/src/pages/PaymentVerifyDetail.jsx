@@ -100,6 +100,10 @@ const PaymentVerifyDetail = () => {
       return;
     }
 
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    if (!signRes.isConfirmed) return;
+    const signer = signRes.value || '';
+
     setDownloading(true);
 
     try {
@@ -214,7 +218,7 @@ const PaymentVerifyDetail = () => {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
-      doc.text("(________________)", 167, stampY + 45, { align: 'center' });
+      doc.text(signer ? `( ${signer} )` : "(________________)", 167, stampY + 45, { align: 'center' });
 
       doc.save(`${invoice.invoiceNumber}.pdf`);
 

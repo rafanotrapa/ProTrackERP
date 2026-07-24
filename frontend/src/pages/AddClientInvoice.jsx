@@ -162,7 +162,10 @@ const AddClientInvoice = () => {
     }
   };
 
-  const generatePDF = (data) => {
+  const generatePDF = async (data) => {
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    if (!signRes.isConfirmed) return;
+    const signer = signRes.value || '';
     try {
       const doc = new jsPDF();
 
@@ -276,7 +279,7 @@ const AddClientInvoice = () => {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0, 0, 0);
       doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
-      doc.text("(________________)", 167, stampY + 45, { align: 'center' });
+      doc.text(signer ? `( ${signer} )` : "(________________)", 167, stampY + 45, { align: 'center' });
 
       doc.save(`${data.invoiceNumber}.pdf`);
     } catch (error) {

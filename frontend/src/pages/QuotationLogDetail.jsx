@@ -179,7 +179,10 @@ const QuotationLogDetail = () => {
   const taxAmount = (subtotal * taxPercentage) / 100;
   const grandTotal = calculateGrandTotal();
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    if (!signRes.isConfirmed) return;
+    const signer = signRes.value || '';
     try {
       const doc = new jsPDF();
       const isDraft = quotation.approvalStatus !== 'Approved';
@@ -326,7 +329,7 @@ const QuotationLogDetail = () => {
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(0);
       doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
-      doc.text("(________________)", 167, stampY + 45, { align: 'center' });
+      doc.text(signer ? `( ${signer} )` : "(________________)", 167, stampY + 45, { align: 'center' });
 
       doc.save(`${quotation.quotationId}${isDraft ? '_DRAFT' : ''}.pdf`);
     } catch (error) {

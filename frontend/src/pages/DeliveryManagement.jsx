@@ -188,10 +188,6 @@ const DeliveryManagement = () => {
       doc.text("Pihak Pertama (Pengirim)", 40, signY, { align: 'center' });
       doc.text("Pihak Kedua (Penerima)", 165, signY, { align: 'center' });
 
-      try {
-        doc.addImage("/stample-batavia.png", 'PNG', 15, signY + 3, 45, 45);
-      } catch { }
-
       doc.setFont('helvetica', 'normal');
       doc.text("(________________)", 40, signY + 45, { align: 'center' });
       doc.text("(________________)", 165, signY + 45, { align: 'center' });

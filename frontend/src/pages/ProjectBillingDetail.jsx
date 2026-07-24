@@ -129,17 +129,11 @@ const ProjectBillingDetail = () => {
       doc.text(infoList, 14, finalY + 32);
 
       const stampY = finalY + 70;
-      try {
-        doc.addImage("/stample-batavia.png", 'PNG', 140, stampY, 55, 55);
-        doc.setDrawColor(200);
-        doc.line(140, stampY + 50, 195, stampY + 50);
-      } catch {
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.setTextColor(150, 150, 150);
-        doc.text('[Digital Stamp]', 167, stampY + 30, { align: 'center' });
-        doc.setTextColor(0, 0, 0);
-      }
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(0, 0, 0);
+      doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
+      doc.text("(________________)", 167, stampY + 45, { align: 'center' });
 
       doc.save(`${invoice.invoiceNumber}.pdf`);
 

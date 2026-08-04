@@ -6,6 +6,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const connectDB = require('./config/db');
+const { verifyMailer } = require('./utils/emailService');
 
 const supplierInvoiceRoutes = require('./routes/supplierInvoiceRoutes');
 const supplierPaymentRoutes = require('./routes/supplierPaymentRoutes');
@@ -15,6 +16,7 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const projectBillingRoutes = require('./routes/projectBillingRoutes');
 
 connectDB();
+verifyMailer();
 
 const app = express();
 

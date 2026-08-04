@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { Lock, Mail, ArrowRight, ShieldCheck, Building2, Eye, EyeOff } from 'lucide-react';
+import { Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import protrackMark from '../assets/protrack-mark.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -93,9 +94,11 @@ const Login = () => {
             <div className="flex justify-center mb-8">
               <div className="relative">
                 <div className="absolute inset-0 bg-indigo-100 rounded-2xl blur-xl opacity-50"></div>
-                <div className="relative w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Building2 size={28} className="text-white" />
-                </div>
+                <img
+                  src={protrackMark}
+                  alt="ProTrack ERP"
+                  className="object-contain relative w-16 h-16"
+                />
               </div>
             </div>
 

@@ -3,16 +3,10 @@ const Log = require('../models/Log');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { sendEmail } = require('../utils/emailService');
+const { resetPasswordTemplate } = require('../utils/emailTemplates');
 
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST,
-  port: process.env.EMAIL_PORT,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+const RESET_EXPIRE_MINUTES = 10;
 
 const resetLoginAttempts = async (userId) => {
   await User.findByIdAndUpdate(userId, {
@@ -257,52 +251,27 @@ exports.forgotPassword = async (req, res) => {
       .digest('hex');
 
     user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+    user.resetPasswordExpire = Date.now() + RESET_EXPIRE_MINUTES * 60 * 1000;
     await user.save();
 
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
 
-    const mailOptions = {
-      from: '"ProTrack ERP" <noreply@protrack.com>',
-      to: user.email,
-      subject: '🔐 Reset Password ProTrack Anda',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
-          <div style="text-align: center; margin-bottom: 20px;">
-            <div style="width: 50px; height: 50px; background: #4f46e5; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
-              <span style="color: white; font-size: 24px; font-weight: bold;">P</span>
-            </div>
-            <h2 style="color: #1e293b; margin: 0;">ProTrack ERP</h2>
-          </div>
+    const { subject, html, text, attachments } = resetPasswordTemplate({
+      username: user.username,
+      resetUrl,
+      expireMinutes: RESET_EXPIRE_MINUTES
+    });
 
-          <h3 style="color: #1e293b;">Halo ${user.username},</h3>
-          <p style="color: #475569; line-height: 1.6;">
-            Kami menerima permintaan untuk mereset password akun ProTrack Anda.
-            Klik tombol di bawah untuk melanjutkan:
-          </p>
-
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetUrl}"
-               style="background-color: #4f46e5; color: white; padding: 12px 24px;
-                      text-decoration: none; border-radius: 12px; font-weight: bold;
-                      display: inline-block;">
-              🔐 Reset Password Sekarang
-            </a>
-          </div>
-
-          <p style="color: #475569; font-size: 12px; margin-top: 20px;">
-            Link ini akan kadaluarsa dalam <strong>10 menit</strong>.
-          </p>
-
-          <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
-          <p style="color: #94a3b8; font-size: 10px; text-align: center;">
-            &copy; 2026 ProTrack ERP
-          </p>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
+    try {
+      await sendEmail({ to: user.email, subject, html, text, attachments });
+    } catch (mailErr) {
+      // Email gagal kekirim -> token dibatalin biar nggak nyangkut di DB
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save();
+      console.error("❌ Gagal kirim email reset password:", mailErr.message);
+      return res.status(500).json({ msg: 'Gagal mengirim email. Coba lagi nanti.' });
+    }
 
     await Log.create({
       user: user.username,

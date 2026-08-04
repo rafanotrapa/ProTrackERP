@@ -1,4 +1,5 @@
 import React from 'react';
+import bataviaMark from '../assets/batavia-mark.png';
 
 const Footer = () => {
   return (
@@ -10,7 +11,7 @@ const Footer = () => {
 
           <div className="space-y-2 text-center md:text-left">
             <div className="flex items-center gap-3 justify-center md:justify-start">
-              <div className="bg-indigo-600 p-1.5 rounded-lg font-black text-[10px] italic shadow-lg shadow-indigo-500/20">BJK</div>
+              <img src={bataviaMark} alt="Batavia Jaya Kreasindo" className="object-contain w-9 h-9" />
               <p className="text-xl font-black italic uppercase tracking-tighter">
                 BATAVIA JAYA <span className="text-indigo-500">KREASINDO</span>
               </p>

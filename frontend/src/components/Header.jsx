@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import protrackMark from '../assets/protrack-mark.png';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ const Header = () => {
         className="flex items-center gap-3 cursor-pointer transition-all active:scale-95"
         onClick={() => navigate('/dashboard')}
       >
-        <div className="p-2 font-black italic text-white bg-indigo-600 shadow-lg rounded-xl shadow-indigo-500/20">PT</div>
+        <img src={protrackMark} alt="ProTrack ERP" className="object-contain w-10 h-10" />
         <div>
           <h1 className="text-xl font-black italic uppercase tracking-tighter text-white leading-none">
             ProTrack <span className="text-xs not-italic tracking-widest text-indigo-400 ml-1">ERP</span>

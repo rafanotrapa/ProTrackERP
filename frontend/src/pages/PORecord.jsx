@@ -47,9 +47,10 @@ const PORecord = () => {
   });
 
   const counts = {
-    all:    pos.length,
-    unpaid: pos.filter((po) => po.paymentStatus !== 'Paid').length,
-    paid:   pos.filter((po) => po.paymentStatus === 'Paid').length,
+    all:     pos.length,
+    unpaid:  pos.filter((po) => po.paymentStatus === 'Unpaid').length,
+    partial: pos.filter((po) => po.paymentStatus === 'Partial').length,
+    paid:    pos.filter((po) => po.paymentStatus === 'Paid').length,
   };
 
   if (loading) {
@@ -92,9 +93,10 @@ const PORecord = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div className="flex gap-2 flex-wrap">
             {[
-              { key: 'all',    label: `All (${counts.all})`,       cls: 'bg-slate-900 text-white' },
-              { key: 'Unpaid', label: `Unpaid (${counts.unpaid})`, cls: 'bg-amber-500 text-white' },
-              { key: 'Paid',   label: `Paid (${counts.paid})`,     cls: 'bg-emerald-600 text-white' },
+              { key: 'all',     label: `All (${counts.all})`,         cls: 'bg-slate-900 text-white' },
+              { key: 'Unpaid',  label: `Unpaid (${counts.unpaid})`,   cls: 'bg-amber-500 text-white' },
+              { key: 'Partial', label: `Partial (${counts.partial})`, cls: 'bg-sky-600 text-white' },
+              { key: 'Paid',    label: `Paid (${counts.paid})`,       cls: 'bg-emerald-600 text-white' },
             ].map(({ key, label, cls }) => (
               <button
                 key={key}
@@ -160,7 +162,9 @@ const PORecord = () => {
                     </td>
                     <td className="px-6 py-5 text-center">
                       <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                        po.paymentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                        po.paymentStatus === 'Paid'    ? 'bg-emerald-100 text-emerald-600' :
+                        po.paymentStatus === 'Partial' ? 'bg-sky-100 text-sky-600' :
+                                                         'bg-amber-100 text-amber-600'
                       }`}>
                         {po.paymentStatus || 'Unpaid'}
                       </span>

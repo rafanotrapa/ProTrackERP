@@ -7,6 +7,7 @@ const SupplierQuotation  = require('../models/SupplierQuotation');
 const SupplierInvoice    = require('../models/SupplierInvoice');
 const ExpenseSubmission  = require('../models/ExpenseSubmission');
 const { parsePaymentStages, resolveTopOption } = require('../utils/paymentTerms');
+const { computePOPaymentStatuses, UNPAID } = require('../utils/poPaymentStatus');
 const { computeProcessSteps } = require('../utils/processProgress');
 
 const getInvoicePaymentStatus = async (invoiceId) => {
@@ -113,6 +114,10 @@ exports.getProjectTimeline = async (req, res) => {
       .populate('vendorId', 'vendorName vendorContact vendorAddress')
       .sort({ timestamp: -1 });
 
+    // Sama seperti daftar PO: status pembayaran diturunkan dari tagihan supplier
+    // yang sudah lunas, bukan dari field PO yang tidak pernah diperbarui.
+    const poStatusMap = await computePOPaymentStatuses(purchaseOrders);
+
     const poSummary = purchaseOrders.map(po => ({
       _id: po._id,
       poNumber: po.poNumber,
@@ -122,7 +127,7 @@ exports.getProjectTimeline = async (req, res) => {
       totalAmount: po.totalAmount || 0,
       additionalFee: po.additionalFee || 0,
       taxAmount: po.taxAmount || 0,
-      paymentStatus: po.paymentStatus,
+      paymentStatus: poStatusMap.get(po.poNumber) || UNPAID,
       qcStatus: po.qcStatus,
       qcRemarks: po.qcRemarks || '',
       deliveryStatus: po.deliveryStatus,

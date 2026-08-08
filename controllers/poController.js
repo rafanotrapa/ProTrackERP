@@ -2,9 +2,26 @@ const PurchaseOrder = require('../models/PurchaseOrder');
 const SupplierQuotation = require('../models/SupplierQuotation');
 const Vendor = require('../models/Vendor'); 
 
+// Nomor PO dibuat di browser dengan Math.random pada rentang 1000-9999, jadi hanya
+// ada 9.000 kemungkinan per bulan dan tabrakan bisa terjadi. Karena poNumber unik di
+// level database, tabrakan tadinya muncul sebagai error 500 mentah ke user.
+const ensureUniquePONumber = async (candidate) => {
+  const yearMonth = new Date().toISOString().slice(0, 7).replace('-', '');
+  let poNumber = candidate || `PO-${yearMonth}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const taken = await PurchaseOrder.exists({ poNumber });
+    if (!taken) return poNumber;
+    poNumber = `PO-${yearMonth}-${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+  // Jatuh ke timestamp yang pasti unik daripada menggagalkan pembuatan PO.
+  return `PO-${yearMonth}-${Date.now().toString().slice(-6)}`;
+};
+
 exports.createPO = async (req, res) => {
   try {
-    const { poNumber, quotationId, shippingAddress } = req.body; 
+    const { poNumber: requestedPONumber, quotationId, shippingAddress } = req.body;
+    const poNumber = await ensureUniquePONumber(requestedPONumber);
 
     const quote = await SupplierQuotation.findById(quotationId);
     if (!quote) return res.status(404).json({ msg: 'Quotation dasar tidak ditemukan!' });

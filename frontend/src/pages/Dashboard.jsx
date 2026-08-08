@@ -4,7 +4,8 @@ import {
   FolderPlus, FileText, Receipt, CreditCard, Calendar,
   Truck, Package, ClipboardCheck, FileCheck,
   Users, Logs, Award, Shield, DollarSign, BarChart3,
-  ArrowRight, CircleDot, Layers, Briefcase, Sparkles, TrendingUp, Boxes
+  ArrowRight, CircleDot, Layers, Briefcase, Sparkles, TrendingUp, Boxes,
+  PackageSearch
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -58,7 +59,7 @@ const Dashboard = () => {
       { title: 'Vendor Directory', icon: Package, desc: 'Kelola data master supplier', descEn: 'Manage master suppliers', path: '/vendor' },
       { title: 'Supplier Quotation', icon: FileCheck, desc: 'Input harga modal (COGS) dari supplier', descEn: 'Input COGS from suppliers', path: '/supplier-quotation-menu' },
       { title: 'Purchase Order', icon: ClipboardCheck, desc: 'Kelola & riwayat PO', descEn: 'Manage & track PO history', path: '/po-menu' },
-      { title: 'Receive & QC Goods', icon: '🔍', desc: 'Terima, cek barang & proses retur', descEn: 'Receive, inspect goods & process returns', path: '/receive-qc', color: 'border-amber-500' },
+      { title: 'Receive & QC Goods', icon: PackageSearch, desc: 'Terima, cek barang & proses retur', descEn: 'Receive, inspect goods & process returns', path: '/receive-qc', color: 'border-amber-500' },
       { title: 'Invoice Submission', icon: FileText, desc: 'Teruskan tagihan vendor ke Finance', descEn: 'Forward vendor invoices to Finance', path: '/supplier-invoice-menu' },
       { title: 'Delivery Management', icon: Truck, desc: 'Atur jadwal pengiriman ke client', descEn: 'Schedule deliveries to clients', path: '/delivery-management' },
       { title: 'Inventory Storage', icon: Boxes, desc: 'Stok barang dari PO: sisa & terpakai', descEn: 'PO stock: remaining & used', path: '/inventory' },

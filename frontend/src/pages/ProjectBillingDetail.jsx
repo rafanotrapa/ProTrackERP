@@ -323,7 +323,7 @@ const ProjectBillingDetail = () => {
                     )}
                     {stage.invoice && stage.status !== 'Paid' && (
                       <button
-                        onClick={() => navigate('/finance-input-payment')}
+                        onClick={() => navigate('/finance-input-payment', { state: { projectId } })}
                         className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[9px] uppercase"
                       >
                         Record Payment

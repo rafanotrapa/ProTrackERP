@@ -33,6 +33,16 @@ const ExistingVendors = () => {
     return new Date(dateString).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
+  // Nama legal biasanya sudah diketik lengkap ("PT Mebel Jaya"), jadi menempelkan
+  // companyType tanpa cek menghasilkan "PT. PT Mebel Jaya".
+  const formatVendorName = (vendor) => {
+    const type = (vendor.companyType || '').trim();
+    const name = (vendor.vendorName  || '').trim();
+    if (!type) return name;
+    const alreadyPrefixed = new RegExp(`^${type}\\b\\.?\\s`, 'i').test(name);
+    return alreadyPrefixed ? name : `${type}. ${name}`;
+  };
+
   const filtered = vendors.filter((v) => {
     const term = searchTerm.toLowerCase();
     return (
@@ -124,7 +134,7 @@ const ExistingVendors = () => {
                         </div>
                         <div>
                           <p className="text-[10px] font-black text-indigo-600 uppercase tracking-wider">{vendor.vendorId}</p>
-                          <p className="font-black text-slate-800 text-sm mt-0.5">{vendor.companyType}. {vendor.vendorName}</p>
+                          <p className="font-black text-slate-800 text-sm mt-0.5">{formatVendorName(vendor)}</p>
                           <p className="text-[9px] text-slate-400 mt-0.5">{vendor.email} &bull; {vendor.phone || 'N/A'}</p>
                         </div>
                       </div>

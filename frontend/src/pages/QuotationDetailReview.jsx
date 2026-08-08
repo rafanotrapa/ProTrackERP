@@ -70,7 +70,7 @@ const QuotationDetailReview = () => {
     } else {
       const result = await Swal.fire({
         title: 'Setujui Quotation Ini?',
-        html: `Modal dari vendor <strong>${quo.vendorId}</strong> sebesar <strong class="text-emerald-600">Rp ${formatRupiah(grandTotal)}</strong> akan disetujui dan bisa dipakai sebagai dasar Client Quotation.`,
+        html: `Modal dari vendor <strong>${quo.vendorName || quo.vendorId}</strong> sebesar <strong class="text-emerald-600">Rp ${formatRupiah(grandTotal)}</strong> akan disetujui dan bisa dipakai sebagai dasar Client Quotation.`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#16a34a',
@@ -154,7 +154,10 @@ const QuotationDetailReview = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Vendor</p>
-                  <p className="text-lg font-black text-slate-800 uppercase mt-1">{quo.vendorId}</p>
+                  <p className="text-lg font-black text-slate-800 uppercase mt-1">{quo.vendorName || quo.vendorId}</p>
+                  {quo.vendorName && (
+                    <p className="text-[9px] font-mono text-slate-400 mt-0.5">{quo.vendorId}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Project ID</p>

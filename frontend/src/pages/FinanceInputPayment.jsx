@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import Header from '../components/Header';
@@ -8,6 +8,9 @@ import StyledSelect from '../components/StyledSelect';
 
 const FinanceInputPayment = () => {
   const navigate = useNavigate();
+  // Project asal dikirim lewat router state saat datang dari tombol "Record Payment",
+  // supaya Finance tidak harus memilih ulang project yang barusan dibuka.
+  const presetProjectId = useLocation().state?.projectId;
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -68,6 +71,15 @@ const FinanceInputPayment = () => {
       setUnpaidStages([]);
     }
   };
+
+  // Pilih otomatis project yang dibawa dari halaman billing, sekali saja setelah
+  // daftar project selesai dimuat.
+  useEffect(() => {
+    if (presetProjectId && projects.length > 0 && !selectedProject) {
+      handleProjectChange({ target: { value: presetProjectId } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetProjectId, projects]);
 
   const handleStageChange = (e) => {
     const stageIndex = e.target.value;

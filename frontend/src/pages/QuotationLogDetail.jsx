@@ -180,7 +180,7 @@ const QuotationLogDetail = () => {
   const grandTotal = calculateGrandTotal();
 
   const handleDownloadPDF = async () => {
-    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF', inputValidator: (v) => (!v || !v.trim()) && 'Nama penandatangan wajib diisi' });
     if (!signRes.isConfirmed) return;
     const signer = signRes.value || '';
     try {

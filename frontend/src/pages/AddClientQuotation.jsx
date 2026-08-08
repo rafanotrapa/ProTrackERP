@@ -34,6 +34,22 @@ const AddClientQuotation = () => {
     rows.length === 2
       ? `DP ${rows[0] || 0}%`
       : `Termin ${rows.map((r) => `${r || 0}%`).join(' ')}`;
+
+  // Balikan dari composeTermin: "DP 30%" -> [30, 70], "Termin 30% 30% 40%" -> [30, 30, 40].
+  // Dipakai saat memuat draft supaya builder termin tampil sesuai yang tersimpan.
+  const parseTerminRows = (str) => {
+    const found = [...String(str || '').matchAll(/(\d+)%/g)].map((m) => parseInt(m[1], 10));
+    if (found.length === 0) return null;
+    if (found.length === 1) return [found[0], 100 - found[0]];
+    return found;
+  };
+
+  // Untuk dicetak di PDF: klien perlu tahu jadwal cicilannya, bukan cuma kata "Termin".
+  const describeTermin = (rows) =>
+    rows.length === 2
+      ? `DP ${rows[0] || 0}% + Pelunasan ${rows[1] || 0}%`
+      : rows.map((r, i) => `Termin ${i + 1}: ${r || 0}%`).join(' + ');
+
   const terminSum = terminRows.reduce((a, r) => a + (Number(r) || 0), 0);
   const applyTermin = (rows) => {
     setTerminRows(rows);
@@ -133,13 +149,24 @@ const AddClientQuotation = () => {
               ? supplierItems.map((i) => `- ${i.itemName} (${i.quantity} ${i.unit})`).join('\n')
               : 'Tidak ada item ditemukan';
 
+            // TOP diwarisi dari Supplier Quotation. Kalau nilainya "Termin", customTop
+            // wajib ikut terisi — kalau kosong, skema termin hilang saat disimpan
+            // dan billing jatuh ke fallback "Full Payment".
+            const inheritedTop    = resSQ.data.topOption || 'COD';
+            const inheritedCustom = resSQ.data.customTop || '';
+            const inheritedRows   = parseTerminRows(inheritedCustom) || parseTerminRows(inheritedTop);
+            if (inheritedRows) setTerminRows(inheritedRows);
+
             setFormData((prev) => ({
               ...prev,
               projectName:   resProject.data.projectName || 'Tanpa Nama Project',
               clientName:    resProject.data.clientName  || 'N/A',
               selectedItems: itemNamesString,
               items:         supplierItems,
-              topOption:     resSQ.data.topOption || 'COD',
+              topOption:     inheritedTop,
+              customTop:     inheritedTop === 'Termin'
+                ? composeTermin(inheritedRows || terminRows)
+                : '',
             }));
             setManualItems([]);
             await loadDraftSilently(projectId, 'auto');
@@ -191,6 +218,12 @@ const AddClientQuotation = () => {
           ? draft.items.map((item) => `- ${item.itemName} (${item.quantity} ${item.unit})`).join('\n')
           : '';
 
+        // Draft menyimpan skema termin di topOption (mis. "DP 50%"), bukan label "Termin".
+        // Kembalikan ke mode Termin + pulihkan baris builder-nya.
+        const draftRows     = parseTerminRows(draft.customTop) || parseTerminRows(draft.topOption);
+        const draftIsTermin = Boolean(draftRows);
+        if (draftRows) setTerminRows(draftRows);
+
         setFormData((prev) => ({
           ...prev,
           _id:            draft._id,
@@ -200,8 +233,8 @@ const AddClientQuotation = () => {
           selectedItems:  itemNamesString      || prev.selectedItems,
           items:          mode === 'auto' ? (draft.items || prev.items) : prev.items,
           currency:       draft.currency       || prev.currency,
-          topOption:      draft.topOption      || prev.topOption,
-          customTop:      draft.customTop      || '',
+          topOption:      draftIsTermin ? 'Termin' : (draft.topOption || prev.topOption),
+          customTop:      draftIsTermin ? composeTermin(draftRows || terminRows) : '',
           remarks:        draft.remarks        || '',
           bankAccount:    draft.bankAccount    || '',
           approvalStatus: draft.approvalStatus || 'Draft',
@@ -333,8 +366,18 @@ const AddClientQuotation = () => {
     setQuotationMode('auto');
   };
 
+  // Saat mode Termin, yang dikirim harus string berisi persentase (mis. "DP 50%") —
+  // parsePaymentStages() di backend jatuh ke "Full Payment" kalau tidak ketemu '%'.
+  // customTop bisa kosong (mis. TOP diwarisi dari Supplier Quotation), jadi selalu
+  // ada fallback ke builder termin yang sedang tampil.
+  const resolveFinalTop = () => {
+    if (formData.topOption !== 'Termin') return formData.topOption;
+    const custom = String(formData.customTop || '').trim();
+    return /\d+\s*%/.test(custom) ? custom : composeTermin(terminRows);
+  };
+
   const buildPayload = (status) => {
-    const finalTop   = formData.topOption === 'Termin' ? formData.customTop : formData.topOption;
+    const finalTop   = resolveFinalTop();
     const itemsToUse = quotationMode === 'auto' ? formData.items : manualItems;
     return {
       quotationId:    formData.quotationId,
@@ -344,7 +387,7 @@ const AddClientQuotation = () => {
       items:          itemsToUse,
       currency:       formData.currency,
       topOption:      finalTop,
-      customTop:      formData.customTop,
+      customTop:      formData.topOption === 'Termin' ? finalTop : '',
       remarks:        formData.remarks  || '',
       bankAccount:    isPPN ? (formData.bankAccount || '') : '',
       timestamp:      formData.timestamp,
@@ -419,7 +462,7 @@ const AddClientQuotation = () => {
       return;
     }
 
-    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF', inputValidator: (v) => (!v || !v.trim()) && 'Nama penandatangan wajib diisi' });
     if (!signRes.isConfirmed) return;
     const signer = signRes.value || '';
 
@@ -554,7 +597,7 @@ const AddClientQuotation = () => {
       doc.text('TERM OF PAYMENT :', 14, currentY + 20);
       doc.setFont('helvetica', 'normal');
       doc.text(
-        formData.topOption === 'Termin' ? (formData.customTop || 'Termin') : (formData.topOption || 'COD'),
+        formData.topOption === 'Termin' ? describeTermin(terminRows) : (formData.topOption || 'COD'),
         14, currentY + 27
       );
 

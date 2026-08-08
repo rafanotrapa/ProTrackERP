@@ -3,7 +3,8 @@ const Payment = require('../models/Payment');
 const ClientQuotation = require('../models/ClientQuotation');
 const PurchaseOrder = require('../models/PurchaseOrder');
 const SupplierInvoice = require('../models/SupplierInvoice');
-const { parsePaymentStages } = require('../utils/paymentTerms');
+const Project = require('../models/Project');
+const { parsePaymentStages, resolveTopOption } = require('../utils/paymentTerms');
 const { computeProcessPercent } = require('../utils/processProgress');
 
 const getInvoicePaymentStatus = async (invoiceId) => {
@@ -26,6 +27,12 @@ exports.getAllProjectsBilling = async (req, res) => {
   try {
     const quotations = await ClientQuotation.find({ approvalStatus: 'Approved' });
 
+    // Tanggal project dipakai untuk mengurutkan daftar dari yang terbaru, memakai
+    // kunci yang sama dengan Financial Report dan Project Timeline.
+    const projectDocs = await Project.find({}, 'projectId createdAt');
+    const projectDateMap = {};
+    projectDocs.forEach(p => { projectDateMap[p.projectId] = p.createdAt; });
+
     const projectMap = new Map();
 
     for (const quote of quotations) {
@@ -35,7 +42,8 @@ exports.getAllProjectsBilling = async (req, res) => {
           projectName: quote.projectName,
           clientName: quote.clientName,
           totalContractValue: getContractGrandTotal(quote),
-          topOption: quote.topOption,
+          topOption: resolveTopOption(quote.topOption, quote.customTop),
+          createdAt: projectDateMap[quote.projectId] || quote.createdAt || quote.timestamp,
           invoices: [],
           totalPaid: 0
         });
@@ -95,6 +103,8 @@ exports.getAllProjectsBilling = async (req, res) => {
       };
     });
 
+    result.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
     res.json(result);
   } catch (err) {
     console.error("Error get all projects billing:", err);
@@ -116,7 +126,7 @@ exports.getProjectBillingDetail = async (req, res) => {
     }
 
     const totalContractValue = getContractGrandTotal(quotation);
-    const topOption = quotation.topOption;
+    const topOption = resolveTopOption(quotation.topOption, quotation.customTop);
 
     const invoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
 
@@ -206,7 +216,7 @@ exports.generateNextInvoice = async (req, res) => {
     }
 
     const totalContractValue = getContractGrandTotal(quotation);
-    const topOption = quotation.topOption;
+    const topOption = resolveTopOption(quotation.topOption, quotation.customTop);
 
     const existingInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
 

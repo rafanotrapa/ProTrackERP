@@ -402,7 +402,12 @@ const FinancialReport = () => {
                     </tr>
                   ) : projects.map(p => {
                     const isOpen = expanded === p.projectId;
-                    const profit = p.netProfit || 0;
+                    // Selama tagihan supplier belum masuk, COGS aktual masih 0 dan project
+                    // akan tampak bermargin 100%. Pakai estimasi dari supplier quotation
+                    // dan tandai jelas supaya tidak dibaca sebagai laba riil.
+                    const isEstimated = !p.hasActualCOGS && (p.estimatedCOGS || 0) > 0;
+                    const shownCOGS   = isEstimated ? p.estimatedCOGS   : p.supplierCOGS;
+                    const profit      = isEstimated ? p.estimatedNetProfit : (p.netProfit || 0);
                     return (
                       <React.Fragment key={p.projectId}>
                         <tr className={`hover:bg-slate-50/60 transition-all ${isOpen ? 'bg-indigo-50/20' : ''}`}>
@@ -414,7 +419,12 @@ const FinancialReport = () => {
                             {rp(p.clientRevenue)}
                           </td>
                           <td className="px-4 py-4 text-right text-rose-500 font-bold text-xs whitespace-nowrap">
-                            {rp(p.supplierCOGS)}
+                            {rp(shownCOGS)}
+                            {isEstimated && (
+                              <span className="ml-1.5 text-[8px] font-black uppercase tracking-wider text-amber-600" title="Tagihan supplier belum masuk — angka dari supplier quotation">
+                                est.
+                              </span>
+                            )}
                           </td>
                           <td className="px-4 py-4 text-right text-amber-600 font-bold text-xs whitespace-nowrap">
                             {p.supplierImportDuty > 0 ? rp(p.supplierImportDuty) : <span className="text-slate-300">—</span>}

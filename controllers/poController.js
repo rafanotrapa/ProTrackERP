@@ -1,10 +1,28 @@
 const PurchaseOrder = require('../models/PurchaseOrder');
 const SupplierQuotation = require('../models/SupplierQuotation');
-const Vendor = require('../models/Vendor'); 
+const Vendor = require('../models/Vendor');
+const { computePOPaymentStatuses, UNPAID } = require('../utils/poPaymentStatus');
+
+// Nomor PO dibuat di browser dengan Math.random pada rentang 1000-9999, jadi hanya
+// ada 9.000 kemungkinan per bulan dan tabrakan bisa terjadi. Karena poNumber unik di
+// level database, tabrakan tadinya muncul sebagai error 500 mentah ke user.
+const ensureUniquePONumber = async (candidate) => {
+  const yearMonth = new Date().toISOString().slice(0, 7).replace('-', '');
+  let poNumber = candidate || `PO-${yearMonth}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const taken = await PurchaseOrder.exists({ poNumber });
+    if (!taken) return poNumber;
+    poNumber = `PO-${yearMonth}-${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+  // Jatuh ke timestamp yang pasti unik daripada menggagalkan pembuatan PO.
+  return `PO-${yearMonth}-${Date.now().toString().slice(-6)}`;
+};
 
 exports.createPO = async (req, res) => {
   try {
-    const { poNumber, quotationId, shippingAddress } = req.body; 
+    const { poNumber: requestedPONumber, quotationId, shippingAddress } = req.body;
+    const poNumber = await ensureUniquePONumber(requestedPONumber);
 
     const quote = await SupplierQuotation.findById(quotationId);
     if (!quote) return res.status(404).json({ msg: 'Quotation dasar tidak ditemukan!' });
@@ -53,14 +71,27 @@ exports.getAllPOs = async (req, res) => {
   try {
     const pos = await PurchaseOrder.find()
         .populate('quotationId')
-        .populate('vendorId', 'vendorName vendorContact') 
+        .populate('vendorId', 'vendorName vendorContact')
         .sort({ timestamp: -1 });
-    res.json(pos);
+
+    // paymentStatus diturunkan dari tagihan supplier yang sudah dibayar supaya
+    // tidak basi. Nilai yang disimpan di dokumen PO tidak pernah diperbarui.
+    const statusMap = await computePOPaymentStatuses(pos);
+    const hasil = pos.map(po => ({
+      ...po.toObject(),
+      paymentStatus: statusMap.get(po.poNumber) || UNPAID,
+    }));
+
+    res.json(hasil);
   } catch (err) {
+    console.error('Error get all PO:', err.message);
     res.status(500).json({ msg: 'Gagal mengambil data PO' });
   }
 };
 
+// Peninggalan alur lama saat Finance menyetujui PO secara langsung. Tidak ada
+// pemanggilan dari frontend; pembayaran vendor kini lewat Supplier Payment dan
+// statusnya diturunkan dari tagihan yang lunas.
 exports.financeApprovePO = async (req, res) => {
   try {
     const po = await PurchaseOrder.findById(req.params.id);

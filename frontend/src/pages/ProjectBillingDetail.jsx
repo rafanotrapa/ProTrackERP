@@ -36,14 +36,14 @@ const ProjectBillingDetail = () => {
   }, [projectId, navigate]);
 
   const generateInvoicePDF = async (invoice) => {
-    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF', inputValidator: (v) => (!v || !v.trim()) && 'Nama penandatangan wajib diisi' });
     if (!signRes.isConfirmed) return;
     const signer = signRes.value || '';
     try {
       const doc = new jsPDF();
 
       try {
-        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
+        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40, 'hdr', 'FAST');
       } catch {
         doc.setFillColor(15, 23, 42);
         doc.rect(0, 0, 210, 20, 'F');
@@ -74,7 +74,7 @@ const ProjectBillingDetail = () => {
       doc.text("Due Date", 120, 77);
       doc.text(`: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')}`, 150, 77);
       doc.text("TOP", 120, 83);
-      doc.text(`: ${invoice.topOption || data?.topOption || '-'}`, 150, 83);
+      doc.text(`: ${invoice.topOption || data?.topOption || invoice.billingPhase || '-'}`, 150, 83);
 
       const tableRows = (invoice.items || []).map(item => [
         item.quantity || 0,
@@ -125,7 +125,7 @@ const ProjectBillingDetail = () => {
         "Pembayaran melalui Cash / Transfer",
         "Bank Mandiri : 1170011046968",
         "A.n : BATAVIA JAYA KREASINDO",
-        `Term of Payment : ${invoice.topOption || data?.topOption}`,
+        `Term of Payment : ${invoice.topOption || data?.topOption || invoice.billingPhase || '-'}`,
         `Delivery Time   : 7 Working Days after PO / DP Received`,
         "Warranty        : 1 Year"
       ];
@@ -168,8 +168,10 @@ const ProjectBillingDetail = () => {
         });
 
         if (res.data.invoice) {
-          generateInvoicePDF(res.data.invoice);
-
+          // Notifikasi sukses harus selesai dulu. Sebelumnya generateInvoicePDF
+          // dipanggil tanpa await, lalu Swal di bawah ini langsung menutup prompt
+          // "Nama Penandatangan" — prompt dianggap dibatalkan dan PDF-nya tidak
+          // pernah terunduh, padahal UI menjanjikan unduhan otomatis.
           await Swal.fire({
             icon: 'success',
             title: 'Invoice Generated!',
@@ -182,6 +184,8 @@ const ProjectBillingDetail = () => {
             timer: 2000,
             showConfirmButton: false
           });
+
+          await generateInvoicePDF(res.data.invoice);
         }
 
         const refreshRes = await axios.get(`http://localhost:5000/api/project-billing/${projectId}`, {
@@ -319,7 +323,7 @@ const ProjectBillingDetail = () => {
                     )}
                     {stage.invoice && stage.status !== 'Paid' && (
                       <button
-                        onClick={() => navigate('/finance-input-payment')}
+                        onClick={() => navigate('/finance-input-payment', { state: { projectId } })}
                         className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[9px] uppercase"
                       >
                         Record Payment

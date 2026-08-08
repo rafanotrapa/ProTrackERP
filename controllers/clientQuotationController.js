@@ -1,5 +1,6 @@
 const ClientQuotation  = require('../models/ClientQuotation');
 const SupplierQuotation = require('../models/SupplierQuotation');
+const { resolveTopOption } = require('../utils/paymentTerms');
 
 const calculateClientPrice = (items = []) =>
   items.reduce((total, item) => total + (item.quantity || 0) * (item.salesPrice || 0), 0);
@@ -42,7 +43,7 @@ exports.createQuotation = async (req, res) => {
     const calculatedClientPrice = calculateClientPrice(items);
     const cleanTaxAmount        = Number(taxAmount) || 0;
     const isPPN                 = cleanTaxAmount > 0;
-    const finalTop              = topOption === 'Termin' ? customTop : topOption;
+    const finalTop              = resolveTopOption(topOption, customTop);
 
     const newQuotation = new ClientQuotation({
       quotationId,
@@ -53,6 +54,7 @@ exports.createQuotation = async (req, res) => {
       currency:       currency      || 'IDR',
       clientPrice:    calculatedClientPrice,
       topOption:      finalTop,
+      customTop:      finalTop,
       remarks:        remarks       || '',
       bankAccount:    isPPN ? (bankAccount || '') : '',
       approvalStatus: req.body.approvalStatus || 'Draft',
@@ -150,7 +152,7 @@ exports.updateQuotationItems = async (req, res) => {
     if (!existing) return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
 
     const calculatedClientPrice = calculateClientPrice(items || []);
-    const finalTop              = topOption === 'Termin' ? customTop : topOption;
+    const finalTop              = resolveTopOption(topOption, customTop);
     const cleanTaxAmount        = taxAmount !== undefined
       ? Number(taxAmount)
       : (existing.taxAmount || 0);
@@ -162,6 +164,7 @@ exports.updateQuotationItems = async (req, res) => {
         items,
         clientPrice:   calculatedClientPrice,
         topOption:     finalTop,
+        customTop:     finalTop,
         currency:      currency      || existing.currency,
         remarks:       remarks       !== undefined ? remarks : existing.remarks,
         bankAccount:   isPPN ? (bankAccount || existing.bankAccount || '') : '',
@@ -208,7 +211,7 @@ exports.submitQuotation = async (req, res) => {
     } = req.body;
 
     const calculatedClientPrice = calculateClientPrice(items || []);
-    const finalTop              = topOption === 'Termin' ? customTop : topOption;
+    const finalTop              = resolveTopOption(topOption, customTop);
     const cleanTaxAmount        = Number(taxAmount) || 0;
     const isPPN                 = cleanTaxAmount > 0;
 
@@ -223,6 +226,7 @@ exports.submitQuotation = async (req, res) => {
         currency:       currency      || 'IDR',
         clientPrice:    calculatedClientPrice,
         topOption:      finalTop,
+        customTop:      finalTop,
         remarks:        remarks       || '',
         bankAccount:    isPPN ? (bankAccount || '') : '',
         approvalStatus: 'Pending',
@@ -273,7 +277,10 @@ exports.updateApprovedQuotation = async (req, res) => {
       taxAmount:     cleanTaxAmount,
     };
 
-    if (topOption) updateData.topOption = topOption === 'Termin' ? customTop : topOption;
+    if (topOption) {
+      updateData.topOption = resolveTopOption(topOption, customTop);
+      updateData.customTop = updateData.topOption;
+    }
 
     const updated = await ClientQuotation.findByIdAndUpdate(id, updateData, { new: true });
     res.json({ success: true, msg: 'Approved quotation has been revised!', data: updated });

@@ -20,6 +20,9 @@ const PurchaseOrderSchema = new mongoose.Schema({
   taxAmount: { type: Number, default: 0 },
   totalAmount: { type: Number, default: 0 },
 
+  // Tidak dipakai lagi. Status pembayaran PO sekarang diturunkan saat dibaca dari
+  // tagihan supplier yang sudah lunas — lihat utils/poPaymentStatus.js. Field ini
+  // ditinggalkan supaya dokumen lama tetap bisa dibaca.
   paymentStatus: { type: String, enum: ['Pending', 'Approved'], default: 'Pending' },
   qcStatus: { type: String, enum: ['Waiting Delivery', 'Passed', 'Returned'], default: 'Waiting Delivery' },
   qcRemarks: { type: String },

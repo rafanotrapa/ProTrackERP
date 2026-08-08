@@ -8,20 +8,31 @@ const ExpenseSubmission = require('../models/ExpenseSubmission');
 
 const norm = (id) => String(id || '').trim().toLowerCase();
 
+// Biaya supplier diakui begitu tagihannya masuk (beserta dokumen buktinya), bukan
+// menunggu kasnya keluar. Sebelumnya hanya status 'Paid' yang dihitung, sehingga
+// project yang PO-nya sudah jalan tapi vendornya belum dibayar tampil bermargin 100%.
+// Ubah daftar ini kalau alur verifikasi Finance dipisah jadi status tersendiri.
+const COGS_RECOGNIZED_STATUSES = ['Pending Verification', 'Paid'];
+const cogsInvoiceFilter = { status: { $in: COGS_RECOGNIZED_STATUSES } };
+
 const getContractGrandTotal = (q) =>
   Number(q?.clientPrice || 0) + Number(q?.shippingFee || 0) + Number(q?.taxAmount || 0);
 
+// COGS = harga barang + fee vendor (ongkir/instalasi). PPN vendor sengaja tidak
+// dihitung di sini karena diperlakukan pass-through ke negara, sama seperti
+// supplierCOGS yang memakai si.amount (base) tanpa taxAmount. Kalau keduanya tidak
+// pakai basis yang sama, perbandingan estimasi vs aktual jadi tidak berarti.
 const getEstimatedCOGS = (sq) => {
   const itemsCost = (sq.items || []).reduce(
     (s, it) => s + (it.cogs || 0) * (it.quantity || 1), 0
   );
-  return itemsCost + Number(sq.additionalFee || 0) + Number(sq.taxAmount || 0);
+  return itemsCost + Number(sq.additionalFee || 0);
 };
 
 exports.getFinancialSummary = async (req, res) => {
   try {
     const quotations       = await ClientQuotation.find({ approvalStatus: 'Approved' });
-    const supplierInvoices = await SupplierInvoice.find({ status: 'Paid' });
+    const supplierInvoices = await SupplierInvoice.find(cogsInvoiceFilter);
     const payments         = await Payment.find({ status: 'Verified' }).populate('invoiceId');
     const otherExpenses     = await ExpenseSubmission.find({ status: 'Approved' });
 
@@ -90,7 +101,7 @@ exports.getProjectProfitability = async (req, res) => {
       await Promise.all([
         ClientQuotation.find({ approvalStatus: 'Approved' }),
         SupplierQuotation.find({ approvalStatus: 'Approved' }),
-        SupplierInvoice.find({ status: 'Paid' }),
+        SupplierInvoice.find(cogsInvoiceFilter),
         ClientInvoice.find(),
         Payment.find({ status: 'Verified' }).populate('invoiceId'),
         Project.find(),
@@ -99,6 +110,16 @@ exports.getProjectProfitability = async (req, res) => {
 
     const projectNameMap = {};
     projects.forEach(p => { projectNameMap[norm(p.projectId)] = p.projectName; });
+
+    // Tanggal dibuatnya project dipakai untuk mengurutkan laporan dari yang terbaru.
+    // Sebagian project bisa muncul lewat invoice/expense saja tanpa dokumen Project,
+    // jadi quotation dipakai sebagai cadangan.
+    const projectDateMap = {};
+    projects.forEach(p => { projectDateMap[norm(p.projectId)] = p.createdAt; });
+    quotations.forEach(q => {
+      const k = norm(q.projectId);
+      if (!projectDateMap[k]) projectDateMap[k] = q.createdAt || q.timestamp;
+    });
     clientInvoices.forEach(i => {
       if (i.projectName) projectNameMap[norm(i.projectId)] = i.projectName;
     });
@@ -174,6 +195,7 @@ exports.getProjectProfitability = async (req, res) => {
       let supplierCOGS        = 0;
       let supplierImportDuty  = 0;
       let supplierTaxPassThru = 0;
+      let supplierTotalBilled = 0;
       let supplierTotalPaid   = 0;
 
       const supplierBreakdown = pSupplierInvoices.map(si => {
@@ -185,7 +207,9 @@ exports.getProjectProfitability = async (req, res) => {
         supplierCOGS        += cogs;
         supplierTaxPassThru += tax;
         supplierImportDuty  += importDuty;
-        supplierTotalPaid   += total;
+        supplierTotalBilled += total;
+        // Biaya diakui sejak tagihan masuk, tapi "paid" tetap hanya yang kasnya sudah keluar.
+        if (si.status === 'Paid') supplierTotalPaid += total;
 
         return {
           invoiceNumber:    si.invoiceNumber,
@@ -194,7 +218,8 @@ exports.getProjectProfitability = async (req, res) => {
           cogs,
           taxAmount:        tax,
           importDuty,
-          totalPaid:        total,
+          totalPaid:        si.status === 'Paid' ? total : 0,
+          totalBilled:      total,
           isTaxEnabled:     si.isTaxEnabled,
           isImportEnabled:  si.isImportEnabled,
           customsDutyNote:  si.customsDutyNote,
@@ -248,10 +273,15 @@ exports.getProjectProfitability = async (req, res) => {
         supplierImportDuty,
         supplierTaxPassThru,
         supplierTotalPaid,
+        supplierTotalBilled,
 
         estimatedCOGS,
         estimatedNetProfit,
         estimatedMargin,
+        // Belum ada tagihan supplier sama sekali -> angka aktual masih 0 dan margin
+        // terlihat 100%. Frontend memakai flag ini untuk menampilkan estimasi dari
+        // supplier quotation, bukan angka nol yang menyesatkan.
+        hasActualCOGS: pSupplierInvoices.length > 0,
 
         otherExpenseTotal,
         otherExpenseBreakdown,
@@ -270,7 +300,10 @@ exports.getProjectProfitability = async (req, res) => {
       };
     });
 
-    report.sort((a, b) => b.netProfit - a.netProfit);
+    // Urut dari project terbaru, sejalan dengan Project Billing dan Project Timeline.
+    report.sort((a, b) =>
+      new Date(projectDateMap[b.projectId] || 0) - new Date(projectDateMap[a.projectId] || 0)
+    );
 
     res.status(200).json(report);
   } catch (err) {
@@ -285,7 +318,7 @@ exports.getCashFlow = async (req, res) => {
       .populate('invoiceId')
       .sort({ paymentDate: -1 });
 
-    const supplierInvoices = await SupplierInvoice.find({ status: 'Paid' })
+    const supplierInvoices = await SupplierInvoice.find(cogsInvoiceFilter)
       .sort({ paymentDate: -1 });
 
     const otherExpenses = await ExpenseSubmission.find({ status: 'Approved' })
@@ -398,7 +431,7 @@ exports.getReceivables = async (req, res) => {
 exports.getMonthlyTrend = async (req, res) => {
   try {
     const quotations       = await ClientQuotation.find({ approvalStatus: 'Approved' });
-    const supplierInvoices = await SupplierInvoice.find({ status: 'Paid' });
+    const supplierInvoices = await SupplierInvoice.find(cogsInvoiceFilter);
     const otherExpenses    = await ExpenseSubmission.find({ status: 'Approved' });
 
     const monthlyMap = {};

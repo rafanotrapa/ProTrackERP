@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import Header from '../components/Header';
@@ -8,6 +8,9 @@ import StyledSelect from '../components/StyledSelect';
 
 const FinanceInputPayment = () => {
   const navigate = useNavigate();
+  // Project asal dikirim lewat router state saat datang dari tombol "Record Payment",
+  // supaya Finance tidak harus memilih ulang project yang barusan dibuka.
+  const presetProjectId = useLocation().state?.projectId;
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -69,6 +72,15 @@ const FinanceInputPayment = () => {
     }
   };
 
+  // Pilih otomatis project yang dibawa dari halaman billing, sekali saja setelah
+  // daftar project selesai dimuat.
+  useEffect(() => {
+    if (presetProjectId && projects.length > 0 && !selectedProject) {
+      handleProjectChange({ target: { value: presetProjectId } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [presetProjectId, projects]);
+
   const handleStageChange = (e) => {
     const stageIndex = e.target.value;
     const stage = unpaidStages[stageIndex];
@@ -113,6 +125,24 @@ const FinanceInputPayment = () => {
     if (!formData.amountPaid || Number(formData.amountPaid) <= 0) {
       Swal.fire('Warning', 'Invalid payment amount', 'warning');
       return;
+    }
+
+    // Bayar melebihi nilai invoice dulu diterima diam-diam dan selisihnya hilang dari
+    // laporan. Sekarang wajib dikonfirmasi dulu, lalu dicatat sebagai lebih bayar.
+    const invoiceAmount = Number(selectedInvoice.amount || 0);
+    const excess        = Number(formData.amountPaid) - invoiceAmount;
+    if (excess > 0) {
+      const confirm = await Swal.fire({
+        icon: 'warning',
+        title: 'Pembayaran Melebihi Tagihan',
+        html: `Tagihan invoice <b>${formatRupiah(invoiceAmount)}</b>, dibayar <b>${formatRupiah(Number(formData.amountPaid))}</b>.<br/>`
+            + `Kelebihan <b>${formatRupiah(excess)}</b> akan dicatat sebagai lebih bayar.`,
+        showCancelButton: true,
+        confirmButtonText: 'Ya, lanjutkan',
+        cancelButtonText: 'Perbaiki nominal',
+        confirmButtonColor: '#0f172a',
+      });
+      if (!confirm.isConfirmed) return;
     }
 
     setLoading(true);

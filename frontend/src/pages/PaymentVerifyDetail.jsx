@@ -100,7 +100,7 @@ const PaymentVerifyDetail = () => {
       return;
     }
 
-    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF', inputValidator: (v) => (!v || !v.trim()) && 'Nama penandatangan wajib diisi' });
     if (!signRes.isConfirmed) return;
     const signer = signRes.value || '';
 
@@ -110,7 +110,7 @@ const PaymentVerifyDetail = () => {
       const doc = new jsPDF();
 
       try {
-        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
+        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40, 'hdr', 'FAST');
       } catch {
         doc.setFillColor(15, 23, 42);
         doc.rect(0, 0, 210, 20, 'F');
@@ -141,7 +141,7 @@ const PaymentVerifyDetail = () => {
       doc.text("Due Date", 120, 77);
       doc.text(`: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : '-'}`, 150, 77);
       doc.text("TOP", 120, 83);
-      doc.text(`: ${invoice.topOption || '-'}`, 150, 83);
+      doc.text(`: ${invoice.topOption || invoice.billingPhase || '-'}`, 150, 83);
 
       const tableRows = (invoice.items || []).map(item => [
         item.quantity || 0,
@@ -207,7 +207,7 @@ const PaymentVerifyDetail = () => {
         "Pembayaran melalui Cash / Transfer",
         "Bank Mandiri : 1170011046968",
         "A.n : BATAVIA JAYA KREASINDO",
-        `Term of Payment : ${invoice.topOption}`,
+        `Term of Payment : ${invoice.topOption || invoice.billingPhase || '-'}`,
         `Delivery Time   : 7 Working Days after PO / DP Received`,
         "Warranty        : 1 Year"
       ];
@@ -337,6 +337,31 @@ const PaymentVerifyDetail = () => {
             <div className="p-10 bg-slate-900 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Payment Amount</label>
               <h2 className="text-5xl font-black mt-2 tracking-tighter">Rp {Number(payment.amountPaid || 0).toLocaleString()}</h2>
+
+              {/* Tanpa nilai tagihan sebagai pembanding, Finance tidak punya cara
+                  melihat kalau nominal yang masuk tidak sama dengan yang ditagih. */}
+              {displayInvoice?.amount != null && (() => {
+                const billed = Number(displayInvoice.amount || 0);
+                const diff   = Number(payment.amountPaid || 0) - billed;
+                return (
+                  <div className="mt-4 pt-4 border-t border-white/10 space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nilai Tagihan</span>
+                      <span className="text-sm font-black text-slate-200">Rp {billed.toLocaleString()}</span>
+                    </div>
+                    {diff !== 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${diff > 0 ? 'text-amber-400' : 'text-rose-400'}`}>
+                          {diff > 0 ? 'Lebih Bayar' : 'Kurang Bayar'}
+                        </span>
+                        <span className={`text-sm font-black ${diff > 0 ? 'text-amber-400' : 'text-rose-400'}`}>
+                          {diff > 0 ? '+' : '−'}Rp {Math.abs(diff).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               <div className="absolute top-6 right-6">
                 {isVerified && (

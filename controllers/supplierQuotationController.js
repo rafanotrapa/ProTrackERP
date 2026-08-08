@@ -1,4 +1,5 @@
 const SupplierQuotation = require('../models/SupplierQuotation');
+const Vendor = require('../models/Vendor');
 
 exports.createQuotation = async (req, res) => {
   try {
@@ -102,7 +103,10 @@ exports.getQuotationById = async (req, res) => {
     if (!quotation) {
       return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
     }
-    res.json(quotation);
+    // vendorId disimpan sebagai kode (VND-xxx), bukan referensi. Tanpa namanya,
+    // Management menyetujui quotation tanpa tahu itu vendor yang mana.
+    const vendor = await Vendor.findOne({ vendorId: quotation.vendorId });
+    res.json({ ...quotation.toObject(), vendorName: vendor?.vendorName || '' });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });

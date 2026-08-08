@@ -70,6 +70,15 @@ const InvoiceSubmission = () => {
     const isTermin = safeTopOption === 'Termin' || safeTopOption.includes('DP');
     const firstTermin = isTermin && po.paymentTerms && po.paymentTerms.length > 0 ? po.paymentTerms[0] : null;
 
+    // Base billing = harga dari supplier saja (barang + ongkir/fee vendor).
+    // Pajak dan bea masuk dicatat di field terpisah — kalau totalAmount PO dipakai
+    // sebagai base, PPN-nya terhitung dua kali begitu "Tagihan Pajak" dicentang.
+    const goodsSubtotal = (po.items || []).reduce(
+      (sum, it) => sum + (Number(it.cogs) || 0) * (Number(it.quantity) || 1), 0
+    );
+    const poBaseAmount = goodsSubtotal + (Number(po.additionalFee) || 0);
+    const poTaxAmount  = Number(po.taxAmount) || 0;
+
     setFormData((prev) => ({
       ...prev,
       poId: po._id,
@@ -78,8 +87,11 @@ const InvoiceSubmission = () => {
       vendorName: po.vendorId?.vendorName || po.vendorId || 'Unknown Vendor',
       currency: po.currency || 'IDR',
       terminName: isTermin ? (firstTermin ? firstTermin.description : 'Termin') : 'Full Payment',
-      amount: isTermin ? (firstTermin ? firstTermin.amount : (po.totalAmount || 0)) : (po.totalAmount || 0),
-      isTaxEnabled: false, taxAmount: '',
+      // Untuk termin, nominalnya per tahap — pajak/bea diisi manual sesuai tagihan vendor.
+      amount: isTermin ? (firstTermin ? firstTermin.amount : poBaseAmount) : poBaseAmount,
+      isTaxEnabled: !isTermin && poTaxAmount > 0,
+      taxAmount: !isTermin && poTaxAmount > 0 ? poTaxAmount : '',
+      // Bea masuk tidak bisa diprediksi di awal — selalu dikosongkan.
       isImportEnabled: false, importDutyAmount: ''
     }));
 

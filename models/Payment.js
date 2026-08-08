@@ -6,9 +6,16 @@ const paymentSchema = new mongoose.Schema({
     ref: 'CreateInvoice', 
     required: true 
   },
-  amountPaid: { 
-    type: Number, 
-    required: true 
+  amountPaid: {
+    type: Number,
+    required: true
+  },
+  // Selisih kalau klien membayar melebihi nilai invoice. Disimpan eksplisit supaya
+  // kelebihannya tidak menguap dari laporan dan tidak diam-diam menutupi tunggakan
+  // project lain saat outstanding dihitung secara agregat.
+  excessAmount: {
+    type: Number,
+    default: 0
   },
   evidencePath: { 
     type: String, 

@@ -13,8 +13,12 @@ const ProjectList = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortField, setSortField] = useState('projectId');
-  const [sortDir, setSortDir] = useState('asc');
+  // Default: project terbaru di atas. Sebelumnya diurutkan berdasarkan projectId,
+  // padahal formatnya BJK-<tahunbulan>-<acak> sehingga dalam bulan yang sama
+  // urutannya ikut acak. Kunci createdAt disamakan dengan Project Billing dan
+  // P&L di Financial Report.
+  const [sortField, setSortField] = useState('createdAt');
+  const [sortDir, setSortDir] = useState('desc');
 
   useEffect(() => {
     const loadData = async () => {
@@ -89,8 +93,14 @@ const ProjectList = () => {
 
     return [...list].sort((a, b) => {
       let va = a[sortField] ?? '', vb = b[sortField] ?? '';
-      if (typeof va === 'string') va = va.toLowerCase();
-      if (typeof vb === 'string') vb = vb.toLowerCase();
+      // Tanggal dibandingkan sebagai waktu, bukan sebagai teks.
+      if (sortField === 'createdAt') {
+        va = new Date(va || 0).getTime();
+        vb = new Date(vb || 0).getTime();
+      } else {
+        if (typeof va === 'string') va = va.toLowerCase();
+        if (typeof vb === 'string') vb = vb.toLowerCase();
+      }
       if (va < vb) return sortDir === 'asc' ? -1 : 1;
       if (va > vb) return sortDir === 'asc' ? 1 : -1;
       return 0;

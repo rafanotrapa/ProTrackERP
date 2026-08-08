@@ -110,6 +110,16 @@ exports.getProjectProfitability = async (req, res) => {
 
     const projectNameMap = {};
     projects.forEach(p => { projectNameMap[norm(p.projectId)] = p.projectName; });
+
+    // Tanggal dibuatnya project dipakai untuk mengurutkan laporan dari yang terbaru.
+    // Sebagian project bisa muncul lewat invoice/expense saja tanpa dokumen Project,
+    // jadi quotation dipakai sebagai cadangan.
+    const projectDateMap = {};
+    projects.forEach(p => { projectDateMap[norm(p.projectId)] = p.createdAt; });
+    quotations.forEach(q => {
+      const k = norm(q.projectId);
+      if (!projectDateMap[k]) projectDateMap[k] = q.createdAt || q.timestamp;
+    });
     clientInvoices.forEach(i => {
       if (i.projectName) projectNameMap[norm(i.projectId)] = i.projectName;
     });
@@ -290,7 +300,10 @@ exports.getProjectProfitability = async (req, res) => {
       };
     });
 
-    report.sort((a, b) => b.netProfit - a.netProfit);
+    // Urut dari project terbaru, sejalan dengan Project Billing dan Project Timeline.
+    report.sort((a, b) =>
+      new Date(projectDateMap[b.projectId] || 0) - new Date(projectDateMap[a.projectId] || 0)
+    );
 
     res.status(200).json(report);
   } catch (err) {

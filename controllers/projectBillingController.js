@@ -3,6 +3,7 @@ const Payment = require('../models/Payment');
 const ClientQuotation = require('../models/ClientQuotation');
 const PurchaseOrder = require('../models/PurchaseOrder');
 const SupplierInvoice = require('../models/SupplierInvoice');
+const Project = require('../models/Project');
 const { parsePaymentStages, resolveTopOption } = require('../utils/paymentTerms');
 const { computeProcessPercent } = require('../utils/processProgress');
 
@@ -26,6 +27,12 @@ exports.getAllProjectsBilling = async (req, res) => {
   try {
     const quotations = await ClientQuotation.find({ approvalStatus: 'Approved' });
 
+    // Tanggal project dipakai untuk mengurutkan daftar dari yang terbaru, memakai
+    // kunci yang sama dengan Financial Report dan Project Timeline.
+    const projectDocs = await Project.find({}, 'projectId createdAt');
+    const projectDateMap = {};
+    projectDocs.forEach(p => { projectDateMap[p.projectId] = p.createdAt; });
+
     const projectMap = new Map();
 
     for (const quote of quotations) {
@@ -36,6 +43,7 @@ exports.getAllProjectsBilling = async (req, res) => {
           clientName: quote.clientName,
           totalContractValue: getContractGrandTotal(quote),
           topOption: resolveTopOption(quote.topOption, quote.customTop),
+          createdAt: projectDateMap[quote.projectId] || quote.createdAt || quote.timestamp,
           invoices: [],
           totalPaid: 0
         });
@@ -94,6 +102,8 @@ exports.getAllProjectsBilling = async (req, res) => {
         isComplete: paidStages >= totalStages
       };
     });
+
+    result.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
     res.json(result);
   } catch (err) {

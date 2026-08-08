@@ -102,12 +102,14 @@ self-test `node utils/paymentTerms.js`.
 
 ## Yang BELUM dikerjakan
 
-1. **Termin sisi supplier belum berfungsi.** Supplier invoice selalu berlabel
-   "Full Payment" walaupun Supplier Quotation memakai termin. Penyebabnya
-   `PurchaseOrder` tidak menyimpan `topOption`/`customTop` dan tidak punya field
-   `paymentTerms`, padahal `SupplierInvoice.jsx` membacanya. Ini fitur yang belum
-   selesai, bukan regresi — sengaja tidak dikerjakan supaya tidak mengirim logika
-   uang yang belum teruji.
+1. **Label termin pada tagihan supplier.** PO diterbitkan sekali sebagai penugasan
+   senilai penuh; pembayaran ke vendor berjalan mengikuti TOP lewat beberapa kali
+   Invoice Submission (tidak ada batasan satu invoice per PO — yang dicek unik
+   hanya nomor tagihan). Pola ini sudah didukung dan nominalnya akumulatif benar
+   di laporan. Yang tersisa hanya kosmetik: `terminName` selalu tersimpan
+   "Full Payment" karena form belum menyediakan isiannya, jadi tagihan DP pun
+   berlabel "Full Payment". `selectedPO.paymentTerms` di `SupplierInvoice.jsx`
+   adalah sisa rancangan lama yang tidak pernah terisi dan tidak dipakai.
 
 2. **Kredensial di histori Git.** `.env` masih terbaca di commit lama repo publik
    (`git show b2a851e:.env`). Menghapus di commit terbaru tidak menghapus histori.

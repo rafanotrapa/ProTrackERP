@@ -163,13 +163,13 @@ const AddClientInvoice = () => {
   };
 
   const generatePDF = async (data) => {
-    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF', inputValidator: (v) => (!v || !v.trim()) && 'Nama penandatangan wajib diisi' });
     if (!signRes.isConfirmed) return;
     const signer = signRes.value || '';
     try {
       const doc = new jsPDF();
 
-      doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
+      doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40, 'hdr', 'FAST');
       doc.setFontSize(26);
       doc.setFont('helvetica', 'bold');
       doc.text("INVOICE", 105, 55, { align: 'center' });
@@ -188,7 +188,7 @@ const AddClientInvoice = () => {
       doc.text("Due Date", 120, 77);
       doc.text(`: ${data.dueDate || '-'}`, 150, 77);
       doc.text("TOP", 120, 83);
-      doc.text(`: ${data.topOption || '-'}`, 150, 83);
+      doc.text(`: ${data.topOption || data.billingPhase || '-'}`, 150, 83);
 
       const tableRows = (data.items || []).map(item => [
         item.quantity || 0,
@@ -268,7 +268,7 @@ const AddClientInvoice = () => {
         "Pembayaran melalui Cash / Transfer",
         "Bank Mandiri : 1170011046968",
         "A.n : BATAVIA JAYA KREASINDO",
-        `Term of Payment : ${data.topOption}`,
+        `Term of Payment : ${data.topOption || data.billingPhase || '-'}`,
         `Delivery Time   : 7 Working Days after PO / DP Received`,
         "Warranty        : 1 Year"
       ];

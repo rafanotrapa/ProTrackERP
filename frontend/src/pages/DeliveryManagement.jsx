@@ -108,7 +108,7 @@ const DeliveryManagement = () => {
       const doc = new jsPDF();
 
       try {
-        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
+        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40, 'hdr', 'FAST');
       } catch {
         doc.setFillColor(15, 23, 42);
         doc.rect(0, 0, 210, 20, 'F');
@@ -134,7 +134,11 @@ const DeliveryManagement = () => {
       doc.text("No. PO", 14, 80);
       doc.text(`: ${po.poNumber || '-'}`, 45, 80);
       doc.text("Alamat Kirim", 14, 86);
-      doc.text(`: ${(po.shippingAddress || '-').substring(0, 60)}`, 45, 86);
+      // Alamat dulu dipotong keras di 60 karakter, jadi alamat panjang kehilangan
+      // huruf terakhirnya di dokumen serah terima. Dibungkus, bukan dipotong.
+      // Lebar 70mm supaya tidak menabrak kolom kanan yang mulai di x=120.
+      const addressLines = doc.splitTextToSize(`: ${po.shippingAddress || '-'}`, 70);
+      doc.text(addressLines, 45, 86);
 
       doc.text("Tgl Pengiriman", 120, 74);
       doc.text(`: ${new Date(values.deliveryDate).toLocaleDateString('en-GB')}`, 155, 74);
@@ -143,6 +147,9 @@ const DeliveryManagement = () => {
       doc.text("No. Resi", 120, 86);
       doc.text(`: ${values.trackingNumber || '-'}`, 155, 86);
 
+      // Tabel harus turun kalau alamatnya jadi beberapa baris.
+      const tableStartY = Math.max(95, 86 + addressLines.length * 5 + 4);
+
       const tableRows = (po.items || []).map(item => [
         item.quantity || 0,
         (item.itemName || '').toUpperCase(),
@@ -150,7 +157,7 @@ const DeliveryManagement = () => {
       ]);
 
       autoTable(doc, {
-        startY: 95,
+        startY: tableStartY,
         head: [['Qty', 'Description', 'Unit']],
         body: tableRows,
         theme: 'plain',

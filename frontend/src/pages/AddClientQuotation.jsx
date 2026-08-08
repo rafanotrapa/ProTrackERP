@@ -44,6 +44,12 @@ const AddClientQuotation = () => {
     return found;
   };
 
+  // Untuk dicetak di PDF: klien perlu tahu jadwal cicilannya, bukan cuma kata "Termin".
+  const describeTermin = (rows) =>
+    rows.length === 2
+      ? `DP ${rows[0] || 0}% + Pelunasan ${rows[1] || 0}%`
+      : rows.map((r, i) => `Termin ${i + 1}: ${r || 0}%`).join(' + ');
+
   const terminSum = terminRows.reduce((a, r) => a + (Number(r) || 0), 0);
   const applyTermin = (rows) => {
     setTerminRows(rows);
@@ -456,7 +462,7 @@ const AddClientQuotation = () => {
       return;
     }
 
-    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF', inputValidator: (v) => (!v || !v.trim()) && 'Nama penandatangan wajib diisi' });
     if (!signRes.isConfirmed) return;
     const signer = signRes.value || '';
 
@@ -591,7 +597,7 @@ const AddClientQuotation = () => {
       doc.text('TERM OF PAYMENT :', 14, currentY + 20);
       doc.setFont('helvetica', 'normal');
       doc.text(
-        formData.topOption === 'Termin' ? (formData.customTop || 'Termin') : (formData.topOption || 'COD'),
+        formData.topOption === 'Termin' ? describeTermin(terminRows) : (formData.topOption || 'COD'),
         14, currentY + 27
       );
 

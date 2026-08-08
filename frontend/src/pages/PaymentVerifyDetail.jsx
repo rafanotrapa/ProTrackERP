@@ -100,7 +100,7 @@ const PaymentVerifyDetail = () => {
       return;
     }
 
-    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF' });
+    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF', inputValidator: (v) => (!v || !v.trim()) && 'Nama penandatangan wajib diisi' });
     if (!signRes.isConfirmed) return;
     const signer = signRes.value || '';
 
@@ -110,7 +110,7 @@ const PaymentVerifyDetail = () => {
       const doc = new jsPDF();
 
       try {
-        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40);
+        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40, 'hdr', 'FAST');
       } catch {
         doc.setFillColor(15, 23, 42);
         doc.rect(0, 0, 210, 20, 'F');
@@ -141,7 +141,7 @@ const PaymentVerifyDetail = () => {
       doc.text("Due Date", 120, 77);
       doc.text(`: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : '-'}`, 150, 77);
       doc.text("TOP", 120, 83);
-      doc.text(`: ${invoice.topOption || '-'}`, 150, 83);
+      doc.text(`: ${invoice.topOption || invoice.billingPhase || '-'}`, 150, 83);
 
       const tableRows = (invoice.items || []).map(item => [
         item.quantity || 0,
@@ -207,7 +207,7 @@ const PaymentVerifyDetail = () => {
         "Pembayaran melalui Cash / Transfer",
         "Bank Mandiri : 1170011046968",
         "A.n : BATAVIA JAYA KREASINDO",
-        `Term of Payment : ${invoice.topOption}`,
+        `Term of Payment : ${invoice.topOption || invoice.billingPhase || '-'}`,
         `Delivery Time   : 7 Working Days after PO / DP Received`,
         "Warranty        : 1 Year"
       ];

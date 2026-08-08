@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Payment = require('../models/Payment');
 const ClientInvoice = require('../models/CreateInvoice');
 const Project = require('../models/Project');
@@ -26,9 +27,20 @@ exports.createPayment = async (req, res) => {
       }
     }
 
+    // Kelebihan bayar dihitung terhadap sisa tagihan invoice ini (nilai invoice
+    // dikurangi pembayaran yang sudah terverifikasi sebelumnya).
+    const priorVerified = await Payment.aggregate([
+      { $match: { invoiceId: new mongoose.Types.ObjectId(String(invoiceId)), status: 'Verified' } },
+      { $group: { _id: null, total: { $sum: '$amountPaid' } } },
+    ]);
+    const alreadyPaid   = priorVerified[0]?.total || 0;
+    const invoiceDue    = Math.max(Number(invoice?.amount || 0) - alreadyPaid, 0);
+    const excessAmount  = Math.max(Number(amountPaid || 0) - invoiceDue, 0);
+
     const newPayment = new Payment({
       invoiceId,
       amountPaid,
+      excessAmount,
       paymentDate,
       remarks,
       evidencePath: req.file.filename

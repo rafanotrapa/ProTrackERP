@@ -6,7 +6,7 @@ const PurchaseOrder      = require('../models/PurchaseOrder');
 const SupplierQuotation  = require('../models/SupplierQuotation');
 const SupplierInvoice    = require('../models/SupplierInvoice');
 const ExpenseSubmission  = require('../models/ExpenseSubmission');
-const { parsePaymentStages } = require('../utils/paymentTerms');
+const { parsePaymentStages, resolveTopOption } = require('../utils/paymentTerms');
 const { computeProcessSteps } = require('../utils/processProgress');
 
 const getInvoicePaymentStatus = async (invoiceId) => {
@@ -43,7 +43,7 @@ exports.getProjectTimeline = async (req, res) => {
 
     const grandTotal = getContractGrandTotal(clientQuotation || { clientPrice, shippingFee, taxAmount });
 
-    const topOption = clientQuotation?.topOption || '—';
+    const topOption = resolveTopOption(clientQuotation?.topOption, clientQuotation?.customTop) || '—';
     const rawInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
 
     const clientInvoices = await Promise.all(

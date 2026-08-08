@@ -338,6 +338,31 @@ const PaymentVerifyDetail = () => {
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Payment Amount</label>
               <h2 className="text-5xl font-black mt-2 tracking-tighter">Rp {Number(payment.amountPaid || 0).toLocaleString()}</h2>
 
+              {/* Tanpa nilai tagihan sebagai pembanding, Finance tidak punya cara
+                  melihat kalau nominal yang masuk tidak sama dengan yang ditagih. */}
+              {displayInvoice?.amount != null && (() => {
+                const billed = Number(displayInvoice.amount || 0);
+                const diff   = Number(payment.amountPaid || 0) - billed;
+                return (
+                  <div className="mt-4 pt-4 border-t border-white/10 space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nilai Tagihan</span>
+                      <span className="text-sm font-black text-slate-200">Rp {billed.toLocaleString()}</span>
+                    </div>
+                    {diff !== 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${diff > 0 ? 'text-amber-400' : 'text-rose-400'}`}>
+                          {diff > 0 ? 'Lebih Bayar' : 'Kurang Bayar'}
+                        </span>
+                        <span className={`text-sm font-black ${diff > 0 ? 'text-amber-400' : 'text-rose-400'}`}>
+                          {diff > 0 ? '+' : '−'}Rp {Math.abs(diff).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               <div className="absolute top-6 right-6">
                 {isVerified && (
                   <div className="bg-emerald-500 text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider shadow-lg">

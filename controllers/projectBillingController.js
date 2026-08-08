@@ -3,7 +3,7 @@ const Payment = require('../models/Payment');
 const ClientQuotation = require('../models/ClientQuotation');
 const PurchaseOrder = require('../models/PurchaseOrder');
 const SupplierInvoice = require('../models/SupplierInvoice');
-const { parsePaymentStages } = require('../utils/paymentTerms');
+const { parsePaymentStages, resolveTopOption } = require('../utils/paymentTerms');
 const { computeProcessPercent } = require('../utils/processProgress');
 
 const getInvoicePaymentStatus = async (invoiceId) => {
@@ -35,7 +35,7 @@ exports.getAllProjectsBilling = async (req, res) => {
           projectName: quote.projectName,
           clientName: quote.clientName,
           totalContractValue: getContractGrandTotal(quote),
-          topOption: quote.topOption,
+          topOption: resolveTopOption(quote.topOption, quote.customTop),
           invoices: [],
           totalPaid: 0
         });
@@ -116,7 +116,7 @@ exports.getProjectBillingDetail = async (req, res) => {
     }
 
     const totalContractValue = getContractGrandTotal(quotation);
-    const topOption = quotation.topOption;
+    const topOption = resolveTopOption(quotation.topOption, quotation.customTop);
 
     const invoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
 
@@ -206,7 +206,7 @@ exports.generateNextInvoice = async (req, res) => {
     }
 
     const totalContractValue = getContractGrandTotal(quotation);
-    const topOption = quotation.topOption;
+    const topOption = resolveTopOption(quotation.topOption, quotation.customTop);
 
     const existingInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
 

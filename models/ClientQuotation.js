@@ -17,6 +17,9 @@ const ClientQuotationSchema = new mongoose.Schema({
   currency:    { type: String, default: 'IDR' },
   clientPrice: { type: Number, required: true },
   topOption:   { type: String },
+  // Skema termin mentah (mis. "DP 50%" / "Termin 30% 30% 40%"). Disimpan terpisah
+  // supaya tidak hilang kalau topOption berisi label, sejalan dengan SupplierQuotation.
+  customTop:   { type: String, default: '' },
   remarks:     { type: String },
 
 

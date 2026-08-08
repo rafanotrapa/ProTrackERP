@@ -115,6 +115,24 @@ const FinanceInputPayment = () => {
       return;
     }
 
+    // Bayar melebihi nilai invoice dulu diterima diam-diam dan selisihnya hilang dari
+    // laporan. Sekarang wajib dikonfirmasi dulu, lalu dicatat sebagai lebih bayar.
+    const invoiceAmount = Number(selectedInvoice.amount || 0);
+    const excess        = Number(formData.amountPaid) - invoiceAmount;
+    if (excess > 0) {
+      const confirm = await Swal.fire({
+        icon: 'warning',
+        title: 'Pembayaran Melebihi Tagihan',
+        html: `Tagihan invoice <b>${formatRupiah(invoiceAmount)}</b>, dibayar <b>${formatRupiah(Number(formData.amountPaid))}</b>.<br/>`
+            + `Kelebihan <b>${formatRupiah(excess)}</b> akan dicatat sebagai lebih bayar.`,
+        showCancelButton: true,
+        confirmButtonText: 'Ya, lanjutkan',
+        cancelButtonText: 'Perbaiki nominal',
+        confirmButtonColor: '#0f172a',
+      });
+      if (!confirm.isConfirmed) return;
+    }
+
     setLoading(true);
 
     const submitData = new FormData();

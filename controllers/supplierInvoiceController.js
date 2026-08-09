@@ -72,17 +72,21 @@ exports.updateStatus = async (req, res) => {
     const userId   = req.user ? (req.user._id || req.user.id) : null;
     const userName = req.user ? (req.user.name || req.user.username || 'System') : 'System';
 
+    // req.body undefined kalau permintaan datang tanpa body atau tanpa
+    // Content-Type yang dikenali, karena express.json() melewatinya begitu saja.
+    const body = req.body || {};
+
     const historyEntry = {
-      status:        req.body.status,
+      status:        body.status,
       changedBy:     userId,
       changedByName: userName,
-      note:          req.body.note || '',
+      note:          body.note || '',
       timestamp:     new Date()
     };
 
     const invoice = await SupplierInvoice.findByIdAndUpdate(
       req.params.id,
-      { status: req.body.status, $push: { statusHistory: historyEntry } },
+      { status: body.status, $push: { statusHistory: historyEntry } },
       { new: true }
     );
 
@@ -115,11 +119,16 @@ exports.confirmPayment = async (req, res) => {
     const userId   = req.user ? (req.user._id || req.user.id) : null;
     const userName = req.user ? (req.user.name || req.user.username || 'System') : 'System';
 
+    // Rute ini multipart (bukti transfer). Kalau bukti tidak dilampirkan dan
+    // permintaan sampai tanpa body yang terbaca, req.body undefined dan
+    // pembacaan .note melempar TypeError -> 500. Terekam di stderr produksi.
+    const body = req.body || {};
+
     const historyEntry = {
       status:        'Paid',
       changedBy:     userId,
       changedByName: userName,
-      note:          req.body.note || 'Payment confirmed by Finance',
+      note:          body.note || 'Payment confirmed by Finance',
       timestamp:     new Date()
     };
 

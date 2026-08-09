@@ -30,7 +30,10 @@ exports.register = async (req, res) => {
 
     try {
         await Log.create({
-          user: req.user ? req.user.username : 'Admin',
+          // Token lama tidak memuat username, jadi req.user.username bisa
+          // undefined dan Log gagal tervalidasi (field user wajib). Ini yang
+          // bikin 7 registrasi tidak tercatat di log audit produksi.
+          user: req.user?.username || 'Admin',
           action: `REGISTERED NEW EMPLOYEE: ${username} (${role})`,
           category: 'ACCOUNT',
           type: 'CREATE'
@@ -158,7 +161,7 @@ exports.deleteUser = async (req, res) => {
 
     try {
         await Log.create({
-          user: req.user.username,
+          user: req.user?.username || 'Admin',
           action: `REVOKED ACCESS / DELETED ACCOUNT: ${deletedUsername}`,
           category: 'ACCOUNT',
           type: 'DELETE'
@@ -194,7 +197,7 @@ exports.adminResetPassword = async (req, res) => {
 
     try {
       await Log.create({
-        user: req.user.username,
+        user: req.user?.username || 'Admin',
         action: `FORCE RESET PASSWORD & UNLOCKED ACCOUNT FOR: ${user.username}`,
         category: 'ACCOUNT',
         type: 'SECURITY'
@@ -224,7 +227,7 @@ exports.adminUnlockAccount = async (req, res) => {
 
     try {
       await Log.create({
-        user: req.user.username,
+        user: req.user?.username || 'Admin',
         action: `UNLOCKED ACCOUNT FOR: ${user.username}`,
         category: 'ACCOUNT',
         type: 'SECURITY'

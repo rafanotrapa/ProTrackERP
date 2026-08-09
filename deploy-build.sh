@@ -23,8 +23,11 @@ FRONTEND_ZIP="$OUT/ProTrackERP-frontend.zip"
 
 # Isi backend. assets/ wajib ikut: utils/emailTemplates.js memuat
 # assets/logo-protrack.png sebagai lampiran email reset password.
+# scripts/ wajib ikut: autoIndex dimatikan di produksi, jadi index unik penangkal
+# invoice termin ganda hanya terpasang kalau scripts/sync-indexes.js dijalankan
+# di server setelah deploy.
 BACKEND_ITEMS=(server.js package.json package-lock.json
-               config controllers middleware models routes utils assets)
+               config controllers middleware models routes utils assets scripts)
 
 info() { printf '\n\033[1m==> %s\033[0m\n' "$1"; }
 

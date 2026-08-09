@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import protrackMark from '../assets/protrack-mark.png';
 import { aktifkanModeTab, matikanModeTab, modeTabAktif } from '../utils/sessionScope';
+import { catatAktivitas } from '../components/ProtectedRoute';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -37,6 +38,12 @@ const Login = () => {
 
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+
+      // Penanda aktivitas WAJIB disegarkan di sini. Kalau penanda lama dari
+      // sesi sebelumnya masih tertinggal dan usianya lewat batas menganggur,
+      // ProtectedRoute menganggap sesi baru ini sudah kedaluwarsa dan langsung
+      // menendang balik ke halaman login padahal login-nya berhasil.
+      catatAktivitas();
 
       Swal.fire({
         icon: 'success',

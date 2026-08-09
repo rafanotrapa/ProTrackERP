@@ -28,12 +28,24 @@ const verifyMailer = async () => {
     return false;
   }
 
+  const host = process.env.EMAIL_HOST || 'smtp-relay.brevo.com';
+
   try {
     await transporter.verify();
-    console.log(`📧 SMTP Brevo siap kirim email dari ${process.env.EMAIL_FROM}`);
+    console.log(`📧 SMTP siap: host ${host}, pengirim ${process.env.EMAIL_FROM}`);
+
+    // Server uji coba menerima semua email lalu menahannya, tidak pernah
+    // meneruskan ke alamat tujuan. Tanpa peringatan ini, konfigurasi yang
+    // salah terlihat sehat: pengiriman sukses, kotak masuk tetap kosong.
+    if (/mailtrap|ethereal|sandbox/i.test(host)) {
+      console.warn(
+        `⚠️  ${host} adalah server uji coba. Email TIDAK akan sampai ke alamat asli. ` +
+        `Ganti EMAIL_HOST ke smtp-relay.brevo.com untuk pengiriman sungguhan.`
+      );
+    }
     return true;
   } catch (err) {
-    console.error('⚠️  SMTP Brevo gagal terhubung:', err.message);
+    console.error(`⚠️  SMTP gagal terhubung ke ${host}:`, err.message);
     return false;
   }
 };

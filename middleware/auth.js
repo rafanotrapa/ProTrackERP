@@ -24,13 +24,27 @@ const MODULE_MAP = {
 
 const ACTION_VERB = { POST: 'CREATE', PUT: 'UPDATE', PATCH: 'UPDATE', DELETE: 'DELETE' };
 
-const protect = (req, res, next) => {
+const protect = async (req, res, next) => {
   const token = req.header('Authorization')?.split(' ')[1];
   if (!token) return res.status(401).json({ msg: 'No token, access denied' });
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+
+    // Tanda tangan yang sah saja tidak cukup. Tanpa pemeriksaan ini, token yang
+    // sudah terbit tetap berlaku sampai kedaluwarsa walaupun user-nya dihapus,
+    // perannya diubah, atau passwordnya direset karena akunnya diduga bocor.
+    // Peran juga dibaca ulang dari database supaya perubahan peran langsung
+    // berlaku, bukan menunggu login berikutnya.
+    const user = await User.findById(decoded.id).select('role tokenVersion');
+    if (!user) {
+      return res.status(401).json({ msg: 'Akun sudah tidak aktif. Silakan login ulang.' });
+    }
+    if ((decoded.tv || 0) !== (user.tokenVersion || 0)) {
+      return res.status(401).json({ msg: 'Sesi sudah tidak berlaku. Silakan login ulang.' });
+    }
+
+    req.user = { ...decoded, role: user.role };
 
     const verb = ACTION_VERB[req.method];
     if (verb) {

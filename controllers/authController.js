@@ -107,9 +107,14 @@ exports.login = async (req, res) => {
 
     await resetLoginAttempts(user._id);
 
-    const token = jwt.sign({ id: user._id, username: user.username, role: user.role }, process.env.JWT_SECRET, {
-      expiresIn: '1d'
-    });
+    // 8 jam menutupi satu hari kerja. Sebelumnya 1 hari penuh, sehingga token
+    // yang tertinggal di browser komputer bersama masih bisa dipakai keesokan
+    // harinya tanpa password.
+    const token = jwt.sign(
+      { id: user._id, username: user.username, role: user.role, tv: user.tokenVersion || 0 },
+      process.env.JWT_SECRET,
+      { expiresIn: '8h' }
+    );
 
     try {
         await Log.create({
@@ -179,6 +184,9 @@ exports.adminResetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     user.password = hashedPassword;
+    // Reset oleh Admin biasanya dilakukan justru karena akunnya bermasalah,
+    // jadi semua sesi lama harus ikut mati.
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     user.loginAttempts = 0;
     user.isLocked = false;
     user.lockedUntil = null;
@@ -315,6 +323,9 @@ exports.resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     user.password = hashedPassword;
+    // Password diganti lewat tautan reset: matikan sesi lama, karena kalau
+    // akunnya memang sedang disalahgunakan, sesi penyerang harus ikut putus.
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
     user.loginAttempts = 0;

@@ -13,9 +13,26 @@ const CreateInvoiceSchema = new mongoose.Schema({
   totalContractValue: { type: Number },
   billingPhase: { type: String },
   topOption: { type: String }
-}, { 
+}, {
   timestamps: true,
-  collection: 'client_invoice' 
+  collection: 'client_invoice'
 });
+
+// Satu project hanya boleh punya satu invoice per tahap termin.
+//
+// generateNextInvoice menghitung invoice yang sudah ada lalu membuat yang
+// berikutnya berdasarkan hitungan itu. Tanpa penguncian, dua Finance yang
+// menekan "Generate Invoice" bersamaan sama-sama membaca hitungan lama dan
+// keduanya berhasil membuat invoice untuk termin yang sama. Diuji dengan lima
+// permintaan paralel: lahir lima invoice "Termin 1 (30%)" senilai Rp 90 juta,
+// total Rp 450 juta untuk satu tahap.
+//
+// Indeks unik ini membuat database sendiri yang menolak duplikat, sehingga
+// aman berapa pun jumlah permintaan yang datang bersamaan. Dibatasi pada
+// dokumen yang punya billingPhase agar data lama tanpa field itu tidak bentrok.
+CreateInvoiceSchema.index(
+  { projectId: 1, billingPhase: 1 },
+  { unique: true, partialFilterExpression: { billingPhase: { $type: 'string' } } }
+);
 
 module.exports = mongoose.model('CreateInvoice', CreateInvoiceSchema);

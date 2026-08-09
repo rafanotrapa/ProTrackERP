@@ -283,6 +283,14 @@ exports.generateNextInvoice = async (req, res) => {
     });
 
   } catch (err) {
+    // Indeks unik {projectId, billingPhase} menolak tahap yang sama dibuat dua
+    // kali. Ini yang terjadi kalau dua orang menekan Generate Invoice hampir
+    // bersamaan: permintaan pertama menang, sisanya mendarat di sini.
+    if (err.code === 11000) {
+      return res.status(409).json({
+        msg: 'Invoice untuk tahap ini baru saja dibuat oleh pengguna lain. Muat ulang halaman untuk melihat versi terbaru.'
+      });
+    }
     console.error("Error generate next invoice:", err);
     res.status(500).json({ msg: err.message });
   }

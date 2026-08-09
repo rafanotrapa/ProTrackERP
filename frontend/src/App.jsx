@@ -6,6 +6,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 import UserManagement from './pages/UserManagement';
 import SystemLogs from './pages/SystemLogs';
@@ -71,6 +72,9 @@ function App() {
   return (
     <Router>
       <div className="App font-sans">
+        {/* Menahan error render satu halaman supaya tidak membongkar seluruh
+            aplikasi jadi layar putih tanpa pesan. */}
+        <ErrorBoundary>
         <Routes>
 
           <Route path="/" element={<Login />} />
@@ -144,6 +148,7 @@ function App() {
           <Route path="*" element={<Login />} />
 
         </Routes>
+        </ErrorBoundary>
       </div>
     </Router>
   );

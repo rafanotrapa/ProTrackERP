@@ -16,8 +16,11 @@ const SupplierPaymentDetail = () => {
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
   // Berkas butuh token; diambil sebagai blob lalu dipakai sebagai src.
+  // Ketiganya wajib dipanggil di sini, sebelum early return apa pun, karena
+  // hook tidak boleh dipanggil setelah percabangan.
   const fotoBarangUrl = useSecureFileUrl(invoice?.itemPhoto);
   const buktiTfUrl = useSecureFileUrl(invoice?.paymentProof);
+  const fileUrl = useSecureFileUrl(invoice?.file);
   const [loading, setLoading] = useState(true);
   const [showFile, setShowFile] = useState(false);
 
@@ -154,7 +157,6 @@ const SupplierPaymentDetail = () => {
 
   const isPending = invoice.status === 'Pending Verification';
   const isPaid    = invoice.status === 'Paid';
-  const fileUrl   = getFileUrl(invoice.file);
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
@@ -409,14 +411,12 @@ const SupplierPaymentDetail = () => {
                       </button>
                     </div>
                   )}
-                  <a
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => openSecureFile(invoice.file)}
                     className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[9px] font-black text-slate-600 transition-all"
                   >
                     <Download size={12} /> Download / Open in New Tab
-                  </a>
+                  </button>
                 </div>
               </div>
             )}
@@ -467,14 +467,12 @@ const SupplierPaymentDetail = () => {
                       className="w-full rounded-xl border border-slate-200 object-contain"
                     />
                   )}
-                  <a
-                    href={getFileUrl(invoice.paymentProof)}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => openSecureFile(invoice.paymentProof)}
                     className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-emerald-100 hover:bg-emerald-200 rounded-xl text-[9px] font-black text-emerald-700 transition-all"
                   >
                     <Download size={12} /> Download / Open in New Tab
-                  </a>
+                  </button>
                 </div>
               </div>
             )}

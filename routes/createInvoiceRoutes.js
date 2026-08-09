@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles } = require('../middleware/auth');
 const {
   createNewInvoice,
   getQuotationForInvoice,
@@ -10,13 +10,13 @@ const {
   getInvoicesByProject
 } = require('../controllers/createInvoiceController');
 
-router.post('/', protect, createNewInvoice);
-router.get('/quotations', protect, getQuotationForInvoice);
-router.get('/quotations/available', protect, getQuotationForInvoice);
+router.post('/', protect, authorizeRoles('Marketing','Finance','Admin'), createNewInvoice);
+router.get('/quotations', protect, authorizeRoles('Marketing','Finance','Admin'), getQuotationForInvoice);
+router.get('/quotations/available', protect, authorizeRoles('Marketing','Finance','Admin'), getQuotationForInvoice);
 
-router.get('/', protect, getAllInvoices);
-router.get('/project/:projectId', protect, getInvoicesByProject);
-router.get('/:id', protect, getInvoiceById);
-router.patch('/:id/status', protect, updateInvoiceStatus);
+router.get('/', protect, authorizeRoles('Marketing','Finance','Admin','Management','Owner'), getAllInvoices);
+router.get('/project/:projectId', protect, authorizeRoles('Marketing','Finance','Admin','Management','Owner'), getInvoicesByProject);
+router.get('/:id', protect, authorizeRoles('Marketing','Finance','Admin','Management','Owner'), getInvoiceById);
+router.patch('/:id/status', protect, authorizeRoles('Finance','Admin'), updateInvoiceStatus);
 
 module.exports = router;

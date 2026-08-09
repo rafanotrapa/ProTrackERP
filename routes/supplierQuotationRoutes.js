@@ -1,19 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const supplierQuotationController = require('../controllers/supplierQuotationController');
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles } = require('../middleware/auth');
 const upload = require('../middleware/uploadMiddleware');
 
-router.post('/', protect, upload.single('document'), supplierQuotationController.createQuotation);
+const PENYUSUN  = ['Procurement', 'Admin'];
+const PENYETUJU = ['Management', 'Admin'];
+// Marketing ikut membaca karena Client Quotation mode AUTO mengambil item dari
+// supplier quotation yang sudah disetujui.
+const PEMBACA   = ['Procurement', 'Marketing', 'Management', 'Owner', 'Finance', 'Admin'];
 
-router.get('/', protect, supplierQuotationController.getAllQuotations);
+router.post('/', protect, authorizeRoles(...PENYUSUN), upload.single('document'), supplierQuotationController.createQuotation);
 
-router.get('/pending', protect, supplierQuotationController.getPendingApprovals);
+router.get('/', protect, authorizeRoles(...PEMBACA), supplierQuotationController.getAllQuotations);
 
-router.get('/project/:projectId', protect, supplierQuotationController.getQuotationByProject);
+router.get('/pending', protect, authorizeRoles(...PENYETUJU), supplierQuotationController.getPendingApprovals);
 
-router.get('/:id', protect, supplierQuotationController.getQuotationById);
+router.get('/project/:projectId', protect, authorizeRoles(...PEMBACA), supplierQuotationController.getQuotationByProject);
 
-router.patch('/:id/approve', protect, supplierQuotationController.approveQuotation);
+router.get('/:id', protect, authorizeRoles(...PEMBACA), supplierQuotationController.getQuotationById);
+
+router.patch('/:id/approve', protect, authorizeRoles(...PENYETUJU), supplierQuotationController.approveQuotation);
 
 module.exports = router;

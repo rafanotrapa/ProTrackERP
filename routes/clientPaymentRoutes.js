@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const { verifyPayment } = require('../controllers/clientPaymentController');
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles } = require('../middleware/auth');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/documents/payments/'); 
@@ -18,6 +18,6 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 } 
 });
 
-router.post('/', protect, upload.single('file'), verifyPayment);
+router.post('/', protect, authorizeRoles('Finance','Admin'), upload.single('file'), verifyPayment);
 
 module.exports = router;

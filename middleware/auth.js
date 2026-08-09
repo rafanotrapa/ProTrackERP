@@ -62,4 +62,23 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+/**
+ * Batasi endpoint ke peran tertentu.
+ *
+ * Pembatasan peran sebelumnya hanya ada di frontend lewat <ProtectedRoute>,
+ * yang cuma menyembunyikan menu. API-nya sendiri menerima siapa pun yang
+ * punya token valid, sehingga mis. staf Marketing bisa memanggil endpoint
+ * approve quotation dan verifikasi pembayaran secara langsung.
+ *
+ * Dipakai setelah `protect`, karena membaca req.user hasil verifikasi token.
+ */
+const authorizeRoles = (...allowedRoles) => (req, res, next) => {
+  if (!req.user || !allowedRoles.includes(req.user.role)) {
+    return res.status(403).json({
+      msg: `Akses ditolak. Endpoint ini hanya untuk: ${allowedRoles.join(', ')}.`
+    });
+  }
+  next();
+};
+
+module.exports = { protect, admin, authorizeRoles };

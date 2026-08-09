@@ -7,16 +7,20 @@ const {
   getReceivables,
   getMonthlyTrend,
 } = require('../controllers/financialController');
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles } = require('../middleware/auth');
 
-router.get('/summary',        protect, getFinancialSummary);
+// Laba rugi, arus kas, dan piutang seluruh perusahaan. Sebelumnya semua peran
+// bisa membacanya, termasuk Marketing dan Procurement.
+const KEUANGAN = ['Finance', 'Owner', 'Management', 'Admin'];
 
-router.get('/project-report', protect, getProjectProfitability);
+router.get('/summary',        protect, authorizeRoles(...KEUANGAN), getFinancialSummary);
 
-router.get('/cash-flow',      protect, getCashFlow);
+router.get('/project-report', protect, authorizeRoles(...KEUANGAN), getProjectProfitability);
 
-router.get('/receivables',    protect, getReceivables);
+router.get('/cash-flow',      protect, authorizeRoles(...KEUANGAN), getCashFlow);
 
-router.get('/monthly-trend',  protect, getMonthlyTrend);
+router.get('/receivables',    protect, authorizeRoles(...KEUANGAN), getReceivables);
+
+router.get('/monthly-trend',  protect, authorizeRoles(...KEUANGAN), getMonthlyTrend);
 
 module.exports = router;

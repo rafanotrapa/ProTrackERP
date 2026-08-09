@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Vendor = require('../models/Vendor');
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles } = require('../middleware/auth');
 
 router.use(protect);
 
-router.post('/', async (req, res) => {
+router.post('/', authorizeRoles('Procurement','Admin'), async (req, res) => {
   try {
     const newVendor = new Vendor({
       ...req.body,
@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', authorizeRoles('Procurement','Marketing','Management','Owner','Finance','Admin'), async (req, res) => {
   try {
     const vendors = await Vendor.find().sort({ createdAt: -1 });
     res.status(200).json(vendors);
@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.patch('/:id/approve', async (req, res) => {
+router.patch('/:id/approve', authorizeRoles('Management','Admin'), async (req, res) => {
   try {
     const { status } = req.body;
     const vendor = await Vendor.findByIdAndUpdate(

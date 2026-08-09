@@ -2,22 +2,12 @@ const express = require('express');
 const router = express.Router();
 
 
-const { protect } = require('../middleware/auth');
+// authorizeRoles dulu didefinisikan ulang di file ini dan di inventoryRoutes.
+// Sekarang dipakai bersama dari middleware/auth.js.
+const { protect, authorizeRoles } = require('../middleware/auth');
 const upload = require('../middleware/uploadMiddleware');
 
 const { createPO, getAllPOs, financeApprovePO, qcCheckPO, updateDelivery } = require('../controllers/poController');
-
-const authorizeRoles = (...allowedRoles) => {
-  return (req, res, next) => {
-
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        msg: `Akses ditolak! Fitur ini khusus divisi: ${allowedRoles.join(' / ')}.` 
-      });
-    }
-    next();
-  };
-};
 
 
 router.post('/', protect, authorizeRoles('Admin', 'Procurement'), createPO);

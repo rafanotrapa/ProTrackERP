@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Item = require('../models/Item');
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles } = require('../middleware/auth');
 
 router.use(protect);
 
-router.get('/', async (req, res) => {
+router.get('/', authorizeRoles('Procurement','Marketing','Management','Owner','Finance','Admin'), async (req, res) => {
   try {
     const items = await Item.find().sort({ createdAt: -1 });
     res.json(items);
@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authorizeRoles('Procurement','Admin'), async (req, res) => {
   try {
     const randomID = Math.floor(1000 + Math.random() * 9000);
     const generatedID = `ITM-${randomID}`;

@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
 const SupplierQuotation = require('../models/SupplierQuotation');
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles } = require('../middleware/auth');
 
 router.use(protect);
 
-router.get('/', async (req, res) => {
+router.get('/', authorizeRoles('Marketing','Procurement','Finance','Management','Owner','Admin'), async (req, res) => {
   try {
     const projects = await Project.find().sort({ createdAt: -1 });
     res.json(projects);
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:projectId', async (req, res) => {
+router.get('/:projectId', authorizeRoles('Marketing','Procurement','Finance','Management','Owner','Admin'), async (req, res) => {
   try {
     const pId = req.params.projectId.trim();
 
@@ -41,7 +41,7 @@ router.get('/:projectId', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authorizeRoles('Marketing','Admin'), async (req, res) => {
   try {
 
     const existingProject = await Project.findOne({ projectId: req.body.projectId });
@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.patch('/update-status/:projectId', async (req, res) => {
+router.patch('/update-status/:projectId', authorizeRoles('Marketing','Finance','Admin'), async (req, res) => {
   try {
     const pId = req.params.projectId.trim();
 

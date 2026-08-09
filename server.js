@@ -24,14 +24,20 @@ const app = express();
 // Sebelumnya cors() tanpa opsi, yang berarti Access-Control-Allow-Origin: *
 // sehingga situs mana pun bisa memanggil API ini. Dibatasi ke domain sendiri;
 // tambahkan asal lain lewat CORS_ORIGINS bila perlu (dipisah koma).
+//
+// Varian www WAJIB ikut. Hosting melayani bataviajayakreasindo.com dan
+// www.bataviajayakreasindo.com sama-sama 200 tanpa redirect, jadi pengunjung
+// yang mendarat di www mendapat aplikasinya tapi semua panggilan API-nya
+// diblokir browser, dan gejalanya muncul sebagai "login gagal".
 const allowedOrigins = (process.env.CORS_ORIGINS ||
-  'https://bataviajayakreasindo.com,http://localhost:5173,http://localhost:4173'
+  'https://bataviajayakreasindo.com,https://www.bataviajayakreasindo.com,http://localhost:5173,http://localhost:4173'
 ).split(',').map(o => o.trim()).filter(Boolean);
 
 app.use(cors({
   origin: (origin, cb) => {
     // Permintaan tanpa Origin (curl, aplikasi mobile, health check) dibiarkan.
     if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    console.warn(`CORS menolak origin: ${origin}`);
     cb(new Error(`Origin ${origin} tidak diizinkan`));
   },
 }));

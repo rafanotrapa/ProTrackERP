@@ -4,12 +4,16 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import protrackMark from '../assets/protrack-mark.png';
+import { aktifkanModeTab, matikanModeTab, modeTabAktif } from '../utils/sessionScope';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  // Sesi khusus tab ini, supaya beberapa akun bisa dibuka sekaligus dalam satu
+  // profil browser tanpa saling menimpa.
+  const [sesiTabIni, setSesiTabIni] = useState(modeTabAktif());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,6 +29,12 @@ const Login = () => {
         email,
         password
       });
+
+      // Penanda mode harus dipasang sebelum token ditulis, karena itu yang
+      // menentukan token disimpan ke sessionStorage (khusus tab ini) atau ke
+      // localStorage (dipakai bersama semua tab).
+      if (sesiTabIni) aktifkanModeTab(); else matikanModeTab();
+
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
 
@@ -154,7 +164,19 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="text-right">
+              <div className="flex items-center justify-between gap-3">
+                <label className="flex items-center gap-2 cursor-pointer select-none" title="Token disimpan khusus tab ini, jadi tab lain bisa dipakai akun berbeda. Sesi berakhir saat tab ditutup.">
+                  <input
+                    type="checkbox"
+                    checked={sesiTabIni}
+                    onChange={(e) => setSesiTabIni(e.target.checked)}
+                    className="w-3.5 h-3.5 accent-indigo-600 cursor-pointer"
+                  />
+                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                    Sesi khusus tab ini
+                  </span>
+                </label>
+
                 <a href="/forgot-password" className="text-[9px] font-bold text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-wider">
                   Forgot Password?
                 </a>

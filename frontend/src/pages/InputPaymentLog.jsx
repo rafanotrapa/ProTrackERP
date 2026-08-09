@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { CreditCard, CheckCircle, Clock, XCircle, Eye, Search } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { openSecureFile } from '../utils/secureFile';
 
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
@@ -175,15 +176,14 @@ const InputPaymentLog = () => {
                     </td>
                     <td className="px-6 py-5 text-center">
                       {p.evidencePath ? (
-                        <a
-                          href={`http://localhost:5000/api/files/${p.evidencePath.replace(/^.*[\\/]/, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => openSecureFile(p.evidencePath)}
                           className="inline-flex p-2 text-slate-500 hover:text-indigo-600 transition-all"
                           title="Lihat Bukti Transfer"
                         >
                           <Eye size={16} />
-                        </a>
+                        </button>
                       ) : (
                         <span className="text-[9px] text-slate-300">-</span>
                       )}

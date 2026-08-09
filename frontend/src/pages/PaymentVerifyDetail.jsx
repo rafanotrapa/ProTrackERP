@@ -7,6 +7,7 @@ import "jspdf-autotable";
 import autoTable from 'jspdf-autotable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useSecureFileUrl } from '../utils/secureFile';
 
 const PaymentVerifyDetail = () => {
   const { id } = useParams();
@@ -16,6 +17,8 @@ const PaymentVerifyDetail = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [invoiceData, setInvoiceData] = useState(null);
+  // Berkas bukti kini butuh token, jadi diambil sebagai blob lalu dipakai sebagai src.
+  const buktiUrl = useSecureFileUrl(payment?.evidencePath);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -269,12 +272,6 @@ const PaymentVerifyDetail = () => {
   const isVerified = payment.status === 'Verified';
   const isRejected = payment.status === 'Rejected';
 
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    const name = String(path).replace(/^.*[\\/]/, '');
-    return `http://localhost:5000/api/files/${name}`;
-  };
 
   const displayInvoice = invoiceData || payment.invoiceId;
 
@@ -318,7 +315,7 @@ const PaymentVerifyDetail = () => {
             <div className="bg-slate-50 p-4 rounded-4xl border border-slate-100 shadow-inner overflow-hidden">
               {payment.evidencePath ? (
                 <img
-                  src={getImageUrl(payment.evidencePath)}
+                  src={buktiUrl}
                   alt="Payment Slip"
                   className="w-full h-auto rounded-2xl shadow-lg"
                   onError={(e) => {

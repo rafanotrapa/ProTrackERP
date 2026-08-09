@@ -8,15 +8,11 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { openSecureFile } from '../utils/secureFile';
 
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 const stripNonNumeric = (str) => str.toString().replace(/[^0-9]/g, '');
 
-const getFileUrl = (filename) => {
-  if (!filename) return null;
-  if (filename.startsWith('http')) return filename;
-  return `http://localhost:5000/api/files/${filename}`;
-};
 
 const ExpenseSubmissionLog = () => {
   const navigate = useNavigate();
@@ -336,15 +332,14 @@ const ExpenseSubmissionLog = () => {
                     <td className="px-6 py-5 text-center">
                       <div className="flex items-center justify-center gap-1.5 flex-wrap">
                         {exp.file && (
-                          <a
-                            href={getFileUrl(exp.file)}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={() => openSecureFile(exp.file)}
                             className="p-2 text-slate-500 hover:text-indigo-600 transition-all"
                             title="Lihat Lampiran"
                           >
                             <Eye size={15} />
-                          </a>
+                          </button>
                         )}
 
                         {exp.status !== 'Approved' && (

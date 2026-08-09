@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { CheckCircle, XCircle, Clock, FileText, Building2, Package } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { openSecureFile } from '../utils/secureFile';
 
 const QuotationDetailReview = () => {
   const { id } = useParams();
@@ -224,14 +225,13 @@ const QuotationDetailReview = () => {
             </div>
 
             {quo.documentUrl && (
-              <a
-                href={`http://localhost:5000/api/files/${quo.documentUrl.replace(/^.*[\\/]/, '')}`}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => openSecureFile(quo.documentUrl)}
                 className="flex items-center justify-center gap-2 w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 transition-all"
               >
                 <FileText size={14} /> Lihat Dokumen Pendukung
-              </a>
+              </button>
             )}
           </div>
 

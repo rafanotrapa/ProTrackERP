@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText, Download, ArrowRight, Search, Loader2 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { openSecureFile } from '../utils/secureFile';
 
 const ClientInvoice = () => {
   const navigate = useNavigate();
@@ -125,15 +126,14 @@ const ClientInvoice = () => {
                   </div>
 
                   <div className="flex gap-4">
-                    <a
-                      href={`http://localhost:5000/api/files/${inv.file}`}
-                      target="_blank"
-                      rel="noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => openSecureFile(inv.file)}
                       className="flex-1 bg-slate-50 hover:bg-slate-100 p-4 rounded-2xl flex items-center justify-center gap-2 border border-slate-200 transition-all"
                     >
                       <Download size={18} />
                       <span className="text-[10px] font-black uppercase italic text-slate-600">PDF</span>
-                    </a>
+                    </button>
 
                     {String(inv?.status || '').toLowerCase() !== 'paid' && (
                       <button

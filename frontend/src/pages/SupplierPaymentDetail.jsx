@@ -9,11 +9,15 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useSecureFileUrl, openSecureFile } from '../utils/secureFile';
 
 const SupplierPaymentDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
+  // Berkas butuh token; diambil sebagai blob lalu dipakai sebagai src.
+  const fotoBarangUrl = useSecureFileUrl(invoice?.itemPhoto);
+  const buktiTfUrl = useSecureFileUrl(invoice?.paymentProof);
   const [loading, setLoading] = useState(true);
   const [showFile, setShowFile] = useState(false);
 
@@ -117,12 +121,6 @@ const SupplierPaymentDetail = () => {
     return Number(value).toLocaleString('id-ID');
   };
 
-  const getFileUrl = (filename) => {
-    if (!filename) return null;
-    if (filename.startsWith('http')) return filename;
-    if (filename.startsWith('/uploads')) return `http://localhost:5000${filename}`;
-    return `http://localhost:5000/api/files/${filename}`;
-  };
 
   const isPDF = (filename) => {
     if (!filename) return false;
@@ -432,12 +430,12 @@ const SupplierPaymentDetail = () => {
                 </div>
                 <div className="p-5">
                   <img
-                    src={getFileUrl(invoice.itemPhoto)}
+                    src={fotoBarangUrl}
                     alt="Foto Barang"
                     className="w-full rounded-xl border border-slate-200 object-contain"
                   />
                   <a
-                    href={getFileUrl(invoice.itemPhoto)}
+                    onClick={() => openSecureFile(invoice.itemPhoto)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[9px] font-black text-slate-600 transition-all"
@@ -458,13 +456,13 @@ const SupplierPaymentDetail = () => {
                 <div className="p-5">
                   {isPDF(invoice.paymentProof) ? (
                     <iframe
-                      src={getFileUrl(invoice.paymentProof)}
+                      src={buktiTfUrl}
                       title="Bukti Transfer"
                       className="w-full h-80 rounded-xl border border-slate-200"
                     />
                   ) : (
                     <img
-                      src={getFileUrl(invoice.paymentProof)}
+                      src={buktiTfUrl}
                       alt="Bukti Transfer"
                       className="w-full rounded-xl border border-slate-200 object-contain"
                     />

@@ -9,17 +9,13 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { openSecureFile } from '../utils/secureFile';
 
 const API = 'http://localhost:5000';
 
 const fmt = (v) => 'Rp ' + (Number(v) || 0).toLocaleString('id-ID');
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
-const getFileUrl = (filename) => {
-  if (!filename) return null;
-  if (filename.startsWith('http')) return filename;
-  return `${API}/api/files/${filename}`;
-};
 
 const StatusPill = ({ status, size = 'sm' }) => {
   const map = {
@@ -577,14 +573,13 @@ const ProjectTimeline = () => {
                       </p>
                     )}
                     {e.file && (
-                      <a
-                        href={getFileUrl(e.file)}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => openSecureFile(e.file)}
                         className="text-[9px] text-indigo-500 font-bold mt-1 inline-block hover:underline"
                       >
                         📎 Lihat Lampiran
-                      </a>
+                      </button>
                     )}
                   </div>
 

@@ -5,11 +5,19 @@ import Swal from 'sweetalert2';
 import { FileText, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { fetchFileObjectUrl } from '../utils/secureFile';
 
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
-const viewPaymentProof = (inv) => {
-  const url = `http://localhost:5000/api/files/${inv.paymentProof}`;
+const viewPaymentProof = async (inv) => {
+  // Berkas kini memerlukan token, jadi diambil sebagai blob dulu; Swal hanya
+  // menerima URL, dan <img>/<iframe> tidak bisa mengirim header Authorization.
+  let url;
+  try {
+    url = await fetchFileObjectUrl(inv.paymentProof);
+  } catch (err) {
+    return Swal.fire('Gagal', err.message, 'error');
+  }
   const isPdf = inv.paymentProof.toLowerCase().endsWith('.pdf');
   Swal.fire({
     title: `Bukti Transfer — ${inv.invoiceNumber}`,
@@ -21,7 +29,8 @@ const viewPaymentProof = (inv) => {
     `,
     width: 720,
     showConfirmButton: false,
-    showCloseButton: true
+    showCloseButton: true,
+    didClose: () => URL.revokeObjectURL(url)
   });
 };
 

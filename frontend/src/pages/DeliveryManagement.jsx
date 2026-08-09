@@ -8,6 +8,7 @@ import autoTable from 'jspdf-autotable';
 import { Truck, CalendarClock, PackageCheck, MapPin, Search } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { openSecureFile } from '../utils/secureFile';
 
 const DeliveryManagement = () => {
   const navigate = useNavigate();
@@ -368,14 +369,13 @@ const DeliveryManagement = () => {
                             {po.courierName} {po.trackingNumber ? `(${po.trackingNumber})` : ''}
                           </p>
                           {po.deliveryPhoto && (
-                            <a
-                              href={`http://localhost:5000/api/files/${po.deliveryPhoto}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <button
+                              type="button"
+                              onClick={() => openSecureFile(po.deliveryPhoto)}
                               className="inline-block mt-1 text-[9px] font-black text-indigo-600 hover:underline uppercase tracking-widest"
                             >
                               📷 Lihat Foto
-                            </a>
+                            </button>
                           )}
                         </div>
                       )}

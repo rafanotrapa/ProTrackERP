@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const connectDB = require('./config/db');
 const { verifyMailer } = require('./utils/emailService');
+const { protect } = require('./middleware/auth');
 
 const supplierInvoiceRoutes = require('./routes/supplierInvoiceRoutes');
 const supplierPaymentRoutes = require('./routes/supplierPaymentRoutes');
@@ -28,9 +29,15 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-app.get('/api/files/:filename', (req, res) => {
+// Berkas upload berisi bukti transfer, invoice supplier, dan foto pengiriman.
+// Sebelumnya seluruh folder uploads disajikan lewat express.static tanpa
+// autentikasi, dan /api/files juga terbuka — dokumen bisa diunduh siapa saja
+// dari internet hanya dengan menebak nama berkas yang berpola
+// INV-<timestamp>-<acak>. express.static publik itu dihapus; satu-satunya
+// jalan sekarang lewat /api/files yang mewajibkan token.
+//
+// path.basename() dipertahankan: itu yang memblokir path traversal.
+app.get('/api/files/:filename', protect, (req, res) => {
   const filename = path.basename(req.params.filename);
   const candidates = [
     path.join(__dirname, 'uploads/documents', filename),

@@ -3,12 +3,21 @@ const router = express.Router();
 const Project = require('../models/Project');
 const SupplierQuotation = require('../models/SupplierQuotation');
 const { protect, authorizeRoles } = require('../middleware/auth');
+const { addProject, getPicOptions, updateProjectPIC } = require('../controllers/projectController');
 
 router.use(protect);
 
+// Kandidat PIC harus didaftarkan sebelum '/:projectId', kalau tidak string
+// 'pic-options' akan ditangkap sebagai nomor project.
+router.get('/pic-options', authorizeRoles('Management','Owner','Admin'), getPicOptions);
+
 router.get('/', authorizeRoles('Marketing','Procurement','Finance','Management','Owner','Admin'), async (req, res) => {
   try {
-    const projects = await Project.find().sort({ createdAt: -1 });
+    // createdBy di-populate supaya frontend bisa menampilkan nama PIC, bukan
+    // sekadar ObjectId.
+    const projects = await Project.find()
+      .populate('createdBy', 'username role')
+      .sort({ createdAt: -1 });
     res.json(projects);
   } catch (err) {
     console.error("Error GET Projects:", err.message);
@@ -41,27 +50,15 @@ router.get('/:projectId', authorizeRoles('Marketing','Procurement','Finance','Ma
   }
 });
 
-router.post('/', authorizeRoles('Marketing','Admin'), async (req, res) => {
-  try {
+// Dulu rute ini punya handler sendiri yang menyimpan lewat new Project(req.body),
+// sehingga createdBy tidak pernah terisi dan pembuat project tak terlacak.
+// projectController.addProject sudah mengisinya dari token dan membatasi field
+// yang boleh datang dari klien.
+router.post('/', authorizeRoles('Marketing','Admin'), addProject);
 
-    const existingProject = await Project.findOne({ projectId: req.body.projectId });
-    if (existingProject) {
-      return res.status(400).json({ success: false, msg: "ID BJK sudah terdaftar!" });
-    }
-
-    const newProject = new Project(req.body);
-    const savedProject = await newProject.save();
-
-    res.status(201).json({
-      success: true,
-      msg: "Project BJK Berhasil Disimpan!",
-      data: savedProject
-    });
-  } catch (err) {
-    console.error("Error POST Project:", err.message);
-    res.status(500).json({ success: false, msg: err.message });
-  }
-});
+// Pemindahan PIC dipisahkan dari update-status di bawah, yang memakai
+// $set: req.body tanpa pembatasan field dan boleh diakses Marketing.
+router.patch('/:projectId/pic', authorizeRoles('Management','Owner','Admin'), updateProjectPIC);
 
 router.patch('/update-status/:projectId', authorizeRoles('Marketing','Finance','Admin'), async (req, res) => {
   try {

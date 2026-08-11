@@ -25,6 +25,15 @@ const ProjectLog = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
+  // Pemindahan PIC adalah keputusan atasan; Marketing tetap melihat kolomnya
+  // tapi tanpa tombol ubah. Server juga menolaknya lewat authorizeRoles,
+  // pemeriksaan di sini hanya supaya tombolnya tidak menggoda untuk diklik.
+  const [user] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('user') || 'null') || {}; }
+    catch { return {}; }
+  });
+  const bolehUbahPIC = ['Management', 'Owner', 'Admin'].includes(user.role);
+
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -76,6 +85,62 @@ const ProjectLog = () => {
     } catch (err) {
       console.error('Gagal update budget:', err);
       Swal.fire('Error', 'Gagal update contract value!', 'error');
+    }
+  };
+
+  const handleChangePIC = async (p) => {
+    const token = localStorage.getItem('token');
+
+    let kandidat = [];
+    try {
+      const res = await axios.get('http://localhost:5000/api/project/pic-options', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      kandidat = res.data || [];
+    } catch (err) {
+      console.error('Gagal ambil kandidat PIC:', err);
+      return Swal.fire('Error', 'Gagal mengambil daftar akun Marketing.', 'error');
+    }
+
+    if (kandidat.length === 0) {
+      return Swal.fire('Belum Ada Kandidat', 'Belum ada akun ber-role Marketing.', 'info');
+    }
+
+    const pilihan = Object.fromEntries(kandidat.map((u) => [u._id, u.username]));
+    const picSekarang = p.createdBy?._id || '';
+
+    const { value } = await Swal.fire({
+      title: 'Pindahkan PIC',
+      text: `${p.projectId} — ${p.projectName}`,
+      input: 'select',
+      inputOptions: pilihan,
+      inputValue: picSekarang,
+      inputPlaceholder: 'Pilih akun Marketing',
+      showCancelButton: true,
+      confirmButtonText: 'Pindahkan',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#4f46e5',
+      inputValidator: (val) => (!val ? 'Pilih dulu PIC tujuannya!' : null),
+    });
+
+    if (!value || value === picSekarang) return;
+
+    try {
+      const res = await axios.patch(
+        `http://localhost:5000/api/project/${p.projectId}/pic`,
+        { createdBy: value },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      Swal.fire({
+        icon: 'success',
+        title: res.data?.msg || 'PIC dipindahkan!',
+        timer: 1600,
+        showConfirmButton: false,
+      });
+      fetchProjects();
+    } catch (err) {
+      console.error('Gagal ubah PIC:', err);
+      Swal.fire('Error', err.response?.data?.msg || 'Gagal memindahkan PIC.', 'error');
     }
   };
 
@@ -179,6 +244,7 @@ const ProjectLog = () => {
                   <th className="px-6 py-4">Project</th>
                   <th className="px-6 py-4">Client</th>
                   <th className="px-6 py-4 text-right">Contract Value</th>
+                  <th className="px-6 py-4">PIC</th>
                   <th className="px-6 py-4 text-center">Mode</th>
                   <th className="px-6 py-4 text-center">Status</th>
                   <th className="px-6 py-4 text-center">Created</th>
@@ -209,6 +275,24 @@ const ProjectLog = () => {
                         </button>
                       </div>
                       <p className="text-[8px] text-slate-400">{p.currency}</p>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-1.5">
+                        {p.createdBy ? (
+                          <p className="font-bold text-slate-700 text-[11px]">{p.createdBy.username}</p>
+                        ) : (
+                          <p className="text-[10px] font-bold text-slate-300 italic">Belum ada</p>
+                        )}
+                        {bolehUbahPIC && (
+                          <button
+                            onClick={() => handleChangePIC(p)}
+                            title="Pindahkan PIC"
+                            className="text-slate-300 hover:text-indigo-600 transition-all active:scale-90"
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-5 text-center">
                       <span className={`px-2 py-1 rounded-full text-[8px] font-black uppercase ${

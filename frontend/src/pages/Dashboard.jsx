@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {
   FolderPlus, FileText, Receipt, CreditCard, Calendar,
@@ -19,6 +20,18 @@ const UI_TEXT = {
     access: 'Buka',
     noModules: 'Belum Ada Modul',
     contactAdmin: 'Hubungi administrator untuk mendapatkan akses',
+    myProjects: 'Project Saya',
+    myProjectsSub: 'Project yang Anda pegang sebagai PIC',
+    allProjects: 'Seluruh Project',
+    allProjectsSub: 'Pantauan semua project beserta pemegangnya',
+    colProject: 'Project',
+    colClient: 'Klien',
+    colValue: 'Nilai',
+    colPic: 'PIC',
+    colStatus: 'Status',
+    noProjects: 'Belum ada project',
+    noProjectsMine: 'Anda belum memegang project. Project yang Anda buat akan muncul di sini.',
+    loadingProjects: 'Memuat project...',
   },
   en: {
     quickAccess: 'Quick Access',
@@ -28,6 +41,18 @@ const UI_TEXT = {
     access: 'Access',
     noModules: 'No Modules Available',
     contactAdmin: 'Contact administrator for access',
+    myProjects: 'My Projects',
+    myProjectsSub: 'Projects you hold as PIC',
+    allProjects: 'All Projects',
+    allProjectsSub: 'Overview of every project and its holder',
+    colProject: 'Project',
+    colClient: 'Client',
+    colValue: 'Value',
+    colPic: 'PIC',
+    colStatus: 'Status',
+    noProjects: 'No projects yet',
+    noProjectsMine: 'You are not holding any project yet. Projects you create will appear here.',
+    loadingProjects: 'Loading projects...',
   },
 };
 
@@ -45,6 +70,43 @@ const Dashboard = () => {
     localStorage.setItem('lang', l);
   };
   const t = UI_TEXT[lang];
+
+  // Marketing melihat project yang dia pegang; Management dan Owner melihat
+  // semuanya lengkap dengan PIC. Peran lain tidak menampilkan tabel apa pun.
+  const tabelMilikSendiri = user.role === 'Marketing';
+  const tabelSemua = user.role === 'Management' || user.role === 'Owner';
+  const pakaiTabel = tabelMilikSendiri || tabelSemua;
+
+  const [projects, setProjects] = useState([]);
+  const [memuatProject, setMemuatProject] = useState(pakaiTabel);
+
+  useEffect(() => {
+    if (!pakaiTabel) return;
+    let batal = false;
+
+    (async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/project', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!batal) setProjects(Array.isArray(res.data) ? res.data : []);
+      } catch {
+        if (!batal) setProjects([]);
+      } finally {
+        if (!batal) setMemuatProject(false);
+      }
+    })();
+
+    return () => { batal = true; };
+  }, [pakaiTabel]);
+
+  // createdBy di-populate server jadi berbentuk objek; project lama bernilai null.
+  const daftarProject = tabelMilikSendiri
+    ? projects.filter((p) => p.createdBy && p.createdBy._id === user.id)
+    : projects;
+
+  const fmtNilai = (v) => (v ? 'Rp ' + Number(v).toLocaleString('id-ID') : 'Rp 0');
 
   const allModules = {
     Marketing: [
@@ -196,6 +258,78 @@ const Dashboard = () => {
               <Briefcase size={48} className="mx-auto text-slate-300 mb-4" />
               <p className="text-xl font-black italic text-slate-400 uppercase tracking-tighter">{t.noModules}</p>
               <p className="text-[9px] text-slate-400 mt-2">{t.contactAdmin}</p>
+            </div>
+          )}
+
+          {pakaiTabel && (
+            <div className="mt-12">
+              <div className="flex items-center gap-3 mb-1">
+                <Briefcase size={16} className="text-indigo-600" />
+                <h2 className="text-xl font-black italic text-slate-800 uppercase tracking-tighter">
+                  {tabelMilikSendiri ? t.myProjects : t.allProjects}
+                </h2>
+                <span className="text-[9px] font-black text-slate-400">({daftarProject.length})</span>
+              </div>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-4 ml-7">
+                {tabelMilikSendiri ? t.myProjectsSub : t.allProjectsSub}
+              </p>
+
+              <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+                {memuatProject ? (
+                  <p className="p-10 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    {t.loadingProjects}
+                  </p>
+                ) : daftarProject.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <Briefcase size={32} className="mx-auto text-slate-200 mb-3" />
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      {tabelMilikSendiri ? t.noProjectsMine : t.noProjects}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm min-w-150">
+                      <thead className="bg-slate-50">
+                        <tr className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                          <th className="px-6 py-3">{t.colProject}</th>
+                          {tabelMilikSendiri && <th className="px-6 py-3">{t.colClient}</th>}
+                          <th className="px-6 py-3">{t.colValue}</th>
+                          {tabelSemua && <th className="px-6 py-3">{t.colPic}</th>}
+                          <th className="px-6 py-3">{t.colStatus}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {daftarProject.map((p) => (
+                          <tr
+                            key={p._id || p.projectId}
+                            onClick={() => navigate('/project-log')}
+                            className="hover:bg-slate-50 cursor-pointer transition-colors"
+                          >
+                            <td className="px-6 py-3">
+                              <p className="font-bold text-slate-800">{p.projectName}</p>
+                              <p className="text-[9px] font-bold text-slate-400">{p.projectId}</p>
+                            </td>
+                            {tabelMilikSendiri && (
+                              <td className="px-6 py-3 text-slate-600">{p.institutionName || '—'}</td>
+                            )}
+                            <td className="px-6 py-3 font-bold text-slate-700">{fmtNilai(p.amount)}</td>
+                            {tabelSemua && (
+                              <td className="px-6 py-3 text-slate-600">
+                                {p.createdBy ? p.createdBy.username : '—'}
+                              </td>
+                            )}
+                            <td className="px-6 py-3">
+                              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                                {p.status || '—'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>

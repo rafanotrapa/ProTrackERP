@@ -133,7 +133,9 @@ function App() {
           <Route path="/verify-payment/:id" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><PaymentVerifyDetail /></ProtectedRoute>} />
 
           <Route path="/quotation-approval" element={<ProtectedRoute allowRoles={['Management', 'Admin']}><QuotationApproval /></ProtectedRoute>} />
-          <Route path="/quotation-approval/:id" element={<ProtectedRoute allowRoles={['Management', 'Admin']}><QuotationDetailReview /></ProtectedRoute>} />
+          {/* Procurement dan Owner masuk lewat daftar record sebagai tampilan
+              baca-saja; tombol setujui/tolak disembunyikan di dalam halamannya. */}
+          <Route path="/quotation-approval/:id" element={<ProtectedRoute allowRoles={['Management', 'Admin', 'Procurement', 'Owner']}><QuotationDetailReview /></ProtectedRoute>} />
           <Route path="/client-quotation-approval" element={<ProtectedRoute allowRoles={['Management', 'Admin']}><ClientQuotationApproval /></ProtectedRoute>} />
           <Route path="/client-quotation-approval/:id" element={<ProtectedRoute allowRoles={['Management', 'Admin']}><ClientQuotationDetailReview /></ProtectedRoute>} />
           <Route path="/project-billing" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><ProjectBilling /></ProtectedRoute>} />

@@ -6,6 +6,7 @@ import { ShoppingCart } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
+import { unduhDokumenPO } from '../utils/poDocument';
 
 const CreatePO = () => {
   const navigate = useNavigate();
@@ -59,12 +60,27 @@ const CreatePO = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/po', formData, {
+      const res = await axios.post('http://localhost:5000/api/po', formData, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      Swal.fire({ icon: 'success', title: 'PO ISSUED', text: 'Purchase Order resmi diterbitkan berdasarkan quotation marketing.', confirmButtonColor: '#0f172a' });
-      navigate('/dashboard');
+      // Nomor PO diambil dari respons, bukan dari formData: server mengganti
+      // nomornya bila terjadi tabrakan (lihat ensureUniquePONumber), jadi kalau
+      // dokumen memakai nomor dari browser bisa berbeda dengan yang tercatat.
+      const poTersimpan = res.data?.data;
+
+      await Swal.fire({
+        icon: 'success',
+        title: 'PO ISSUED',
+        text: `Purchase Order ${poTersimpan?.poNumber || ''} resmi diterbitkan. Dokumen PDF akan diunduh.`,
+        confirmButtonColor: '#0f172a'
+      });
+
+      // PO sudah tersimpan sebelum tahap ini. Kalau pengguna membatalkan modal
+      // penandatangan, dokumennya tetap bisa diunduh lagi lewat PO Record.
+      await unduhDokumenPO(poTersimpan);
+
+      navigate('/po-record');
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || "Gagal membuat PO" });
     } finally { setLoading(false); }

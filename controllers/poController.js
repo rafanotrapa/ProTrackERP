@@ -3,6 +3,11 @@ const SupplierQuotation = require('../models/SupplierQuotation');
 const Vendor = require('../models/Vendor');
 const { computePOPaymentStatuses, UNPAID } = require('../utils/poPaymentStatus');
 
+// Field vendor yang dibutuhkan dokumen PO. Sebelumnya di sini tertulis
+// 'vendorContact', yang tidak ada di skema Vendor — nama sebenarnya
+// contactPerson — sehingga nilainya selalu kosong tanpa disadari.
+const VENDOR_FIELDS = 'vendorName contactPerson address phone';
+
 // Nomor PO dibuat di browser dengan Math.random pada rentang 1000-9999, jadi hanya
 // ada 9.000 kemungkinan per bulan dan tabrakan bisa terjadi. Karena poNumber unik di
 // level database, tabrakan tadinya muncul sebagai error 500 mentah ke user.
@@ -60,6 +65,12 @@ exports.createPO = async (req, res) => {
     });
 
     await newPO.save();
+
+    // Vendor di-populate supaya frontend bisa langsung menyusun dokumen PDF PO
+    // tanpa permintaan kedua. Daftar field disamakan dengan getAllPOs agar util
+    // PDF menerima bentuk data yang sama dari kedua jalur.
+    await newPO.populate('vendorId', VENDOR_FIELDS);
+
     res.status(201).json({ msg: 'Purchase Order resmi diterbitkan!', data: newPO });
   } catch (err) {
     console.error("Error create PO:", err.message);
@@ -67,11 +78,39 @@ exports.createPO = async (req, res) => {
   }
 };
 
+/**
+ * Mengarsipkan berkas PDF dokumen PO yang dihasilkan browser.
+ *
+ * Diarsipkan sekali saat PO terbit. Bila PO sudah punya berkas, permintaan
+ * berikutnya diabaikan supaya dokumen yang sudah dikirim ke supplier tidak
+ * tergantikan versi lain.
+ */
+exports.attachPODocument = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ msg: 'Berkas dokumen tidak diterima.' });
+
+    const po = await PurchaseOrder.findOne({ poNumber: req.params.poNumber.trim() });
+    if (!po) return res.status(404).json({ msg: 'PO tidak ditemukan.' });
+
+    if (po.documentFile) {
+      return res.json({ msg: 'Dokumen sudah diarsipkan sebelumnya.', documentFile: po.documentFile });
+    }
+
+    po.documentFile = req.file.filename;
+    await po.save();
+
+    res.json({ msg: 'Dokumen PO diarsipkan.', documentFile: po.documentFile });
+  } catch (err) {
+    console.error('Error arsip dokumen PO:', err.message);
+    res.status(500).json({ msg: 'Gagal mengarsipkan dokumen PO.' });
+  }
+};
+
 exports.getAllPOs = async (req, res) => {
   try {
     const pos = await PurchaseOrder.find()
         .populate('quotationId')
-        .populate('vendorId', 'vendorName vendorContact')
+        .populate('vendorId', VENDOR_FIELDS)
         .sort({ timestamp: -1 });
 
     // paymentStatus diturunkan dari tagihan supplier yang sudah dibayar supaya

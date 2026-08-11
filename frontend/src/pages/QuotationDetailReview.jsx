@@ -104,14 +104,28 @@ const QuotationDetailReview = () => {
 
   const isPending = (quo.approvalStatus || 'Pending') === 'Pending';
 
+  // Halaman ini kini juga dibuka dari daftar record oleh Procurement dan Owner
+  // sebagai tampilan baca-saja. Tanpa penjagaan peran, tombol setujui/tolak ikut
+  // muncul untuk mereka — server memang menolaknya, tapi tombolnya tidak boleh
+  // ditawarkan sejak awal.
+  const bolehMenyetujui = (() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('user') || 'null') || {};
+      return ['Management', 'Admin'].includes(u.role);
+    } catch { return false; }
+  })();
+
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
       <Header />
 
       <div className="w-full border-b border-slate-100 px-8 py-8 flex flex-wrap items-center justify-between gap-4 bg-slate-50/30">
         <div className="flex items-center gap-6">
+          {/* Halaman ini punya dua pintu masuk: antrean persetujuan Management
+              dan daftar record Procurement. Kembali ke riwayat menjaga keduanya
+              mendarat di tempat asalnya. */}
           <button
-            onClick={() => navigate('/quotation-approval')}
+            onClick={() => navigate(-1)}
             className="bg-white hover:bg-slate-50 border border-slate-200 h-12 w-12 rounded-2xl flex items-center justify-center transition-all shadow-sm active:scale-90 group"
           >
             <span className="text-slate-400 group-hover:text-indigo-600 text-xl font-black italic">←</span>
@@ -273,7 +287,7 @@ const QuotationDetailReview = () => {
               )}
             </div>
 
-            {isPending && (
+            {isPending && bolehMenyetujui && (
               <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Management Action</p>
                 <button

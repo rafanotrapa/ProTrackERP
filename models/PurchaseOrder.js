@@ -27,6 +27,12 @@ const PurchaseOrderSchema = new mongoose.Schema({
   qcStatus: { type: String, enum: ['Waiting Delivery', 'Passed', 'Returned'], default: 'Waiting Delivery' },
   qcRemarks: { type: String },
 
+  // Berkas PDF dokumen PO yang diarsipkan saat PO diterbitkan. PO adalah surat
+  // resmi ke supplier, jadi yang diunduh ulang harus berkas yang sama persis
+  // dengan yang dikirim — bukan hasil cetak ulang yang bisa berbeda kalau data
+  // atau tata letaknya berubah di kemudian hari.
+  documentFile: { type: String },
+
   deliveryStatus: { type: String, enum: ['Pending', 'Scheduled', 'In Transit', 'Delivered'], default: 'Pending' },
   deliveryDate: { type: Date },
   courierName: { type: String },

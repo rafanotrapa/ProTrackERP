@@ -7,10 +7,19 @@ const router = express.Router();
 const { protect, authorizeRoles } = require('../middleware/auth');
 const upload = require('../middleware/uploadMiddleware');
 
-const { createPO, getAllPOs, financeApprovePO, qcCheckPO, updateDelivery } = require('../controllers/poController');
+const { createPO, getAllPOs, financeApprovePO, qcCheckPO, updateDelivery, attachPODocument } = require('../controllers/poController');
 
 
 router.post('/', protect, authorizeRoles('Admin', 'Procurement'), createPO);
+
+// Arsip berkas PDF dokumen PO yang dihasilkan browser saat PO diterbitkan.
+router.patch(
+  '/:poNumber/document',
+  protect,
+  authorizeRoles('Admin', 'Procurement'),
+  upload.single('document'),
+  attachPODocument
+);
 
 router.get('/', protect, authorizeRoles('Admin', 'Procurement', 'Finance', 'Management', 'Owner'), getAllPOs);
 

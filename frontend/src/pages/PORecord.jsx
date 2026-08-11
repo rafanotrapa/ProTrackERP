@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck, Search } from 'lucide-react';
+import { ClipboardCheck, Search, Download } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { unduhDokumenPO } from '../utils/poDocument';
 
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
@@ -145,6 +146,7 @@ const PORecord = () => {
                   <th className="px-6 py-4 text-center">Payment Status</th>
                   <th className="px-6 py-4 text-right">Grand Total</th>
                   <th className="px-6 py-4 text-center">Issued</th>
+                  <th className="px-6 py-4 text-center">Dokumen</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -174,6 +176,15 @@ const PORecord = () => {
                     </td>
                     <td className="px-6 py-5 text-center">
                       <p className="text-[9px] font-bold text-slate-500">{formatDate(po.timestamp)}</p>
+                    </td>
+                    <td className="px-6 py-5 text-center">
+                      <button
+                        onClick={() => unduhDokumenPO(po)}
+                        title="Unduh dokumen PO"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-sky-700 transition-all active:scale-90"
+                      >
+                        <Download size={11} /> PDF
+                      </button>
                     </td>
                   </tr>
                 ))}

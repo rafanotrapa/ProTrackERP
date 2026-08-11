@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Search } from 'lucide-react';
+import { FileText, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -151,6 +151,7 @@ const SupplierQuotationRecord = () => {
                   <th className="px-6 py-4 text-center">Status</th>
                   <th className="px-6 py-4 text-right">Grand Total</th>
                   <th className="px-6 py-4 text-center">Date</th>
+                  <th className="px-6 py-4 text-center">Detail</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -183,6 +184,15 @@ const SupplierQuotationRecord = () => {
                       </td>
                       <td className="px-6 py-5 text-center">
                         <p className="text-[9px] font-bold text-slate-500">{formatDate(quo.timestamp)}</p>
+                      </td>
+                      <td className="px-6 py-5 text-center">
+                        <button
+                          onClick={() => navigate(`/quotation-approval/${quo._id}`)}
+                          title="Lihat rincian quotation"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-90"
+                        >
+                          <Eye size={11} /> Lihat
+                        </button>
                       </td>
                     </tr>
                   );

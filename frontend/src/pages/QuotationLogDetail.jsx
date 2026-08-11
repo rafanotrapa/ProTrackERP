@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { mintaPenandatangan } from '../utils/pdfDocument';
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import autoTable from 'jspdf-autotable';
@@ -180,9 +181,8 @@ const QuotationLogDetail = () => {
   const grandTotal = calculateGrandTotal();
 
   const handleDownloadPDF = async () => {
-    const signRes = await Swal.fire({ title: 'Nama Penandatangan', input: 'text', inputPlaceholder: 'Nama yang menandatangani', showCancelButton: true, confirmButtonText: 'Generate PDF', inputValidator: (v) => (!v || !v.trim()) && 'Nama penandatangan wajib diisi' });
-    if (!signRes.isConfirmed) return;
-    const signer = signRes.value || '';
+    const signer = await mintaPenandatangan();
+    if (signer === null) return;
     try {
       const doc = new jsPDF();
       const isDraft = quotation.approvalStatus !== 'Approved';

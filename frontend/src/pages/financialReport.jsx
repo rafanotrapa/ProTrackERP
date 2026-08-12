@@ -94,6 +94,15 @@ const FinancialReport = () => {
     load();
   }, []);
 
+  // Ringkasan sebelumnya mencetak bulan berjalan di kepalanya, padahal angkanya
+  // dijumlahkan dari seluruh project tanpa filter bulan — labelnya menyesatkan
+  // dan tidak bisa diganti. Sekarang periodenya benar-benar dipilih, dan angkanya
+  // ikut periode itu.
+  const [periode, setPeriode] = useState('all');
+
+  const bulanTersedia = [...trend].sort((a, b) => b.month.localeCompare(a.month));
+  const bulanTerpilih = periode === 'all' ? null : trend.find((m) => m.month === periode);
+
   // Nilai pass-through (ongkir client, PPN client, PPN vendor) tidak lagi
   // dijumlahkan di sini — tabelnya sudah dicabut dari halaman.
   const totalRevenue      = projects.reduce((s, p) => s + (p.clientRevenue      || 0), 0);
@@ -106,28 +115,59 @@ const FinancialReport = () => {
   const totalCashIn       = projects.reduce((s, p) => s + (p.cashReceived       || 0), 0);
   const totalOutstanding  = projects.reduce((s, p) => s + (p.outstanding        || 0), 0);
 
+  // Angka yang tampil di kartu ringkasan. Saat satu bulan dipilih, sumbernya
+  // data bulanan dari getMonthlyTrend — rinciannya sudah memuat field yang sama
+  // persis, jadi tidak perlu endpoint tambahan.
+  const ringkas = bulanTerpilih
+    ? {
+        revenue:      bulanTerpilih.revenue      || 0,
+        cogs:         bulanTerpilih.cogs         || 0,
+        duty:         bulanTerpilih.importDuty   || 0,
+        otherExpense: bulanTerpilih.otherExpense || 0,
+        expense:      bulanTerpilih.expense      || 0,
+        netProfit:    bulanTerpilih.netProfit    || 0,
+      }
+    : {
+        revenue:      totalRevenue,
+        cogs:         totalCOGS,
+        duty:         totalDuty,
+        otherExpense: totalOtherExpense,
+        expense:      totalExpense,
+        netProfit:    totalNetProfit,
+      };
+
+  const labelPeriode = periode === 'all' ? 'Seluruh Periode' : monthLabel(periode);
+
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16); doc.setFont('helvetica', 'bold');
     doc.text('PROJECT FINANCIAL SUMMARY', 105, 16, { align: 'center' });
     doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-    doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 105, 23, { align: 'center' });
+    doc.text(`Periode: ${labelPeriode}`, 105, 23, { align: 'center' });
+    doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 105, 29, { align: 'center' });
+
+    // Ringkasan mengikuti periode yang dipilih di layar. Cash Diterima dan
+    // Outstanding hanya ikut saat seluruh periode ditampilkan — keduanya posisi
+    // kumulatif, bukan angka bulanan, jadi menyandingkannya dengan angka satu
+    // bulan akan menyesatkan.
+    const barisRingkas = [
+      ['Revenue Bisnis', rp(ringkas.revenue)],
+      ['COGS', rp(ringkas.cogs)],
+      ['Bea Masuk / Import Duty', rp(ringkas.duty)],
+      ['Biaya Lain (Reimburse/Meeting/dll)', rp(ringkas.otherExpense)],
+      ['Total Expense', rp(ringkas.expense)],
+      ['Net Profit', rp(ringkas.netProfit)],
+      ['Net Margin', pct(ringkas.netProfit, ringkas.revenue)],
+    ];
+    if (periode === 'all') {
+      barisRingkas.splice(1, 0, ['Total Ditagihkan ke Client', rp(totalBilled)]);
+      barisRingkas.push(['Cash Diterima', rp(totalCashIn)], ['Outstanding', rp(totalOutstanding)]);
+    }
 
     autoTable(doc, {
-      startY: 30,
+      startY: 36,
       head: [['Item', 'Nominal']],
-      body: [
-        ['Revenue Bisnis', rp(totalRevenue)],
-        ['Total Ditagihkan ke Client', rp(totalBilled)],
-        ['COGS', rp(totalCOGS)],
-        ['Bea Masuk / Import Duty', rp(totalDuty)],
-        ['Biaya Lain (Reimburse/Meeting/dll)', rp(totalOtherExpense)],
-        ['Total Expense', rp(totalExpense)],
-        ['Net Profit', rp(totalNetProfit)],
-        ['Net Margin', pct(totalNetProfit, totalRevenue)],
-        ['Cash Diterima', rp(totalCashIn)],
-        ['Outstanding', rp(totalOutstanding)],
-      ],
+      body: barisRingkas,
       theme: 'plain',
       headStyles: { fillColor: [15,23,42], textColor: 255, fontSize: 8 },
       styles: { fontSize: 9 },
@@ -213,11 +253,24 @@ const FinancialReport = () => {
           <div className="grid grid-cols-1 gap-6">
 
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              <div className="px-6 py-4 bg-slate-900 text-white">
-                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Ringkasan Pendapatan &amp; Biaya</p>
-                <p className="text-xs font-black uppercase tracking-wide text-white mt-0.5">
-                  {new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
-                </p>
+              <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Ringkasan Pendapatan &amp; Biaya</p>
+                  <p className="text-xs font-black uppercase tracking-wide text-white mt-0.5">{labelPeriode}</p>
+                </div>
+
+                {/* Hanya bulan yang benar-benar punya data yang bisa dipilih,
+                    supaya tidak ada periode kosong yang menyesatkan. */}
+                <select
+                  value={periode}
+                  onChange={(e) => setPeriode(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 text-white text-[9px] font-black uppercase tracking-widest rounded-lg px-3 py-2 outline-none cursor-pointer hover:bg-slate-700 transition-colors"
+                >
+                  <option value="all">Seluruh Periode</option>
+                  {bulanTersedia.map((m) => (
+                    <option key={m.month} value={m.month}>{monthLabel(m.month)}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="px-6 py-5 space-y-0 divide-y divide-slate-50">
@@ -225,22 +278,22 @@ const FinancialReport = () => {
                   <div>
                     <p className="text-xs font-black text-slate-800">Revenue Bisnis</p>
                   </div>
-                  <p className="text-sm font-black text-emerald-600">{rp(totalRevenue)}</p>
+                  <p className="text-sm font-black text-emerald-600">{rp(ringkas.revenue)}</p>
                 </div>
 
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Cost of Goods Sold (COGS)</p>
                   </div>
-                  <p className="text-sm font-black text-rose-500">({rp(totalCOGS)})</p>
+                  <p className="text-sm font-black text-rose-500">({rp(ringkas.cogs)})</p>
                 </div>
 
                 <div className="flex justify-between items-center py-3 bg-slate-50 -mx-6 px-6">
                   <p className="text-xs font-black text-slate-700">Gross Profit</p>
                   <p className="text-sm font-black text-slate-900">
-                    {rp(totalRevenue - totalCOGS)}
+                    {rp(ringkas.revenue - ringkas.cogs)}
                     <span className="text-[9px] text-slate-400 ml-2">
-                      ({pct(totalRevenue - totalCOGS, totalRevenue)})
+                      ({pct(ringkas.revenue - ringkas.cogs, ringkas.revenue)})
                     </span>
                   </p>
                 </div>
@@ -249,34 +302,33 @@ const FinancialReport = () => {
                   <div>
                     <p className="text-xs font-black text-slate-800">Bea Masuk / Import Duty</p>
                   </div>
-                  <p className="text-sm font-black text-amber-600">({rp(totalDuty)})</p>
+                  <p className="text-sm font-black text-amber-600">({rp(ringkas.duty)})</p>
                 </div>
 
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Biaya Lain (Reimburse / Meeting / dll)</p>
                   </div>
-                  <p className="text-sm font-black text-orange-600">({rp(totalOtherExpense)})</p>
+                  <p className="text-sm font-black text-orange-600">({rp(ringkas.otherExpense)})</p>
                 </div>
 
                 <div className="flex justify-between items-center py-3">
                   <p className="text-xs font-black text-slate-700">Total Expense</p>
-                  <p className="text-sm font-black text-rose-600">({rp(totalExpense)})</p>
+                  <p className="text-sm font-black text-rose-600">({rp(ringkas.expense)})</p>
                 </div>
 
                 <div className={`flex justify-between items-center py-4 -mx-6 px-6 border-t-2 border-slate-200 mt-1 ${
-                  totalNetProfit >= 0 ? 'bg-emerald-50' : 'bg-rose-50'
+                  ringkas.netProfit >= 0 ? 'bg-emerald-50' : 'bg-rose-50'
                 }`}>
                   <div>
                     <p className="text-sm font-black text-slate-900">NET PROFIT</p>
-                    <p className="text-[9px] text-slate-500">Revenue − COGS − Bea Masuk − Biaya Lain</p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-xl font-black ${totalNetProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {rp(totalNetProfit)}
+                    <p className={`text-xl font-black ${ringkas.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {rp(ringkas.netProfit)}
                     </p>
-                    <p className={`text-[9px] font-black ${totalNetProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                      Margin {pct(totalNetProfit, totalRevenue)}
+                    <p className={`text-[9px] font-black ${ringkas.netProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                      Margin {pct(ringkas.netProfit, ringkas.revenue)}
                     </p>
                   </div>
                 </div>

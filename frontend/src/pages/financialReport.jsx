@@ -7,6 +7,7 @@ import autoTable from 'jspdf-autotable';
 
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import StyledSelect from '../components/StyledSelect';
 
 const rp  = (v) => `Rp ${(Number(v) || 0).toLocaleString('id-ID')}`;
 const pct = (n, d) => d > 0 ? ((n / d) * 100).toFixed(1) + '%' : '—';
@@ -259,18 +260,23 @@ const FinancialReport = () => {
                   <p className="text-xs font-black uppercase tracking-wide text-white mt-0.5">{labelPeriode}</p>
                 </div>
 
-                {/* Hanya bulan yang benar-benar punya data yang bisa dipilih,
-                    supaya tidak ada periode kosong yang menyesatkan. */}
-                <select
-                  value={periode}
-                  onChange={(e) => setPeriode(e.target.value)}
-                  className="bg-slate-800 border border-slate-700 text-white text-[9px] font-black uppercase tracking-widest rounded-lg px-3 py-2 outline-none cursor-pointer hover:bg-slate-700 transition-colors"
-                >
-                  <option value="all">Seluruh Periode</option>
-                  {bulanTersedia.map((m) => (
-                    <option key={m.month} value={m.month}>{monthLabel(m.month)}</option>
-                  ))}
-                </select>
+                {/* Memakai StyledSelect yang sama dengan modul lain agar
+                    tampilannya seragam; hanya warnanya digelapkan supaya cocok
+                    di kepala kartu. Hanya bulan yang benar-benar punya data yang
+                    bisa dipilih, supaya tidak ada periode kosong. */}
+                <div className="w-44 shrink-0">
+                  <StyledSelect
+                    name="periode"
+                    value={periode}
+                    onChange={(e) => setPeriode(e.target.value)}
+                    searchable={false}
+                    options={[
+                      { value: 'all', label: 'Seluruh Periode' },
+                      ...bulanTersedia.map((m) => ({ value: m.month, label: monthLabel(m.month) })),
+                    ]}
+                    triggerClassName="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-[9px] font-black uppercase tracking-widest text-white flex justify-between items-center cursor-pointer hover:border-indigo-400 transition-all"
+                  />
+                </div>
               </div>
 
               <div className="px-6 py-5 space-y-0 divide-y divide-slate-50">
@@ -407,7 +413,9 @@ const FinancialReport = () => {
                         <tr className={`hover:bg-slate-50/60 transition-all ${isOpen ? 'bg-indigo-50/20' : ''}`}>
                           <td className="px-5 py-4">
                             <p className="font-black text-slate-900 text-xs">{p.projectName || p.projectId}</p>
-                            <p className="text-[8px] text-slate-400 font-mono mt-0.5">{p.projectId}</p>
+                            {/* Kode project selalu tampil kapital; sebagian
+                                tersimpan huruf kecil di database. */}
+                            <p className="text-[8px] text-slate-400 font-mono mt-0.5 uppercase">{p.projectId}</p>
                           </td>
                           <td className="px-4 py-4 text-right font-black text-emerald-600 text-xs whitespace-nowrap">
                             {rp(p.clientRevenue)}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, Send } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +17,15 @@ const ForgotPassword = () => {
       await axios.post('http://localhost:5000/api/auth/forgot-password', { email });
       setSubmitted(true);
     } catch (err) {
-      alert(err.response?.data?.msg || 'Terjadi kesalahan, coba lagi.');
+      // Email yang tidak terdaftar kini dibalas 404 oleh server, jadi jatuh ke
+      // sini dan tidak lagi menampilkan layar sukses palsu.
+      const tidakTerdaftar = err.response?.status === 404;
+      Swal.fire({
+        icon: tidakTerdaftar ? 'warning' : 'error',
+        title: tidakTerdaftar ? 'Email Tidak Terdaftar' : 'Gagal Mengirim',
+        text: err.response?.data?.msg || 'Terjadi kesalahan, coba lagi.',
+        confirmButtonColor: '#4f46e5',
+      });
     } finally {
       setLoading(false);
     }

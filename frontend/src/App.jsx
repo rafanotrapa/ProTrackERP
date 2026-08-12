@@ -85,11 +85,11 @@ function App() {
 
           <Route path="/register" element={<ProtectedRoute allowRoles={['Admin']}><Register /></ProtectedRoute>} />
           <Route path="/manage-users" element={<ProtectedRoute allowRoles={['Admin']}><UserManagement /></ProtectedRoute>} />
-          <Route path="/logs" element={<ProtectedRoute allowRoles={['Admin', 'Management', 'Owner']}><SystemLogs /></ProtectedRoute>} />
+          <Route path="/logs" element={<ProtectedRoute allowRoles={['Admin', 'Management', 'Owner']} modul="System Logs"><SystemLogs /></ProtectedRoute>} />
 
           <Route path="/project-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><ProjectCenter /></ProtectedRoute>} />
           <Route path="/add-project" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><AddProject /></ProtectedRoute>} />
-          <Route path="/project-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><ProjectLog /></ProtectedRoute>} />
+          <Route path="/project-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']} modul="Project"><ProjectLog /></ProtectedRoute>} />
           <Route path="/client-quote" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Management', 'Owner']}><AddClientQuotation /></ProtectedRoute>} />
           <Route path="/create-invoice" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><AddClientInvoice /></ProtectedRoute>} />
           <Route path="/input-payment-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><InputPaymentCenter /></ProtectedRoute>} />
@@ -99,19 +99,19 @@ function App() {
           <Route path="/quotation-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationLog /></ProtectedRoute>} />
           <Route path="/quotation-log-detail/:id" element={<ProtectedRoute allowRoles={['Marketing', 'Admin']}><QuotationLogDetail /></ProtectedRoute>} />
           <Route path="/invoice-center" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceCenter /></ProtectedRoute>} />
-          <Route path="/invoice-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceLog /></ProtectedRoute>} />
-          <Route path="/invoice-log-detail/:id" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']}><InvoiceLogDetail /></ProtectedRoute>} />
+          <Route path="/invoice-log" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']} modul="Client Invoice"><InvoiceLog /></ProtectedRoute>} />
+          <Route path="/invoice-log-detail/:id" element={<ProtectedRoute allowRoles={['Marketing', 'Admin', 'Finance']} modul="Client Invoice"><InvoiceLogDetail /></ProtectedRoute>} />
 
           <Route path="/vendor" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><VendorMenu /></ProtectedRoute>} />
           <Route path="/add-vendor" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><AddVendor /></ProtectedRoute>} />
           <Route path="/existing-vendors" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><ExistingVendors /></ProtectedRoute>} />
 
           <Route path="/supplier-quotation-menu" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><SupplierQuotationMenu /></ProtectedRoute>} />
-          <Route path="/supplier-quotation-record" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><SupplierQuotationRecord /></ProtectedRoute>} />
+          <Route path="/supplier-quotation-record" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']} modul="Supplier Quotation"><SupplierQuotationRecord /></ProtectedRoute>} />
           <Route path="/add-supplier-quotation" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><AddSupplierQuotation /></ProtectedRoute>} />
 
           <Route path="/po-menu" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><POMenu /></ProtectedRoute>} />
-          <Route path="/po-record" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><PORecord /></ProtectedRoute>} />
+          <Route path="/po-record" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']} modul="Purchase Order"><PORecord /></ProtectedRoute>} />
           <Route path="/create-po" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><CreatePO /></ProtectedRoute>} />
 
           <Route path="/supplier-invoice-menu" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><SupplierInvoiceMenu /></ProtectedRoute>} />
@@ -120,14 +120,14 @@ function App() {
 
           <Route path="/receive-qc" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><ReceiveQCGoods /></ProtectedRoute>} />
           <Route path="/delivery-management" element={<ProtectedRoute allowRoles={['Procurement', 'Admin']}><DeliveryManagement /></ProtectedRoute>} />
-          <Route path="/inventory" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']}><Inventory /></ProtectedRoute>} />
+          <Route path="/inventory" element={<ProtectedRoute allowRoles={['Procurement', 'Admin', 'Management', 'Owner']} modul="Inventory"><Inventory /></ProtectedRoute>} />
 
-          <Route path="/timeline" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']}><ProjectList /></ProtectedRoute>} />
-          <Route path="/timeline/:projectId" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']}><ProjectTimeline /></ProtectedRoute>} />
+          <Route path="/timeline" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']} modul="Project Timeline"><ProjectList /></ProtectedRoute>} />
+          <Route path="/timeline/:projectId" element={<ProtectedRoute allowRoles={['Marketing', 'Owner']} modul="Project Timeline"><ProjectTimeline /></ProtectedRoute>} />
 
           <Route path="/owner-insight" element={<ProtectedRoute allowRoles={['Owner', 'Admin']}><div className="p-20 text-center font-black italic uppercase text-slate-300">Executive Summary Insight Module</div></ProtectedRoute>} />
           <Route path="/supplier-payment" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><SupplierPayment /></ProtectedRoute>} />
-          <Route path="/financial-report" element={<ProtectedRoute allowRoles={['Finance', 'Owner', 'Admin']}><FinancialReport /></ProtectedRoute>} />
+          <Route path="/financial-report" element={<ProtectedRoute allowRoles={['Finance', 'Owner', 'Admin']} modul="Financial Report"><FinancialReport /></ProtectedRoute>} />
           <Route path="/finance-payment-center" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><FinancePaymentCenter /></ProtectedRoute>} />
           <Route path="/verify-payment" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><PaymentVerification /></ProtectedRoute>} />
           <Route path="/verify-payment/:id" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><PaymentVerifyDetail /></ProtectedRoute>} />
@@ -135,7 +135,7 @@ function App() {
           <Route path="/quotation-approval" element={<ProtectedRoute allowRoles={['Management', 'Admin']}><QuotationApproval /></ProtectedRoute>} />
           {/* Procurement dan Owner masuk lewat daftar record sebagai tampilan
               baca-saja; tombol setujui/tolak disembunyikan di dalam halamannya. */}
-          <Route path="/quotation-approval/:id" element={<ProtectedRoute allowRoles={['Management', 'Admin', 'Procurement', 'Owner']}><QuotationDetailReview /></ProtectedRoute>} />
+          <Route path="/quotation-approval/:id" element={<ProtectedRoute allowRoles={['Management', 'Admin', 'Procurement', 'Owner']} modul="Supplier Quotation"><QuotationDetailReview /></ProtectedRoute>} />
           <Route path="/client-quotation-approval" element={<ProtectedRoute allowRoles={['Management', 'Admin']}><ClientQuotationApproval /></ProtectedRoute>} />
           <Route path="/client-quotation-approval/:id" element={<ProtectedRoute allowRoles={['Management', 'Admin']}><ClientQuotationDetailReview /></ProtectedRoute>} />
           <Route path="/project-billing" element={<ProtectedRoute allowRoles={['Finance', 'Admin']}><ProjectBilling /></ProtectedRoute>} />

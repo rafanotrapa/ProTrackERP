@@ -8,7 +8,8 @@ const Register = () => {
     username: '',
     email: '',
     password: '',
-    role: 'Marketing'
+    role: 'Marketing',
+    viewModules: []
   });
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -16,14 +17,46 @@ const Register = () => {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
+  // Daftar modul untuk hak lihat akun Viewer. Diambil dari server supaya sama
+  // persis dengan daftar yang dipakai saat memeriksa akses.
+  const [modulTersedia, setModulTersedia] = useState([]);
+
   const roles = [
     { label: 'Marketing Division', value: 'Marketing' },
     { label: 'Procurement Division', value: 'Procurement' },
     { label: 'Finance Division', value: 'Finance' },
     { label: 'Management', value: 'Management' },
     { label: 'Company Owner', value: 'Owner' },
-    { label: 'Super Admin Access', value: 'Admin' }
+    { label: 'Administrator (User & Log)', value: 'Administrator' },
+    { label: 'Super Admin — Lihat Semua Modul', value: 'Super Admin' },
+    { label: 'Viewer — Lihat Modul Tertentu', value: 'Viewer' }
   ];
+
+  const perluPilihModul = formData.role === 'Viewer';
+
+  useEffect(() => {
+    if (!perluPilihModul || modulTersedia.length > 0) return;
+    (async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get('http://localhost:5000/api/auth/module-options', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setModulTersedia(res.data || []);
+      } catch (err) {
+        console.error('Gagal ambil daftar modul:', err);
+      }
+    })();
+  }, [perluPilihModul, modulTersedia.length]);
+
+  const toggleModul = (modul) => {
+    setFormData((f) => ({
+      ...f,
+      viewModules: f.viewModules.includes(modul)
+        ? f.viewModules.filter((m) => m !== modul)
+        : [...f.viewModules, modul],
+    }));
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -37,6 +70,16 @@ const Register = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (perluPilihModul && formData.viewModules.length === 0) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Modul Belum Dipilih',
+        text: 'Pilih minimal satu modul yang boleh dilihat akun Viewer.',
+        confirmButtonColor: '#4f46e5',
+      });
+    }
+
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -146,6 +189,41 @@ const Register = () => {
                   </div>
                 )}
               </div>
+
+              {perluPilihModul && (
+                <div className="md:col-span-2 space-y-2">
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">
+                    Modul yang Boleh Dilihat
+                    <span className="ml-2 text-indigo-500">({formData.viewModules.length} dipilih)</span>
+                  </label>
+                  <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto">
+                    {modulTersedia.length === 0 ? (
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Memuat daftar modul...</p>
+                    ) : modulTersedia.map((m) => (
+                      <label key={m} className="flex items-center gap-2 cursor-pointer select-none py-1">
+                        <input
+                          type="checkbox"
+                          checked={formData.viewModules.includes(m)}
+                          onChange={() => toggleModul(m)}
+                          className="w-3.5 h-3.5 accent-indigo-600 cursor-pointer shrink-0"
+                        />
+                        <span className="text-[10px] font-bold text-slate-600">{m}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-[9px] text-slate-400 ml-1">
+                    Akun ini hanya bisa melihat, tidak bisa mengisi form apa pun.
+                  </p>
+                </div>
+              )}
+
+              {formData.role === 'Super Admin' && (
+                <div className="md:col-span-2">
+                  <p className="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                    Super Admin melihat seluruh modul tanpa bisa mengisi form apa pun, dan hanya boleh ada satu akun.
+                  </p>
+                </div>
+              )}
 
               <div className="md:col-span-2 space-y-2">
                 <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Initial Password</label>

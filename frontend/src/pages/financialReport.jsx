@@ -56,13 +56,6 @@ const SectionHead = ({ title, badge }) => (
   </div>
 );
 
-const PTRow = ({ label, value }) => (
-  <div className="flex justify-between items-center py-2.5 border-b border-dashed border-slate-100 last:border-0">
-    <span className="text-[10px] text-slate-400 italic">{label}</span>
-    <span className="text-[10px] font-bold text-slate-400">{value}</span>
-  </div>
-);
-
 const FinancialReport = () => {
   const navigate = useNavigate();
 
@@ -101,24 +94,22 @@ const FinancialReport = () => {
     load();
   }, []);
 
-  const totalRevenue     = projects.reduce((s, p) => s + (p.clientRevenue      || 0), 0);
-  const totalShipping    = projects.reduce((s, p) => s + (p.clientShipping     || 0), 0);
-  const totalClientTax   = projects.reduce((s, p) => s + (p.clientTax          || 0), 0);
-  const totalBilled      = projects.reduce((s, p) => s + (p.grandTotalBilled   || 0), 0);
-  const totalCOGS        = projects.reduce((s, p) => s + (p.supplierCOGS       || 0), 0);
+  // Nilai pass-through (ongkir client, PPN client, PPN vendor) tidak lagi
+  // dijumlahkan di sini — tabelnya sudah dicabut dari halaman.
+  const totalRevenue      = projects.reduce((s, p) => s + (p.clientRevenue      || 0), 0);
+  const totalBilled       = projects.reduce((s, p) => s + (p.grandTotalBilled   || 0), 0);
+  const totalCOGS         = projects.reduce((s, p) => s + (p.supplierCOGS       || 0), 0);
   const totalDuty         = projects.reduce((s, p) => s + (p.supplierImportDuty || 0), 0);
-  const totalSupTax       = projects.reduce((s, p) => s + (p.supplierTaxPassThru|| 0), 0);
   const totalOtherExpense = projects.reduce((s, p) => s + (p.otherExpenseTotal  || 0), 0);
   const totalExpense      = projects.reduce((s, p) => s + (p.totalExpense       || 0), 0);
   const totalNetProfit    = projects.reduce((s, p) => s + (p.netProfit          || 0), 0);
   const totalCashIn       = projects.reduce((s, p) => s + (p.cashReceived       || 0), 0);
   const totalOutstanding  = projects.reduce((s, p) => s + (p.outstanding        || 0), 0);
-  const netMargin         = totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0;
 
   const exportPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16); doc.setFont('helvetica', 'bold');
-    doc.text('LAPORAN KEUANGAN', 105, 16, { align: 'center' });
+    doc.text('PROJECT FINANCIAL SUMMARY', 105, 16, { align: 'center' });
     doc.setFontSize(9); doc.setFont('helvetica', 'normal');
     doc.text(`Dicetak: ${new Date().toLocaleString('id-ID')}`, 105, 23, { align: 'center' });
 
@@ -126,7 +117,7 @@ const FinancialReport = () => {
       startY: 30,
       head: [['Item', 'Nominal']],
       body: [
-        ['Revenue Bisnis (item)', rp(totalRevenue)],
+        ['Revenue Bisnis', rp(totalRevenue)],
         ['Total Ditagihkan ke Client', rp(totalBilled)],
         ['COGS', rp(totalCOGS)],
         ['Bea Masuk / Import Duty', rp(totalDuty)],
@@ -160,7 +151,7 @@ const FinancialReport = () => {
       styles: { fontSize: 8 },
     });
 
-    doc.save(`Laporan_Keuangan_${new Date().toISOString().slice(0,10)}.pdf`);
+    doc.save(`Project_Financial_Summary_${new Date().toISOString().slice(0,10)}.pdf`);
   };
 
   if (loading) return (
@@ -197,7 +188,7 @@ const FinancialReport = () => {
         </button>
         <div>
           <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-            Laporan <span className="text-indigo-600">Keuangan</span>
+            Project Financial <span className="text-indigo-600">Summary</span>
           </h1>
           <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">
             {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -214,15 +205,18 @@ const FinancialReport = () => {
       <main className="flex-1 px-6 md:px-10 py-8 space-y-10 w-full">
 
         <section>
-          <SectionHead title="Ringkasan Laba Rugi" />
+          <SectionHead title="Ringkasan Pendapatan & Biaya" />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Dulu tiga kolom, dengan Pass-Through dan Status Penerimaan di kolom
+              ketiga. Keduanya dicabut atas permintaan pembimbing, jadi ringkasan
+              ini melebar penuh alih-alih menyisakan kolom kosong. */}
+          <div className="grid grid-cols-1 gap-6">
 
-            <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-slate-900 text-white">
-                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Income Statement</p>
+                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Ringkasan Pendapatan &amp; Biaya</p>
                 <p className="text-xs font-black uppercase tracking-wide text-white mt-0.5">
-                  {new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })} — YTD
+                  {new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
                 </p>
               </div>
 
@@ -230,7 +224,6 @@ const FinancialReport = () => {
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Revenue Bisnis</p>
-                    <p className="text-[9px] text-slate-400">clientPrice — subtotal barang</p>
                   </div>
                   <p className="text-sm font-black text-emerald-600">{rp(totalRevenue)}</p>
                 </div>
@@ -238,7 +231,6 @@ const FinancialReport = () => {
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Cost of Goods Sold (COGS)</p>
-                    <p className="text-[9px] text-slate-400">harga beli dari supplier</p>
                   </div>
                   <p className="text-sm font-black text-rose-500">({rp(totalCOGS)})</p>
                 </div>
@@ -256,7 +248,6 @@ const FinancialReport = () => {
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Bea Masuk / Import Duty</p>
-                    <p className="text-[9px] text-slate-400">biaya operasional impor</p>
                   </div>
                   <p className="text-sm font-black text-amber-600">({rp(totalDuty)})</p>
                 </div>
@@ -264,7 +255,6 @@ const FinancialReport = () => {
                 <div className="flex justify-between items-center py-3">
                   <div>
                     <p className="text-xs font-black text-slate-800">Biaya Lain (Reimburse / Meeting / dll)</p>
-                    <p className="text-[9px] text-slate-400">expense submission yang sudah Approved</p>
                   </div>
                   <p className="text-sm font-black text-orange-600">({rp(totalOtherExpense)})</p>
                 </div>
@@ -293,54 +283,6 @@ const FinancialReport = () => {
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">
-                  Pass-Through (bukan pendapatan bisnis)
-                </p>
-                <PTRow label="PPN Client → ke negara"      value={rp(totalClientTax)} />
-                <PTRow label="Ongkir Client → ke ekspedisi" value={rp(totalShipping)} />
-                <PTRow label="PPN Vendor → ke negara"       value={rp(totalSupTax)} />
-                <div className="mt-3 pt-3 border-t border-slate-100">
-                  <div className="flex justify-between">
-                    <span className="text-[9px] text-slate-500 font-bold">Total Ditagihkan ke Client</span>
-                    <span className="text-[9px] font-black text-slate-700">{rp(totalBilled)}</span>
-                  </div>
-                  <p className="text-[8px] text-slate-400 mt-1">
-                    Revenue + PPN + Ongkir client
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3">
-                  Status Penerimaan
-                </p>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-[9px] text-slate-500">Cash Diterima</span>
-                      <span className="text-[9px] font-black text-emerald-600">{rp(totalCashIn)}</span>
-                    </div>
-                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-emerald-400 rounded-full transition-all"
-                        style={{ width: totalBilled > 0 ? `${Math.min((totalCashIn / totalBilled) * 100, 100)}%` : '0%' }}
-                      />
-                    </div>
-                    <p className="text-[8px] text-slate-400 mt-0.5">
-                      {pct(totalCashIn, totalBilled)} dari total tagihan
-                    </p>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-slate-100">
-                    <span className="text-[9px] text-slate-500">Outstanding</span>
-                    <span className={`text-[9px] font-black ${totalOutstanding > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-                      {totalOutstanding > 0 ? rp(totalOutstanding) : '✓ Lunas'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -375,7 +317,7 @@ const FinancialReport = () => {
         </section>
 
         <section>
-          <SectionHead title="P&L per Project" badge={`${projects.length} projects`} />
+          <SectionHead title="Rincian Margin per Project" badge={`${projects.length} projects`} />
 
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
@@ -469,9 +411,7 @@ const FinancialReport = () => {
                                   <p className="text-[8px] font-black uppercase tracking-widest text-emerald-600 mb-3">Revenue Detail</p>
                                   <div className="space-y-2">
                                     {[
-                                      { l: 'Revenue Bisnis (item)', v: rp(p.clientRevenue), bold: true },
-                                      { l: 'Ongkir Client (pass-through)', v: rp(p.clientShipping), muted: true },
-                                      { l: 'PPN Client (pass-through)', v: rp(p.clientTax), muted: true },
+                                      { l: 'Revenue Bisnis', v: rp(p.clientRevenue), bold: true },
                                       { l: 'Total Ditagihkan', v: rp(p.grandTotalBilled) },
                                     ].map(({ l, v, bold, muted }) => (
                                       <div key={l} className="flex justify-between gap-4">
@@ -494,7 +434,6 @@ const FinancialReport = () => {
                                       { l: 'Bea Masuk / Import Duty', v: rp(p.supplierImportDuty) },
                                       { l: 'Biaya Lain (Reimburse/Meeting/dll)', v: rp(p.otherExpenseTotal) },
                                       { l: 'Total Expense Bisnis', v: rp(p.totalExpense), bold: true },
-                                      { l: 'PPN Vendor (pass-through)', v: rp(p.supplierTaxPassThru), muted: true },
                                     ].map(({ l, v, bold, muted }) => (
                                       <div key={l} className="flex justify-between gap-4">
                                         <span className={`text-[9px] ${muted ? 'text-slate-400 italic' : 'text-slate-600'}`}>{l}</span>
@@ -601,54 +540,81 @@ const FinancialReport = () => {
           <section>
             <SectionHead title="Tren Bulanan" badge="12 bulan terakhir" />
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-              <div className="space-y-3">
-                {trend.map((m, i) => {
-                  const inPct  = Math.round((m.revenue || 0) / maxTrend * 100);
-                  const outPct = Math.round((m.expense || 0) / maxTrend * 100);
-                  const net    = m.netProfit || 0;
-                  return (
-                    <div key={i} className="flex items-center gap-3">
-                      <span className="text-[8px] font-black text-slate-400 w-12 shrink-0 text-right">
+              <div className="flex gap-3">
+                {/* Sumbu nilai. Hanya tiga tingkat supaya tidak merebut perhatian
+                    dari batangnya. */}
+                <div className="flex flex-col justify-between h-56 shrink-0 py-0.5">
+                  {[1, 0.5, 0].map((f) => (
+                    <span key={f} className="text-[7px] font-bold text-slate-400 whitespace-nowrap leading-none">
+                      {rp(maxTrend * f)}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex-1 min-w-0 overflow-x-auto">
+                  <div className="relative h-56" style={{ minWidth: `${trend.length * 44}px` }}>
+                    {/* Garis bantu di belakang batang, sengaja tipis dan pucat. */}
+                    {[0, 0.5, 1].map((f) => (
+                      <div
+                        key={f}
+                        className="absolute left-0 right-0 border-t border-slate-100"
+                        style={{ top: `${f * 100}%` }}
+                      />
+                    ))}
+
+                    <div className="absolute inset-0 flex items-end justify-between gap-1">
+                      {trend.map((m, i) => {
+                        const tinggiRev = maxTrend > 0 ? ((m.revenue || 0) / maxTrend) * 100 : 0;
+                        const tinggiExp = maxTrend > 0 ? ((m.expense || 0) / maxTrend) * 100 : 0;
+                        const net = m.netProfit || 0;
+                        const judul =
+                          `${monthLabel(m.month)}\n` +
+                          `Revenue: ${rp(m.revenue)}\n` +
+                          `Expense: ${rp(m.expense)}\n` +
+                          `Net Profit: ${net >= 0 ? '+' : ''}${rp(net)}`;
+                        return (
+                          <div key={i} className="flex-1 flex flex-col justify-end h-full group" title={judul}>
+                            {/* Jarak 2px antar batang bersebelahan supaya keduanya
+                                tetap terbaca sebagai dua nilai terpisah. */}
+                            <div className="flex items-end justify-center gap-0.5 h-full">
+                              <div
+                                className="w-2.5 rounded-t bg-[#2a78d6] transition-all group-hover:opacity-80"
+                                style={{ height: `${tinggiRev}%` }}
+                              />
+                              <div
+                                className="w-2.5 rounded-t bg-[#eb6834] transition-all group-hover:opacity-80"
+                                style={{ height: `${tinggiExp}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between gap-1 border-t border-slate-200 pt-2" style={{ minWidth: `${trend.length * 44}px` }}>
+                    {trend.map((m, i) => (
+                      <span key={i} className="flex-1 text-[7px] font-black text-slate-400 text-center whitespace-nowrap">
                         {monthLabel(m.month)}
                       </span>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 text-[7px] text-slate-400 font-bold text-right shrink-0">REV</div>
-                          <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${inPct}%` }} />
-                          </div>
-                          <span className="w-28 text-[8px] font-black text-emerald-600 text-right whitespace-nowrap shrink-0">
-                            {rp(m.revenue)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-10 text-[7px] text-slate-400 font-bold text-right shrink-0">EXP</div>
-                          <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-rose-400 rounded-full" style={{ width: `${outPct}%` }} />
-                          </div>
-                          <span className="w-28 text-[8px] font-black text-rose-500 text-right whitespace-nowrap shrink-0">
-                            {rp(m.expense)}
-                          </span>
-                        </div>
-                      </div>
-                      <span className={`text-[8px] font-black w-28 text-right shrink-0 whitespace-nowrap ${net >= 0 ? 'text-indigo-600' : 'text-amber-600'}`}>
-                        {net >= 0 ? '+' : ''}{rp(net)}
-                      </span>
-                    </div>
-                  );
-                })}
+                    ))}
+                  </div>
+                </div>
               </div>
+
               <div className="flex gap-5 mt-5 pt-4 border-t border-slate-100">
                 {[
-                  { dot: 'bg-emerald-400', label: 'Revenue' },
-                  { dot: 'bg-rose-400',    label: 'Expense' },
-                  { dot: 'bg-indigo-500',  label: 'Net Profit' },
-                ].map(l => (
+                  { warna: '#2a78d6', label: 'Revenue' },
+                  { warna: '#eb6834', label: 'Expense' },
+                ].map((l) => (
                   <div key={l.label} className="flex items-center gap-1.5">
-                    <div className={`w-2 h-2 rounded-full ${l.dot}`} />
-                    <span className="text-[8px] text-slate-400">{l.label}</span>
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.warna }} />
+                    <span className="text-[8px] text-slate-500 font-bold">{l.label}</span>
                   </div>
                 ))}
+                <span className="text-[8px] text-slate-400 ml-auto">
+                  Arahkan kursor ke batang untuk melihat nilai dan net profit bulan tersebut
+                </span>
               </div>
             </div>
           </section>
@@ -714,16 +680,6 @@ const FinancialReport = () => {
             </div>
           </section>
         )}
-
-        <div className="bg-slate-100 rounded-2xl p-5 text-[9px] text-slate-500 leading-relaxed">
-          <p className="font-black text-slate-600 uppercase tracking-wider mb-1">Catatan Metodologi</p>
-          <p>
-            <strong>Revenue Bisnis</strong> = clientPrice (subtotal item saja, tidak termasuk PPN & ongkir client).
-            {' '}<strong>Pass-through</strong> = uang yang diterima dari client lalu diteruskan ke pihak ketiga (negara / ekspedisi) — tidak masuk P&L.
-            {' '}<strong>Expense</strong> = COGS dari supplier + Bea Masuk + Biaya Lain (reimburse/meeting yang sudah disetujui Finance).
-            {' '}<strong>Net Profit</strong> = Revenue Bisnis − COGS − Bea Masuk − Biaya Lain.
-          </p>
-        </div>
 
       </main>
       <Footer />

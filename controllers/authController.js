@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { sendEmail } = require('../utils/emailService');
 const { resetPasswordTemplate } = require('../utils/emailTemplates');
+const { MODULE_MAP } = require('../middleware/auth');
 
 const RESET_EXPIRE_MINUTES = 10;
 
@@ -18,15 +19,42 @@ const resetLoginAttempts = async (userId) => {
 
 exports.register = async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role, viewModules } = req.body;
     let user = await User.findOne({ email });
     if (user) return res.status(400).json({ msg: 'Email sudah terdaftar!' });
+
+    // Pemeriksaan ramah supaya pesannya jelas. Yang benar-benar menahan tetap
+    // indeks unik parsial di models/User.js — dua permintaan bersamaan bisa
+    // sama-sama lolos pemeriksaan ini sebelum salah satunya sempat menyimpan.
+    if (role === 'Super Admin') {
+      const sudahAda = await User.exists({ role: 'Super Admin' });
+      if (sudahAda) {
+        return res.status(400).json({ msg: 'Super Admin sudah ada. Hanya boleh satu akun Super Admin.' });
+      }
+    }
+
+    if (role === 'Viewer' && (!Array.isArray(viewModules) || viewModules.length === 0)) {
+      return res.status(400).json({ msg: 'Pilih minimal satu modul yang boleh dilihat akun Viewer.' });
+    }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    user = new User({ username, email, password: hashedPassword, role });
-    await user.save();
+    user = new User({
+      username, email, password: hashedPassword, role,
+      viewModules: role === 'Viewer' ? viewModules : [],
+    });
+
+    try {
+      await user.save();
+    } catch (e) {
+      // E11000 dari indeks parsial Super Admin; nomor duplikat email sudah
+      // ditangkap di atas.
+      if (e.code === 11000) {
+        return res.status(400).json({ msg: 'Super Admin sudah ada. Hanya boleh satu akun Super Admin.' });
+      }
+      throw e;
+    }
 
     try {
         await Log.create({
@@ -130,11 +158,35 @@ exports.login = async (req, res) => {
         console.error("⚠️ Gagal mencatat log login:", logErr.message);
     }
 
-    res.json({ token, user: { id: user._id, username: user.username, role: user.role } });
+    // viewModules ikut dikirim supaya dashboard bisa menyaring kartu modul untuk
+    // akun Viewer. Ini hanya penentu tampilan — akses sesungguhnya tetap
+    // diperiksa server pada tiap permintaan.
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        username: user.username,
+        role: user.role,
+        viewModules: user.viewModules || [],
+      },
+    });
   } catch (err) {
     console.error("❌ ERROR LOGIN:", err);
     res.status(500).json({ msg: 'Server Error saat login' });
   }
+};
+
+/**
+ * Daftar modul yang bisa dicentang untuk akun Viewer.
+ *
+ * Sumbernya MODULE_MAP di middleware/auth.js — daftar yang sama yang dipakai
+ * saat memeriksa hak akses. Kalau frontend memegang daftarnya sendiri, keduanya
+ * bisa berbeda diam-diam dan modul yang dicentang tidak cocok dengan yang
+ * diperiksa server.
+ */
+exports.getModuleOptions = (req, res) => {
+  const modul = [...new Set(Object.values(MODULE_MAP))].sort();
+  res.json(modul);
 };
 
 exports.getAllUsers = async (req, res) => {
@@ -248,9 +300,13 @@ exports.forgotPassword = async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
 
+    // Sebelumnya email yang tidak terdaftar tetap dibalas 200 dengan pesan
+    // seragam, supaya orang luar tidak bisa menebak alamat mana yang punya akun.
+    // Atas permintaan pembimbing, ketidaktersediaannya kini disampaikan terus
+    // terang. Konsekuensinya alamat email jadi bisa ditebak satu per satu.
     if (!user) {
-      return res.status(200).json({
-        msg: 'Jika email terdaftar, kami akan kirimkan link reset password.'
+      return res.status(404).json({
+        msg: 'Email tidak terdaftar di sistem.'
       });
     }
 

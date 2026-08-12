@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -132,7 +132,7 @@ const Dashboard = () => {
       { title: 'Client Payment', icon: CreditCard, desc: 'Input pembayaran masuk', descEn: 'Input incoming payments', path: '/finance-payment-center' },
       { title: 'Payment Verification', icon: Shield, desc: 'Verifikasi bukti bayar client', descEn: 'Verify client payment proofs', path: '/verify-payment' },
       { title: 'Supplier Payment', icon: DollarSign, desc: 'Proses pembayaran ke vendor', descEn: 'Process vendor payments', path: '/supplier-payment' },
-      { title: 'Financial Report', icon: BarChart3, desc: 'Laporan laba rugi & cash flow', descEn: 'Profit & loss reports', path: '/financial-report' },
+      { title: 'Project Financial Summary', icon: BarChart3, desc: 'Ringkasan pendapatan & biaya per project', descEn: 'Revenue & cost summary per project', path: '/financial-report' },
       { title: 'Expense Submission', icon: FileText, desc: 'Ajukan & verifikasi biaya tambahan project', descEn: 'Submit & verify additional project expenses', path: '/expense-submission-menu' }
     ],
     Admin: [
@@ -140,7 +140,7 @@ const Dashboard = () => {
       { title: 'System Logs', icon: Logs, desc: 'Audit aktivitas sistem', descEn: 'Audit system activity', path: '/logs' }
     ],
     Owner: [
-      { title: 'Financial Report', icon: BarChart3, desc: 'Laporan laba rugi & cash flow', descEn: 'Profit & loss reports', path: '/financial-report' },
+      { title: 'Project Financial Summary', icon: BarChart3, desc: 'Ringkasan pendapatan & biaya per project', descEn: 'Revenue & cost summary per project', path: '/financial-report' },
       { title: 'Project Timeline', icon: Calendar, desc: 'Pantau progress & milestone project', descEn: 'Monitor progress & milestones', path: '/timeline' }
     ],
     Management: [
@@ -149,8 +149,28 @@ const Dashboard = () => {
     ]
   };
 
+  // Kartu untuk peran lihat-saja. Sengaja hanya berisi modul bersifat daftar,
+  // catatan, dan laporan â€” tidak ada kartu Add/Create/Input, sehingga form tidak
+  // pernah terjangkau dari dashboard. Server tetap menolak semua permintaan
+  // tulis dari peran ini, jadi ini lapis kenyamanan, bukan lapis keamanan.
+  const modulLihatSaja = [
+    { modul: 'Project',            title: 'Project Log', icon: Logs, desc: 'Daftar seluruh project', descEn: 'All project records', path: '/project-log' },
+    { modul: 'Project Timeline',   title: 'Project Timeline', icon: Calendar, desc: 'Pantau progress & milestone', descEn: 'Monitor progress & milestones', path: '/timeline' },
+    { modul: 'Supplier Quotation', title: 'Supplier Quotation Record', icon: FileText, desc: 'Riwayat quotation supplier', descEn: 'Supplier quotation history', path: '/supplier-quotation-record' },
+    { modul: 'Purchase Order',     title: 'PO Record', icon: ClipboardCheck, desc: 'Riwayat purchase order', descEn: 'Purchase order history', path: '/po-record' },
+    { modul: 'Client Invoice',     title: 'Invoice Log', icon: Receipt, desc: 'Riwayat invoice client', descEn: 'Client invoice history', path: '/invoice-log' },
+    { modul: 'Inventory',          title: 'Inventory', icon: Boxes, desc: 'Stok & mutasi barang', descEn: 'Stock & movements', path: '/inventory' },
+    { modul: 'Financial Report',   title: 'Project Financial Summary', icon: BarChart3, desc: 'Ringkasan pendapatan & biaya', descEn: 'Revenue & cost summary', path: '/financial-report' },
+    { modul: 'System Logs',        title: 'Activity Log', icon: Logs, desc: 'Jejak aktivitas sistem', descEn: 'System activity trail', path: '/logs' },
+  ];
+
   let userModules = [];
-  if (user.role === 'Admin') {
+  if (user.role === 'Super Admin') {
+    userModules = modulLihatSaja;
+  } else if (user.role === 'Viewer') {
+    const boleh = user.viewModules || [];
+    userModules = modulLihatSaja.filter((m) => boleh.includes(m.modul));
+  } else if (user.role === 'Admin' || user.role === 'Administrator') {
     userModules = [...allModules.Admin];
   } else if (user.role === 'Management') {
     userModules = [...allModules.Management];
@@ -191,7 +211,7 @@ const Dashboard = () => {
                 {greeting()}, <span className="text-indigo-600">{user.username}</span>
               </h1>
               <p className="text-slate-500 text-xs font-bold mt-2 uppercase tracking-widest">
-                {user.role} • {new Date().toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {user.role} â€¢ {new Date().toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             </div>
 
@@ -205,7 +225,7 @@ const Dashboard = () => {
                       lang === l ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-600'
                     }`}
                   >
-                    {l === 'id' ? '🇮🇩 ID' : '🇬🇧 EN'}
+                    {l === 'id' ? 'ðŸ‡®ðŸ‡© ID' : 'ðŸ‡¬ðŸ‡§ EN'}
                   </button>
                 ))}
               </div>
@@ -310,17 +330,17 @@ const Dashboard = () => {
                               <p className="text-[9px] font-bold text-slate-400">{p.projectId}</p>
                             </td>
                             {tabelMilikSendiri && (
-                              <td className="px-6 py-3 text-slate-600">{p.institutionName || '—'}</td>
+                              <td className="px-6 py-3 text-slate-600">{p.institutionName || 'â€”'}</td>
                             )}
                             <td className="px-6 py-3 font-bold text-slate-700">{fmtNilai(p.amount)}</td>
                             {tabelSemua && (
                               <td className="px-6 py-3 text-slate-600">
-                                {p.createdBy ? p.createdBy.username : '—'}
+                                {p.createdBy ? p.createdBy.username : 'â€”'}
                               </td>
                             )}
                             <td className="px-6 py-3">
                               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                                {p.status || '—'}
+                                {p.status || 'â€”'}
                               </span>
                             </td>
                           </tr>

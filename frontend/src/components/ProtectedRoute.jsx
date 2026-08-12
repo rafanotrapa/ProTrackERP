@@ -19,7 +19,15 @@ export const sesiKedaluwarsa = () => {
   return terakhir > 0 && Date.now() - terakhir > BATAS_MENGANGGUR_MS;
 };
 
-const ProtectedRoute = ({ children, allowRoles }) => {
+const PERAN_BACA_SAJA = ['Super Admin', 'Viewer'];
+
+/**
+ * @param {string} [modul] Nama modul untuk halaman bersifat lihat. Peran
+ *   lihat-saja hanya boleh masuk ke rute yang ditandai; rute tanpa tanda
+ *   dianggap halaman form dan otomatis tertutup bagi mereka — termasuk rute
+ *   yang ditambahkan nanti tanpa ingat menutupnya.
+ */
+const ProtectedRoute = ({ children, allowRoles, modul }) => {
   const navigate = useNavigate();
   const token = localStorage.getItem('token');
   const user = JSON.parse(localStorage.getItem('user') || 'null');
@@ -49,7 +57,24 @@ const ProtectedRoute = ({ children, allowRoles }) => {
   }, [token, kedaluwarsa, navigate]);
 
   if (!token || kedaluwarsa) return <Navigate to="/" replace />;
-  if (allowRoles && !allowRoles.includes(user?.role)) return <Navigate to="/dashboard" replace />;
+
+  if (PERAN_BACA_SAJA.includes(user?.role)) {
+    if (!modul) return <Navigate to="/dashboard" replace />;
+    if (user.role === 'Super Admin') return children;
+    if ((user.viewModules || []).includes(modul)) return children;
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (allowRoles) {
+    // 'Admin' berganti nama menjadi 'Administrator'; keduanya disamakan supaya
+    // daftar allowRoles di App.jsx tidak perlu disunting satu per satu.
+    const diizinkan = new Set(allowRoles);
+    if (diizinkan.has('Admin') || diizinkan.has('Administrator')) {
+      diizinkan.add('Admin');
+      diizinkan.add('Administrator');
+    }
+    if (!diizinkan.has(user?.role)) return <Navigate to="/dashboard" replace />;
+  }
 
   return children;
 };

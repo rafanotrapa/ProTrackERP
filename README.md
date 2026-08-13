@@ -116,17 +116,34 @@ ProTrackERP/
 
 ## Roles & Access
 
-There are 6 roles: **Marketing, Procurement, Finance, Management, Owner, Admin**. Every endpoint is protected by JWT, and frontend pages are restricted per role. Accounts are created by an Admin through the User Management page.
+There are 8 roles: **Marketing, Procurement, Finance, Management, Owner, Administrator**, plus two view-only roles — **Super Admin** (one account only, reads every module) and **Viewer** (reads just the modules ticked on the account). Every endpoint is protected by JWT, and frontend pages are restricted per role. Accounts are created by an Administrator through the User Management page.
 
 ---
 
-## Production Build (Frontend)
+## Production Build & Deploy
+
+Use the build script — **not** `npm run build` on its own:
 
 ```bash
-cd frontend
-npm run build
+./deploy-build.sh
 ```
-The build output is generated in `frontend/dist/`.
+
+The API address is written literally as `http://localhost:5000` throughout
+`frontend/src`, and there is no frontend `.env` to override it. A plain
+`npm run build` therefore produces a bundle that asks the *visitor's* machine
+for the API, which surfaces as "Login Gagal" plus `ERR_CONNECTION_REFUSED` in
+the console. `deploy-build.sh` rewrites that address to the production API,
+builds, writes the SPA `.htaccess`, and packs both ZIPs:
+
+- `ProTrackERP-frontend.zip` → extract into `public_html/`
+- `ProTrackERP-backend.zip` → extract into `public_html/api/`, then restart the Node app
+
+Override the target with `API_URL=https://api.example.com ./deploy-build.sh`.
+The script requires `frontend/src` to be clean in git, because it restores the
+source afterwards with `git checkout`.
+
+For local development, `cd frontend && npm run build` still works; the output
+lands in `frontend/dist/` but points at localhost.
 
 ---
 

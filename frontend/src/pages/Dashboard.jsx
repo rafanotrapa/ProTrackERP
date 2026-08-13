@@ -153,13 +153,21 @@ const Dashboard = () => {
   // catatan, dan laporan â€” tidak ada kartu Add/Create/Input, sehingga form tidak
   // pernah terjangkau dari dashboard. Server tetap menolak semua permintaan
   // tulis dari peran ini, jadi ini lapis kenyamanan, bukan lapis keamanan.
+  // Harus sejalan dengan MODUL_BISA_DILIHAT di middleware/auth.js. Modul yang
+  // bisa dicentang tapi tidak punya kartu di sini akan tersimpan diam-diam tanpa
+  // pernah muncul di layar.
   const modulLihatSaja = [
     { modul: 'Project',            title: 'Project Log', icon: Logs, desc: 'Daftar seluruh project', descEn: 'All project records', path: '/project-log' },
     { modul: 'Project Timeline',   title: 'Project Timeline', icon: Calendar, desc: 'Pantau progress & milestone', descEn: 'Monitor progress & milestones', path: '/timeline' },
-    { modul: 'Supplier Quotation', title: 'Supplier Quotation Record', icon: FileText, desc: 'Riwayat quotation supplier', descEn: 'Supplier quotation history', path: '/supplier-quotation-record' },
-    { modul: 'Purchase Order',     title: 'PO Record', icon: ClipboardCheck, desc: 'Riwayat purchase order', descEn: 'Purchase order history', path: '/po-record' },
+    { modul: 'Client Quotation',   title: 'Quotation Log', icon: FileText, desc: 'Riwayat quotation ke client', descEn: 'Client quotation history', path: '/quotation-log' },
     { modul: 'Client Invoice',     title: 'Invoice Log', icon: Receipt, desc: 'Riwayat invoice client', descEn: 'Client invoice history', path: '/invoice-log' },
+    { modul: 'Client Payment',     title: 'Payment Log', icon: CreditCard, desc: 'Riwayat pembayaran masuk', descEn: 'Incoming payment history', path: '/input-payment-log' },
+    { modul: 'Supplier Quotation', title: 'Supplier Quotation Record', icon: FileCheck, desc: 'Riwayat quotation supplier', descEn: 'Supplier quotation history', path: '/supplier-quotation-record' },
+    { modul: 'Purchase Order',     title: 'PO Record', icon: ClipboardCheck, desc: 'Riwayat purchase order', descEn: 'Purchase order history', path: '/po-record' },
+    { modul: 'Supplier Invoice',   title: 'Supplier Invoice Record', icon: FileText, desc: 'Riwayat tagihan vendor', descEn: 'Vendor invoice history', path: '/supplier-invoice-record' },
+    { modul: 'Vendor',             title: 'Vendor Directory', icon: Package, desc: 'Data master supplier', descEn: 'Supplier master data', path: '/existing-vendors' },
     { modul: 'Inventory',          title: 'Inventory', icon: Boxes, desc: 'Stok & mutasi barang', descEn: 'Stock & movements', path: '/inventory' },
+    { modul: 'Expense Submission', title: 'Expense Log', icon: DollarSign, desc: 'Riwayat pengajuan biaya', descEn: 'Expense submission history', path: '/expense-submission-log' },
     { modul: 'Financial Report',   title: 'Project Financial Summary', icon: BarChart3, desc: 'Ringkasan pendapatan & biaya', descEn: 'Revenue & cost summary', path: '/financial-report' },
     { modul: 'System Logs',        title: 'Activity Log', icon: Logs, desc: 'Jejak aktivitas sistem', descEn: 'System activity trail', path: '/logs' },
   ];

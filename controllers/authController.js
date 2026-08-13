@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { sendEmail } = require('../utils/emailService');
 const { resetPasswordTemplate } = require('../utils/emailTemplates');
-const { MODULE_MAP } = require('../middleware/auth');
+const { MODUL_BISA_DILIHAT } = require('../middleware/auth');
 
 const RESET_EXPIRE_MINUTES = 10;
 
@@ -179,14 +179,13 @@ exports.login = async (req, res) => {
 /**
  * Daftar modul yang bisa dicentang untuk akun Viewer.
  *
- * Sumbernya MODULE_MAP di middleware/auth.js — daftar yang sama yang dipakai
- * saat memeriksa hak akses. Kalau frontend memegang daftarnya sendiri, keduanya
- * bisa berbeda diam-diam dan modul yang dicentang tidak cocok dengan yang
- * diperiksa server.
+ * Sebelumnya seluruh isi MODULE_MAP ditawarkan, termasuk modul yang tidak punya
+ * halaman rekaman — mencentangnya lolos disimpan tapi tidak pernah memunculkan
+ * kartu apa pun di dashboard. Sekarang hanya modul yang benar-benar bisa dibuka
+ * tanpa mengisi form.
  */
 exports.getModuleOptions = (req, res) => {
-  const modul = [...new Set(Object.values(MODULE_MAP))].sort();
-  res.json(modul);
+  res.json([...MODUL_BISA_DILIHAT].sort());
 };
 
 exports.getAllUsers = async (req, res) => {

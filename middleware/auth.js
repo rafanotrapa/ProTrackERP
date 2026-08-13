@@ -24,6 +24,22 @@ const MODULE_MAP = {
 
 const ACTION_VERB = { POST: 'CREATE', PUT: 'UPDATE', PATCH: 'UPDATE', DELETE: 'DELETE' };
 
+/**
+ * Modul yang boleh ditawarkan saat mencentang hak lihat akun Viewer.
+ *
+ * Bukan seluruh isi MODULE_MAP. Sebagian modul tidak punya halaman rekaman yang
+ * bisa dibuka tanpa mengisi apa pun — Project Billing dan Supplier Payment
+ * adalah halaman aksi, Account milik Administrator, dan Item tidak punya halaman
+ * sendiri. Mencentangnya hanya menghasilkan kartu yang tidak pernah muncul.
+ *
+ * Daftar ini harus sejalan dengan kartu di Dashboard.jsx (modulLihatSaja).
+ */
+const MODUL_BISA_DILIHAT = [
+  'Project', 'Project Timeline', 'Client Quotation', 'Client Invoice',
+  'Client Payment', 'Supplier Quotation', 'Purchase Order', 'Supplier Invoice',
+  'Vendor', 'Inventory', 'Expense Submission', 'Financial Report', 'System Logs',
+];
+
 // Peran lihat-saja. Super Admin mencakup seluruh modul; Viewer hanya modul yang
 // tercantum di viewModules miliknya.
 const PERAN_BACA_SAJA = ['Super Admin', 'Viewer'];
@@ -139,4 +155,4 @@ const authorizeRoles = (...allowedRoles) => (req, res, next) => {
   next();
 };
 
-module.exports = { protect, admin, authorizeRoles, PERAN_BACA_SAJA, MODULE_MAP };
+module.exports = { protect, admin, authorizeRoles, PERAN_BACA_SAJA, MODULE_MAP, MODUL_BISA_DILIHAT };

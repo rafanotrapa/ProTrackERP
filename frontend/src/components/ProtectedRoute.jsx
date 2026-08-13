@@ -59,9 +59,21 @@ const ProtectedRoute = ({ children, allowRoles, modul }) => {
   if (!token || kedaluwarsa) return <Navigate to="/" replace />;
 
   if (PERAN_BACA_SAJA.includes(user?.role)) {
-    if (!modul) return <Navigate to="/dashboard" replace />;
-    if (user.role === 'Super Admin') return children;
-    if ((user.viewModules || []).includes(modul)) return children;
+    if (modul) {
+      if (user.role === 'Super Admin') return children;
+      if ((user.viewModules || []).includes(modul)) return children;
+      return <Navigate to="/dashboard" replace />;
+    }
+
+    // Rute tanpa allowRoles sekaligus tanpa modul adalah halaman umum — hanya
+    // dashboard. Tanpa pengecualian ini dashboard melempar ke dirinya sendiri
+    // tanpa henti, dan React Router berhenti merender apa pun: layar putih
+    // polos tanpa error yang bisa ditangkap error boundary.
+    if (!allowRoles) return children;
+
+    // Sisanya berarti halaman form atau halaman khusus peran tertentu. Tetap
+    // ditolak, sehingga rute form yang ditambahkan nanti otomatis tertutup
+    // bagi peran lihat-saja tanpa perlu diingat satu per satu.
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -150,7 +150,7 @@ const Dashboard = () => {
   };
 
   // Kartu untuk peran lihat-saja. Sengaja hanya berisi modul bersifat daftar,
-  // catatan, dan laporan â€” tidak ada kartu Add/Create/Input, sehingga form tidak
+  // catatan, dan laporan — tidak ada kartu Add/Create/Input, sehingga form tidak
   // pernah terjangkau dari dashboard. Server tetap menolak semua permintaan
   // tulis dari peran ini, jadi ini lapis kenyamanan, bukan lapis keamanan.
   // Harus sejalan dengan MODUL_BISA_DILIHAT di middleware/auth.js. Modul yang
@@ -219,7 +219,7 @@ const Dashboard = () => {
                 {greeting()}, <span className="text-indigo-600">{user.username}</span>
               </h1>
               <p className="text-slate-500 text-xs font-bold mt-2 uppercase tracking-widest">
-                {user.role} â€¢ {new Date().toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                {user.role} • {new Date().toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             </div>
 
@@ -233,7 +233,7 @@ const Dashboard = () => {
                       lang === l ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-600'
                     }`}
                   >
-                    {l === 'id' ? 'ðŸ‡®ðŸ‡© ID' : 'ðŸ‡¬ðŸ‡§ EN'}
+                    {l === 'id' ? '🇮🇩 ID' : '🇬🇧 EN'}
                   </button>
                 ))}
               </div>
@@ -338,17 +338,17 @@ const Dashboard = () => {
                               <p className="text-[9px] font-bold text-slate-400">{p.projectId}</p>
                             </td>
                             {tabelMilikSendiri && (
-                              <td className="px-6 py-3 text-slate-600">{p.institutionName || 'â€”'}</td>
+                              <td className="px-6 py-3 text-slate-600">{p.institutionName || '—'}</td>
                             )}
                             <td className="px-6 py-3 font-bold text-slate-700">{fmtNilai(p.amount)}</td>
                             {tabelSemua && (
                               <td className="px-6 py-3 text-slate-600">
-                                {p.createdBy ? p.createdBy.username : 'â€”'}
+                                {p.createdBy ? p.createdBy.username : '—'}
                               </td>
                             )}
                             <td className="px-6 py-3">
                               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                                {p.status || 'â€”'}
+                                {p.status || '—'}
                               </span>
                             </td>
                           </tr>

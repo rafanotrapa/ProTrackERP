@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const Log = require('../models/Log');
-const { protect } = require('../middleware/auth');
+const { protect, authorizeRoles } = require('../middleware/auth');
 
-const canViewLogs = (req, res, next) => {
-  if (req.user && ['Admin', 'Management', 'Owner'].includes(req.user.role)) return next();
-  return res.status(403).json({ msg: 'Akses ditolak! Khusus Admin / Management / Owner.' });
-};
-
-router.get('/', protect, canViewLogs, async (req, res) => {
+// Dulu berkas ini punya penjaga peran sendiri yang menghardcode
+// ['Admin','Management','Owner']. Akibatnya dua hal terlewat: akun Administrator
+// hasil penggantian nama peran kehilangan akses log, dan peran lihat-saja tidak
+// pernah bisa membuka modul System Logs walau dicentang. authorizeRoles sudah
+// menangani keduanya secara terpusat.
+router.get('/', protect, authorizeRoles('Administrator', 'Management', 'Owner'), async (req, res) => {
   try {
     const logs = await Log.find().sort({ timestamp: -1 });
     res.json(logs);

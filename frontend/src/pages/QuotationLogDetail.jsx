@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { mintaPenandatangan } from '../utils/pdfDocument';
+import { akunBacaSaja } from '../utils/peran';
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 import autoTable from 'jspdf-autotable';
@@ -361,8 +362,12 @@ const QuotationLogDetail = () => {
     );
   }
 
-  const canEdit = true;
-  const canDelete = quotation.approvalStatus === 'Draft' || quotation.approvalStatus === 'Rejected';
+  // Akun lihat-saja tetap boleh mengunduh PDF, tapi tidak ditawari Edit maupun
+  // Delete — server juga menolak keduanya.
+  const bacaSaja = akunBacaSaja();
+  const canEdit = !bacaSaja;
+  const canDelete = !bacaSaja &&
+    (quotation.approvalStatus === 'Draft' || quotation.approvalStatus === 'Rejected');
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">

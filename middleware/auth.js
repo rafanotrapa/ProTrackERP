@@ -40,6 +40,27 @@ const MODUL_BISA_DILIHAT = [
   'Vendor', 'Inventory', 'Expense Submission', 'Financial Report', 'System Logs',
 ];
 
+/**
+ * Modul tambahan yang ikut terbuka saat sebuah modul dicentang.
+ *
+ * Sebagian halaman butuh data dari modul lain untuk bisa tampil sama sekali.
+ * Halaman Project Timeline membaca daftar project dan nilai tagihannya; tanpa
+ * keduanya halaman termuat tapi kosong melompong, dan gejalanya tampak seperti
+ * database tidak tersambung padahal permintaannya ditolak 403.
+ *
+ * Aksesnya tetap hanya-baca — penolakan tulis berlaku untuk seluruh modul.
+ */
+const MODUL_PENDUKUNG = {
+  'Project Timeline': ['Project', 'Project Billing'],
+};
+
+/** Modul yang benar-benar boleh dibaca sebuah akun Viewer, termasuk pendukungnya. */
+const modulEfektif = (viewModules = []) => {
+  const semua = new Set(viewModules);
+  viewModules.forEach((m) => (MODUL_PENDUKUNG[m] || []).forEach((p) => semua.add(p)));
+  return semua;
+};
+
 // Peran lihat-saja. Super Admin mencakup seluruh modul; Viewer hanya modul yang
 // tercantum di viewModules miliknya.
 const PERAN_BACA_SAJA = ['Super Admin', 'Viewer'];
@@ -131,7 +152,7 @@ const authorizeRoles = (...allowedRoles) => (req, res, next) => {
     if (req.user.role === 'Super Admin') return next();
 
     const modul = MODULE_MAP[req.baseUrl];
-    if (modul && (req.user.viewModules || []).includes(modul)) return next();
+    if (modul && modulEfektif(req.user.viewModules).has(modul)) return next();
 
     return res.status(403).json({
       msg: `Akun ini tidak diberi akses lihat untuk modul ${modul || 'ini'}.`

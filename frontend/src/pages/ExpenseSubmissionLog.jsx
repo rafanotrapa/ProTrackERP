@@ -9,6 +9,7 @@ import {
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
+import { akunBacaSaja } from '../utils/peran';
 
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 const stripNonNumeric = (str) => str.toString().replace(/[^0-9]/g, '');
@@ -25,7 +26,10 @@ const ExpenseSubmissionLog = () => {
     const saved = localStorage.getItem('user');
     return saved ? JSON.parse(saved) : { role: 'Guest' };
   });
-  const isFinance = ['Finance', 'Admin', 'Owner'].includes(user.role);
+  const isFinance = ['Finance', 'Admin', 'Administrator', 'Owner'].includes(user.role);
+
+  // Akun lihat-saja tidak ditawari tombol yang mengubah data.
+  const bacaSaja = akunBacaSaja();
 
   const [editTarget, setEditTarget] = useState(null);
   const [editForm, setEditForm]     = useState({ items: [], remarks: '' });
@@ -342,7 +346,7 @@ const ExpenseSubmissionLog = () => {
                           </button>
                         )}
 
-                        {exp.status !== 'Approved' && (
+                        {!bacaSaja && exp.status !== 'Approved' && (
                           <>
                             <button
                               onClick={() => openEdit(exp)}
@@ -361,7 +365,7 @@ const ExpenseSubmissionLog = () => {
                           </>
                         )}
 
-                        {isFinance && exp.status === 'Pending Verification' && (
+                        {!bacaSaja && isFinance && exp.status === 'Pending Verification' && (
                           <>
                             <button
                               onClick={() => handleReview(exp, 'Approved')}

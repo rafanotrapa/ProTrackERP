@@ -5,6 +5,7 @@ import { FolderOpen, Search, Pencil } from 'lucide-react';
 import Swal from 'sweetalert2';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { akunBacaSaja } from '../utils/peran';
 
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
@@ -32,7 +33,11 @@ const ProjectLog = () => {
     try { return JSON.parse(localStorage.getItem('user') || 'null') || {}; }
     catch { return {}; }
   });
-  const bolehUbahPIC = ['Management', 'Owner', 'Admin'].includes(user.role);
+  const bolehUbahPIC = ['Management', 'Owner', 'Admin', 'Administrator'].includes(user.role);
+
+  // Akun lihat-saja tidak ditawari tombol yang mengubah data; server juga
+  // menolaknya, jadi tombolnya hanya akan berujung pesan gagal.
+  const bacaSaja = akunBacaSaja();
 
   const fetchProjects = async () => {
     try {
@@ -266,13 +271,15 @@ const ProjectLog = () => {
                     <td className="px-6 py-5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         <p className="font-black text-emerald-600">Rp {formatRupiah(p.amount)}</p>
-                        <button
-                          onClick={() => handleEditBudget(p)}
-                          title="Edit Contract Value"
-                          className="text-slate-300 hover:text-indigo-600 transition-all active:scale-90"
-                        >
-                          <Pencil size={12} />
-                        </button>
+                        {!bacaSaja && (
+                          <button
+                            onClick={() => handleEditBudget(p)}
+                            title="Edit Contract Value"
+                            className="text-slate-300 hover:text-indigo-600 transition-all active:scale-90"
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        )}
                       </div>
                       <p className="text-[8px] text-slate-400">{p.currency}</p>
                     </td>

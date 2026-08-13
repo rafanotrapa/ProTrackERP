@@ -5,9 +5,13 @@ import Swal from 'sweetalert2';
 import { Boxes, Search, Pencil, PackageCheck } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { akunBacaSaja } from '../utils/peran';
 
 const Inventory = () => {
   const navigate = useNavigate();
+
+  // Akun lihat-saja tidak ditawari tombol pencatat pemakaian stok.
+  const bacaSaja = akunBacaSaja();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -198,12 +202,16 @@ const Inventory = () => {
                         </div>
                       </td>
                       <td className="px-6 py-5 text-center">
-                        <button
-                          onClick={() => handleUpdateUsage(it)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
-                        >
-                          <Pencil size={11} /> Terpakai
-                        </button>
+                        {bacaSaja ? (
+                          <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">—</span>
+                        ) : (
+                          <button
+                            onClick={() => handleUpdateUsage(it)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
+                          >
+                            <Pencil size={11} /> Terpakai
+                          </button>
+                        )}
                       </td>
                     </tr>
                   );

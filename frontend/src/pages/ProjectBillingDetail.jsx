@@ -296,6 +296,11 @@ const ProjectBillingDetail = () => {
                   <td className="py-4 px-4 text-center">
                     {stage.status === 'Paid' ? (
                       <span className="px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-600">✓ PAID</span>
+                    ) : stage.status === 'Partial' ? (
+                      /* Sebagian tagihan sudah dibayar. Tanpa cabang ini termin
+                         tampil "UNPAID" padahal uangnya sudah masuk sebagian —
+                         menyesatkan Finance yang membaca daftar ini. */
+                      <span className="px-3 py-1 rounded-full text-[11px] font-black bg-sky-100 text-sky-600">◐ PARTIAL</span>
                     ) : stage.invoice ? (
                       <span className="px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-600">⏳ UNPAID</span>
                     ) : (

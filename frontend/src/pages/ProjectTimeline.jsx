@@ -20,6 +20,9 @@ const fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numer
 const StatusPill = ({ status, size = 'sm' }) => {
   const map = {
     Paid:                   { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+    // Sebagian tagihan sudah dibayar. Tanpa entri ini pil-nya jatuh ke gaya
+    // bawaan dan terbaca sama saja dengan belum dibayar sama sekali.
+    Partial:                { bg: 'bg-sky-100',     text: 'text-sky-700',     dot: 'bg-sky-500' },
     Unpaid:                 { bg: 'bg-amber-100',   text: 'text-amber-700',   dot: 'bg-amber-500' },
     Pending:                { bg: 'bg-slate-100',   text: 'text-slate-500',   dot: 'bg-slate-400' },
     Delivered:              { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
@@ -264,11 +267,13 @@ const ProjectTimeline = () => {
                   key={stage.stageNumber}
                   className={`flex flex-wrap items-center gap-4 px-6 py-4 transition-colors ${
                     stage.status === 'Paid' ? 'bg-emerald-50/60' :
+                    stage.status === 'Partial' ? 'bg-sky-50/50' :
                     stage.status === 'Unpaid' ? 'bg-amber-50/40' : 'bg-white'
                   }`}
                 >
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-[13px] font-black ${
                     stage.status === 'Paid' ? 'bg-emerald-500 text-white' :
+                    stage.status === 'Partial' ? 'bg-sky-100 text-sky-700' :
                     stage.status === 'Unpaid' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'
                   }`}>
                     {stage.status === 'Paid' ? <CheckCircle2 size={16} /> : stage.stageNumber}

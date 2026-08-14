@@ -35,4 +35,12 @@ const paymentSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Setiap halaman penagihan menanyakan hal yang sama: adakah pembayaran
+// terverifikasi untuk invoice ini. Tanpa indeks ini MongoDB memindai seluruh
+// koleksi payments untuk tiap invoice — explain() mengembalikan COLLSCAN.
+//
+// autoIndex dimatikan di produksi, jadi indeksnya baru benar-benar terpasang
+// setelah `npm run sync-indexes` dijalankan di server.
+paymentSchema.index({ invoiceId: 1, status: 1 });
+
 module.exports = mongoose.model('Payment', paymentSchema);

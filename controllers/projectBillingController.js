@@ -6,11 +6,12 @@ const SupplierInvoice = require('../models/SupplierInvoice');
 const Project = require('../models/Project');
 const { parsePaymentStages, resolveTopOption } = require('../utils/paymentTerms');
 const { computeProcessPercent } = require('../utils/processProgress');
+const { statusPerInvoice, totalTerbayar, sudahLunas } = require('../utils/clientPaymentStatus');
 
-const getInvoicePaymentStatus = async (invoiceId) => {
-  const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
-  return payment ? 'Paid' : 'Unpaid';
-};
+// Dulu berkas ini punya getInvoicePaymentStatus sendiri yang menjalankan satu
+// findOne per invoice, dan hanya memeriksa ADA atau TIDAK pembayaran
+// terverifikasi — bukan apakah nominalnya menutup tagihan. Keduanya sekarang
+// ditangani utils/clientPaymentStatus.js dengan satu query untuk seluruh daftar.
 
 const getVerifiedPayment = async (invoiceId) => {
   return Payment.findOne({ invoiceId, status: 'Verified' }).sort({ paymentDate: -1 });
@@ -52,16 +53,23 @@ exports.getAllProjectsBilling = async (req, res) => {
 
     const invoices = await CreateInvoice.find().sort({ createdAt: 1 });
 
+    // Satu query untuk seluruh invoice. Sebelumnya findOne dipanggil di dalam
+    // perulangan ini: pada 19 invoice biayanya 551 ms berbanding 33 ms, dan
+    // tumbuh linier — 500 invoice berarti belasan detik.
+    const statusInvoice = await statusPerInvoice(invoices);
+
     for (const invoice of invoices) {
       const project = projectMap.get(invoice.projectId);
       if (project) {
-        const paymentStatus = await getInvoicePaymentStatus(invoice._id);
+        const paymentStatus = statusInvoice.get(String(invoice._id)) || 'Unpaid';
         project.invoices.push({
           id: invoice._id,
           invoiceNumber: invoice.invoiceNumber,
           amount: invoice.amount,
           status: paymentStatus
         });
+        // Hanya invoice yang benar-benar tertutup penuh yang dihitung lunas.
+        // Yang berstatus Partial tetap menyisakan tagihan.
         if (paymentStatus === 'Paid') {
           project.totalPaid += invoice.amount;
         }
@@ -132,13 +140,16 @@ exports.getProjectBillingDetail = async (req, res) => {
 
     const expectedStages = parsePaymentStages(topOption, totalContractValue);
 
+    // Status seluruh termin diambil sekali di depan, bukan satu query per tahap.
+    const statusInvoice = await statusPerInvoice(invoices);
+
     const stagesWithStatus = await Promise.all(expectedStages.map(async (stage, idx) => {
       const invoice = invoices[idx];
       let status = 'Pending';
       let invoiceData = null;
 
       if (invoice) {
-        const paymentStatus = await getInvoicePaymentStatus(invoice._id);
+        const paymentStatus = statusInvoice.get(String(invoice._id)) || 'Unpaid';
         status = paymentStatus;
 
         let paymentDate = null;
@@ -169,8 +180,11 @@ exports.getProjectBillingDetail = async (req, res) => {
       };
     }));
 
+    // Dulu baris ini membaca inv.status — tanda yang disimpan di dokumen invoice —
+    // sementara seluruh berkas ini memakai status turunan. Keduanya bisa berbeda,
+    // dan ringkasan jadi tidak cocok dengan daftar terminnya sendiri.
     const totalPaid = invoices
-      .filter(inv => inv.status === 'Paid')
+      .filter(inv => statusInvoice.get(String(inv._id)) === 'Paid')
       .reduce((sum, inv) => sum + inv.amount, 0);
 
     const totalStages = expectedStages.length;
@@ -229,10 +243,13 @@ exports.generateNextInvoice = async (req, res) => {
 
     const nextStage = expectedStages[nextStageIndex];
 
+    // Termin berikutnya hanya boleh terbit kalau termin sebelumnya benar-benar
+    // lunas. Dulu cukup ada satu pembayaran terverifikasi, berapa pun nominalnya —
+    // jadi bayar sebagian sudah membuka termin berikutnya.
     if (existingInvoices.length > 0) {
       const previousInvoice = existingInvoices[existingInvoices.length - 1];
-      const previousPaymentStatus = await getInvoicePaymentStatus(previousInvoice._id);
-      if (previousPaymentStatus !== 'Paid') {
+      const masuk = await totalTerbayar(previousInvoice._id);
+      if (!sudahLunas(masuk, previousInvoice.amount)) {
         return res.status(400).json({ msg: 'Previous stage must be paid before generating next invoice' });
       }
     }

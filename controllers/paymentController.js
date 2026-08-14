@@ -3,7 +3,8 @@ const Payment = require('../models/Payment');
 const ClientInvoice = require('../models/CreateInvoice');
 const Project = require('../models/Project');
 const ClientQuotation = require('../models/ClientQuotation');
- 
+const { totalTerbayar, sudahLunas } = require('../utils/clientPaymentStatus');
+
 exports.getInvoicesForPayment = async (req, res) => {
   try {
     const invoices = await ClientInvoice.find({ status: 'Unpaid' });
@@ -83,14 +84,22 @@ exports.verifyPayment = async (req, res) => {
     payment.status = status;
     await payment.save();
 
-    if (status === 'Verified') {
-      const invoice = await ClientInvoice.findByIdAndUpdate(
-        payment.invoiceId,
-        { status: 'Paid' },
-        { new: true }
-      );
+    // Status invoice diturunkan dari uang yang benar-benar masuk, bukan dipasang
+    // begitu saja. Sebelumnya baris ini menyetel 'Paid' tanpa syarat, sehingga
+    // bayar sebagian sudah cukup untuk menutup tagihan penuh — layar verifikasi
+    // bahkan menampilkan "Kurang Bayar" berwarna merah, lalu tetap dilunaskan.
+    //
+    // Dihitung ulang untuk status apa pun, bukan hanya 'Verified', supaya
+    // pembayaran yang dibatalkan ikut menurunkan status invoicenya.
+    const invoice = await ClientInvoice.findById(payment.invoiceId);
+    if (invoice) {
+      const masuk = await totalTerbayar(invoice._id);
+      const lunas = sudahLunas(masuk, invoice.amount);
+      invoice.status = lunas ? 'Paid' : 'Unpaid';
+      await invoice.save();
 
-      if (invoice?.projectId) {
+      // Project hanya boleh dinyatakan selesai kalau seluruh tagihannya lunas.
+      if (lunas && invoice.projectId) {
         const quote = await ClientQuotation.findOne({
           projectId: invoice.projectId,
           approvalStatus: 'Approved',

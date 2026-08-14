@@ -8,6 +8,28 @@ const ExpenseSubmission = require('../models/ExpenseSubmission');
 
 const norm = (id) => String(id || '').trim().toLowerCase();
 
+/**
+ * Kelompokkan dokumen berdasarkan projectId, sekali jalan.
+ *
+ * Laporan margin dulu menyaring ulang setiap koleksi untuk tiap project:
+ * `quotations.filter(q => norm(q.projectId) === pid)` dikerjakan lima kali di
+ * dalam perulangan project. Biayanya P x (Q+SQ+SI+CI+E) — kuadratik terhadap
+ * pertumbuhan data, padahal hasilnya sama persis dengan mengelompokkan sekali
+ * lalu membacanya lewat kunci.
+ */
+const kelompokkanPerProject = (dokumen = []) => {
+  const peta = new Map();
+  dokumen.forEach((d) => {
+    const kunci = norm(d.projectId);
+    const daftar = peta.get(kunci);
+    if (daftar) daftar.push(d);
+    else peta.set(kunci, [d]);
+  });
+  return peta;
+};
+
+const KOSONG = [];
+
 // Biaya supplier diakui begitu tagihannya masuk (beserta dokumen buktinya), bukan
 // menunggu kasnya keluar. Sebelumnya hanya status 'Paid' yang dihitung, sehingga
 // project yang PO-nya sudah jalan tapi vendornya belum dibayar tampil bermargin 100%.
@@ -154,12 +176,19 @@ exports.getProjectProfitability = async (req, res) => {
       cashReceivedByProject[pid] = (cashReceivedByProject[pid] || 0) + Number(p.amountPaid || 0);
     });
 
+    // Dikelompokkan sekali di depan, bukan disaring ulang untuk tiap project.
+    const perQuotation         = kelompokkanPerProject(quotations);
+    const perSupplierQuotation = kelompokkanPerProject(supplierQuotations);
+    const perSupplierInvoice   = kelompokkanPerProject(supplierInvoicesPaid);
+    const perClientInvoice     = kelompokkanPerProject(clientInvoices);
+    const perExpense           = kelompokkanPerProject(otherExpenses);
+
     const report = Array.from(allIds).map(pid => {
-      const pQuotations          = quotations.filter(q  => norm(q.projectId)  === pid);
-      const pSupplierQuotations  = supplierQuotations.filter(sq => norm(sq.projectId) === pid);
-      const pSupplierInvoices    = supplierInvoicesPaid.filter(si => norm(si.projectId) === pid);
-      const pClientInvoices      = clientInvoices.filter(i  => norm(i.projectId)   === pid);
-      const pOtherExpenses       = otherExpenses.filter(e  => norm(e.projectId)   === pid);
+      const pQuotations          = perQuotation.get(pid)         || KOSONG;
+      const pSupplierQuotations  = perSupplierQuotation.get(pid) || KOSONG;
+      const pSupplierInvoices    = perSupplierInvoice.get(pid)   || KOSONG;
+      const pClientInvoices      = perClientInvoice.get(pid)     || KOSONG;
+      const pOtherExpenses       = perExpense.get(pid)           || KOSONG;
 
       let clientRevenue  = 0;
       let clientTax      = 0;

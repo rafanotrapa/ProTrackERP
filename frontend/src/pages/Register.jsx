@@ -121,13 +121,13 @@ const Register = () => {
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
               Add New <span className="text-indigo-600">Employee</span>
             </h1>
-            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em] mt-2">
+            <p className="text-slate-400 font-bold text-[12px] uppercase tracking-[0.2em] mt-2">
               Human Resources • Access Control Protocol
             </p>
           </div>
           <button
             onClick={() => navigate('/manage-users')}
-            className="text-slate-400 font-black text-[10px] uppercase border-b-2 border-transparent hover:border-indigo-600 hover:text-indigo-600 transition-all tracking-widest pb-1"
+            className="text-slate-400 font-black text-[12px] uppercase border-b-2 border-transparent hover:border-indigo-600 hover:text-indigo-600 transition-all tracking-widest pb-1"
           >
             Back to User List
           </button>
@@ -138,7 +138,7 @@ const Register = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Full Name</label>
+                <label className="text-[12px] font-black uppercase text-slate-400 tracking-widest ml-1">Full Name</label>
                 <input
                   type="text" required
                   className="w-full rounded-2xl bg-slate-50 border border-slate-100 p-4 text-xl font-black italic uppercase outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all text-slate-800"
@@ -148,7 +148,7 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Work Email</label>
+                <label className="text-[12px] font-black uppercase text-slate-400 tracking-widest ml-1">Work Email</label>
                 <input
                   type="email" required
                   className="w-full rounded-2xl bg-slate-50 border border-slate-100 p-4 font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all text-slate-600"
@@ -158,7 +158,7 @@ const Register = () => {
               </div>
 
               <div className="space-y-2 relative" ref={dropdownRef}>
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Assign Division Role</label>
+                <label className="text-[12px] font-black uppercase text-slate-400 tracking-widest ml-1">Assign Division Role</label>
 
                 <div
                   onClick={() => setIsOpen(!isOpen)}
@@ -192,13 +192,13 @@ const Register = () => {
 
               {perluPilihModul && (
                 <div className="md:col-span-2 space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">
+                  <label className="text-[12px] font-black uppercase text-slate-400 tracking-widest ml-1">
                     Modul yang Boleh Dilihat
                     <span className="ml-2 text-indigo-500">({formData.viewModules.length} dipilih)</span>
                   </label>
                   <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto">
                     {modulTersedia.length === 0 ? (
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Memuat daftar modul...</p>
+                      <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Memuat daftar modul...</p>
                     ) : modulTersedia.map((m) => (
                       <label key={m} className="flex items-center gap-2 cursor-pointer select-none py-1">
                         <input
@@ -207,11 +207,11 @@ const Register = () => {
                           onChange={() => toggleModul(m)}
                           className="w-3.5 h-3.5 accent-indigo-600 cursor-pointer shrink-0"
                         />
-                        <span className="text-[10px] font-bold text-slate-600">{m}</span>
+                        <span className="text-[12px] font-bold text-slate-600">{m}</span>
                       </label>
                     ))}
                   </div>
-                  <p className="text-[9px] text-slate-400 ml-1">
+                  <p className="text-[11px] text-slate-400 ml-1">
                     Akun ini hanya bisa melihat, tidak bisa mengisi form apa pun.
                   </p>
                 </div>
@@ -219,14 +219,14 @@ const Register = () => {
 
               {formData.role === 'Super Admin' && (
                 <div className="md:col-span-2">
-                  <p className="text-[9px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                  <p className="text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
                     Super Admin melihat seluruh modul tanpa bisa mengisi form apa pun, dan hanya boleh ada satu akun.
                   </p>
                 </div>
               )}
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest ml-1">Initial Password</label>
+                <label className="text-[12px] font-black uppercase text-slate-400 tracking-widest ml-1">Initial Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -261,7 +261,7 @@ const Register = () => {
               <button
                 type="button"
                 onClick={() => navigate('/manage-users')}
-                className="flex-1 bg-slate-100 text-slate-400 py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all"
+                className="flex-1 bg-slate-100 text-slate-400 py-5 rounded-2xl font-black text-[12px] uppercase tracking-widest hover:bg-slate-200 transition-all"
               >
                 Cancel
               </button>
@@ -270,7 +270,7 @@ const Register = () => {
         </div>
 
         <div className="mt-8 text-center">
-           <p className="text-[10px] text-slate-300 font-black uppercase tracking-[0.5em]">
+           <p className="text-[12px] text-slate-300 font-black uppercase tracking-[0.5em]">
              Authorized Personnel Only • Secure Session Enabled
            </p>
         </div>

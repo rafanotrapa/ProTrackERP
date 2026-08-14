@@ -96,7 +96,7 @@ const Inventory = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
+            <p className="text-[12px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
           </div>
         </div>
       </div>
@@ -118,7 +118,7 @@ const Inventory = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Inventory <span className="text-indigo-600">Storage</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
             Stok Barang dari Purchase Order
           </p>
         </div>
@@ -135,7 +135,7 @@ const Inventory = () => {
               <button
                 key={key}
                 onClick={() => setFilter(key)}
-                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
                   filter === key ? cls : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -167,7 +167,7 @@ const Inventory = () => {
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <table className="w-full text-left">
               <thead className="bg-slate-50">
-                <tr className="text-[9px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
+                <tr className="text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">Item</th>
                   <th className="px-6 py-4">Jenis</th>
                   <th className="px-6 py-4 text-center">Qty Awal</th>
@@ -186,11 +186,11 @@ const Inventory = () => {
                         <p className="font-bold text-slate-800 text-sm uppercase">{it.itemName}</p>
                       </td>
                       <td className="px-6 py-5">
-                        <span className="px-2 py-1 rounded-full text-[8px] font-black uppercase bg-sky-100 text-sky-600">
+                        <span className="px-2 py-1 rounded-full text-[10px] font-black uppercase bg-sky-100 text-sky-600">
                           {it.category}
                         </span>
                       </td>
-                      <td className="px-6 py-5 text-center font-black text-slate-700">{it.initialQty} <span className="text-[8px] text-slate-400">{it.unit}</span></td>
+                      <td className="px-6 py-5 text-center font-black text-slate-700">{it.initialQty} <span className="text-[10px] text-slate-400">{it.unit}</span></td>
                       <td className="px-6 py-5 text-center font-black text-amber-600">{it.usedQty}</td>
                       <td className="px-6 py-5 text-center font-black text-emerald-600">{it.remaining}</td>
                       <td className="px-6 py-5">
@@ -198,16 +198,16 @@ const Inventory = () => {
                           <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                             <div className={`h-full rounded-full transition-all ${barColor(pct)}`} style={{ width: `${Math.max(0, Math.min(pct, 100))}%` }} />
                           </div>
-                          <p className="text-[8px] font-black text-slate-400 mt-1">{pct}% tersisa</p>
+                          <p className="text-[10px] font-black text-slate-400 mt-1">{pct}% tersisa</p>
                         </div>
                       </td>
                       <td className="px-6 py-5 text-center">
                         {bacaSaja ? (
-                          <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">—</span>
+                          <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">—</span>
                         ) : (
                           <button
                             onClick={() => handleUpdateUsage(it)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
                           >
                             <Pencil size={11} /> Terpakai
                           </button>

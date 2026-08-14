@@ -93,12 +93,12 @@ const SupplierPayment = () => {
 
   const getStatusBadge = (status) => {
     if (status === 'Paid') {
-      return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-600"><CheckCircle size={12} /> PAID</span>;
+      return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-600"><CheckCircle size={12} /> PAID</span>;
     }
     if (status === 'Rejected') {
-      return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black bg-rose-100 text-rose-600"><Clock size={12} /> REJECTED</span>;
+      return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-600"><Clock size={12} /> REJECTED</span>;
     }
-    return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[9px] font-black bg-amber-100 text-amber-600"><Clock size={12} /> PENDING</span>;
+    return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-600"><Clock size={12} /> PENDING</span>;
   };
 
   const filtered = payments.filter((p) => {
@@ -126,7 +126,7 @@ const SupplierPayment = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
+            <p className="text-[12px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
           </div>
         </div>
       </div>
@@ -148,7 +148,7 @@ const SupplierPayment = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Supplier <span className="text-emerald-600">Payment</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Finance Division • Vendor Settlement</p>
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Finance Division • Vendor Settlement</p>
         </div>
       </div>
 
@@ -165,7 +165,7 @@ const SupplierPayment = () => {
               <button
                 key={key}
                 onClick={() => setStatusFilter(key)}
-                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
                   statusFilter === key ? cls : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -195,7 +195,7 @@ const SupplierPayment = () => {
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <table className="w-full text-left">
               <thead className="bg-slate-50">
-                <tr className="text-[9px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
+                <tr className="text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">Invoice #</th>
                   <th className="px-6 py-4">Vendor / Project</th>
                   <th className="px-6 py-4 text-right">Amount</th>
@@ -210,7 +210,7 @@ const SupplierPayment = () => {
                     <td className="px-6 py-5">
                       <button
                         onClick={() => navigate(`/supplier-payment-detail/${p._id}`)}
-                        className="text-[10px] font-black text-indigo-600 uppercase tracking-wider hover:underline transition-all"
+                        className="text-[12px] font-black text-indigo-600 uppercase tracking-wider hover:underline transition-all"
                       >
                         {p.invoiceNumber}
                       </button>
@@ -220,17 +220,17 @@ const SupplierPayment = () => {
                         <Building2 size={14} className="text-slate-400" />
                         <div>
                           <p className="font-black text-slate-800 text-sm">{p.vendorName}</p>
-                          <p className="text-[9px] text-slate-400 mt-0.5">Project: {p.projectId || '-'}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Project: {p.projectId || '-'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-5 text-right">
                       <p className="font-black text-emerald-600">Rp {formatRupiah(p.totalAmount || p.amount)}</p>
-                      <p className="text-[8px] text-slate-400">{p.terminName || 'Full Payment'}</p>
+                      <p className="text-[10px] text-slate-400">{p.terminName || 'Full Payment'}</p>
                     </td>
                     <td className="px-6 py-5 text-center">{getStatusBadge(p.status)}</td>
                     <td className="px-6 py-5 text-center">
-                      <p className="text-[9px] font-bold text-slate-500">{new Date(p.createdAt).toLocaleDateString('id-ID')}</p>
+                      <p className="text-[11px] font-bold text-slate-500">{new Date(p.createdAt).toLocaleDateString('id-ID')}</p>
                     </td>
                     <td className="px-6 py-5 text-center">
                       <div className="flex items-center justify-center gap-2">
@@ -244,7 +244,7 @@ const SupplierPayment = () => {
                         {p.status !== 'Paid' && (
                           <button
                             onClick={() => handleConfirmPayment(p._id, p.invoiceNumber, p.vendorName)}
-                            className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-sm"
+                            className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-sm"
                           >
                             Confirm Pay
                           </button>

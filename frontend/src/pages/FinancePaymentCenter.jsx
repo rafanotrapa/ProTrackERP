@@ -22,7 +22,7 @@ const FinancePaymentCenter = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Client <span className="text-indigo-600">Payment</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Input & Verification</p>
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Input & Verification</p>
         </div>
       </div>
 
@@ -40,10 +40,10 @@ const FinancePaymentCenter = () => {
               <CreditCard size={28} className="text-indigo-600 group-hover:text-white" />
             </div>
             <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Input Payment</h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+            <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
               Catat pembayaran masuk dari client untuk invoice tertentu.
             </p>
-            <div className="mt-6 flex items-center gap-2 text-[10px] font-black text-indigo-600 group-hover:translate-x-2 transition-transform">
+            <div className="mt-6 flex items-center gap-2 text-[12px] font-black text-indigo-600 group-hover:translate-x-2 transition-transform">
               Start Recording <span>→</span>
             </div>
           </div>
@@ -59,10 +59,10 @@ const FinancePaymentCenter = () => {
               <ListChecks size={28} className="text-slate-600 group-hover:text-white" />
             </div>
             <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Verification Log</h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+            <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
               Lihat & verifikasi semua pembayaran yang sudah diinput.
             </p>
-            <div className="mt-6 flex items-center gap-2 text-[10px] font-black text-slate-600 group-hover:translate-x-2 transition-transform">
+            <div className="mt-6 flex items-center gap-2 text-[12px] font-black text-slate-600 group-hover:translate-x-2 transition-transform">
               View Log <span>→</span>
             </div>
           </div>

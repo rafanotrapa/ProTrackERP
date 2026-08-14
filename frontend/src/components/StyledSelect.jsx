@@ -53,7 +53,7 @@ const StyledSelect = ({
         className={triggerClassName || BASE_TRIGGER}
       >
         <span className="truncate">{selected?.label || placeholder}</span>
-        <span className={`text-[8px] ml-2 transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
+        <span className={`text-[10px] ml-2 transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
       </div>
 
       {open && (
@@ -70,13 +70,13 @@ const StyledSelect = ({
           )}
           <ul className="max-h-48 overflow-y-auto">
             {filtered.length === 0 ? (
-              <li className="px-4 py-3 text-[10px] font-black text-slate-300 uppercase">No options</li>
+              <li className="px-4 py-3 text-[12px] font-black text-slate-300 uppercase">No options</li>
             ) : (
               filtered.map((opt) => (
                 <li
                   key={String(opt.value)}
                   onClick={() => pick(opt)}
-                  className={`px-4 py-3 text-[10px] font-black uppercase transition-all ${
+                  className={`px-4 py-3 text-[12px] font-black uppercase transition-all ${
                     opt.disabled
                       ? 'text-slate-300 cursor-not-allowed'
                       : String(opt.value) === String(value)

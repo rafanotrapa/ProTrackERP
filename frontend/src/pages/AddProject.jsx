@@ -140,7 +140,7 @@ const AddProject = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase">
             Add <span className="text-indigo-600">Project</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Marketing Module • Create Record</p>
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Marketing Module • Create Record</p>
         </div>
       </div>
 
@@ -148,16 +148,16 @@ const AddProject = () => {
         <form onSubmit={handleSubmit} className="max-w-6xl space-y-10">
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 01. Identity
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Project ID</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Project ID</label>
                 <input type="text" readOnly value={formData.projectId} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-indigo-600 font-bold outline-none shadow-sm" />
               </div>
               <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">
                   Project Name <span className="text-red-500">*</span>
                 </label>
                 <input name="projectName" type="text" required placeholder="Enter project name..."
@@ -168,12 +168,12 @@ const AddProject = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 02. Client
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">
                   Institution Name <span className="text-red-500">*</span>
                 </label>
                 <input name="institutionName" type="text" required placeholder="BIN / TNI / Polri..."
@@ -181,15 +181,15 @@ const AddProject = () => {
                   value={formData.institutionName} onChange={handleChange} />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                  Client Company <span className="text-slate-400 text-[8px] ml-1">(Opsional)</span>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                  Client Company <span className="text-slate-400 text-[10px] ml-1">(Opsional)</span>
                 </label>
                 <input name="clientCompany" type="text" placeholder="PT. Maju Jaya / CV. Karya Abadi..."
                   className="w-full p-3 bg-white border border-slate-300 rounded-xl focus:border-indigo-600 outline-none font-bold text-slate-700 transition-all shadow-sm"
                   value={formData.clientCompany} onChange={handleChange} />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">
                   PIC Name <span className="text-red-500">*</span>
                 </label>
                 <input name="clientName" type="text" required placeholder="Contact person name..."
@@ -199,7 +199,7 @@ const AddProject = () => {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">
                   Phone Number <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -211,10 +211,10 @@ const AddProject = () => {
                   value={formData.clientContact}
                   onChange={handleChange}
                 />
-                <p className="text-[8px] text-slate-400 mt-1">Only numbers, spaces, and + symbol allowed</p>
+                <p className="text-[10px] text-slate-400 mt-1">Only numbers, spaces, and + symbol allowed</p>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">
                   Address <span className="text-red-500">*</span>
                 </label>
                 <input name="clientAddress" type="text" required placeholder="Full logistics address..."
@@ -225,12 +225,12 @@ const AddProject = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 02.5. Quotation Mode
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">
                   Project Type <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-4 mt-2">
@@ -245,7 +245,7 @@ const AddProject = () => {
                     />
                     <div>
                       <p className="font-black text-sm uppercase">Auto Mode</p>
-                      <p className="text-[9px] text-slate-500">Beli barang jadi dari 1 supplier</p>
+                      <p className="text-[11px] text-slate-500">Beli barang jadi dari 1 supplier</p>
                     </div>
                   </label>
                   <label className="flex items-center gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all has-checked:border-indigo-600 has-checked:bg-indigo-50">
@@ -259,11 +259,11 @@ const AddProject = () => {
                     />
                     <div>
                       <p className="font-black text-sm uppercase">Manual Mode</p>
-                      <p className="text-[9px] text-slate-500">Rakit sendiri / multi vendor</p>
+                      <p className="text-[11px] text-slate-500">Rakit sendiri / multi vendor</p>
                     </div>
                   </label>
                 </div>
-                <p className="text-[8px] text-slate-400 mt-2 ml-1">
+                <p className="text-[10px] text-slate-400 mt-2 ml-1">
                   {formData.quotationMode === 'auto'
                     ? '✓ Client Quotation akan otomatis mengambil items dari Supplier Quotation yang sudah di-approve'
                     : '✓ Client Quotation akan menggunakan form manual input items (tanpa tergantung supplier)'}
@@ -273,19 +273,19 @@ const AddProject = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 03. Finance
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
               <div className="space-y-1 relative" ref={dropdownRef}>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Currency</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Currency</label>
                 <div
                   onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
                   className="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-indigo-600 cursor-pointer flex justify-between items-center hover:border-indigo-600 transition-all shadow-sm"
                 >
                   <span className="text-sm">{formData.currency}</span>
-                  <span className={`text-[8px] transition-transform ${isCurrencyOpen ? 'rotate-180' : ''}`}>▼</span>
+                  <span className={`text-[10px] transition-transform ${isCurrencyOpen ? 'rotate-180' : ''}`}>▼</span>
                 </div>
 
                 {isCurrencyOpen && (
@@ -294,7 +294,7 @@ const AddProject = () => {
                       <input
                         type="text"
                         placeholder="Search..."
-                        className="w-full p-2 text-[10px] border-none bg-white rounded-lg outline-none font-bold"
+                        className="w-full p-2 text-[12px] border-none bg-white rounded-lg outline-none font-bold"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         autoFocus
@@ -305,7 +305,7 @@ const AddProject = () => {
                         <li
                           key={c.code}
                           onClick={() => selectCurrency(c.code)}
-                          className="px-4 py-2.5 text-[10px] font-black text-slate-600 hover:bg-indigo-600 hover:text-white cursor-pointer flex justify-between items-center transition-all uppercase"
+                          className="px-4 py-2.5 text-[12px] font-black text-slate-600 hover:bg-indigo-600 hover:text-white cursor-pointer flex justify-between items-center transition-all uppercase"
                         >
                           <span>{c.code} - {c.name}</span>
                           <span className="opacity-40">{c.symbol}</span>
@@ -317,7 +317,7 @@ const AddProject = () => {
               </div>
 
               <div className="md:col-span-2 space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">
                   Contract Amount <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -329,11 +329,11 @@ const AddProject = () => {
                   value={formatRupiah(formData.amount)}
                   onChange={handleChange}
                 />
-                <p className="text-[8px] text-slate-400 mt-1">Numeric characters only (minimum &gt; 0)</p>
+                <p className="text-[10px] text-slate-400 mt-1">Numeric characters only (minimum &gt; 0)</p>
               </div>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description / Requirements</label>
+              <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Description / Requirements</label>
               <textarea name="description" placeholder="Project scope, delivery notes, etc..."
                 className="w-full p-4 bg-white border border-slate-300 rounded-2xl h-24 outline-none text-sm font-medium text-slate-700 focus:border-indigo-600 transition-all shadow-sm"
                 value={formData.description} onChange={handleChange} />
@@ -344,7 +344,7 @@ const AddProject = () => {
             <button
               type="submit"
               disabled={loading || !isFormValid()}
-              className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
+              className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[12px] shadow-lg transition-all active:scale-95 ${
                 loading || !isFormValid() ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
               }`}
             >
@@ -353,7 +353,7 @@ const AddProject = () => {
           </div>
 
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-            <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
+            <p className="text-[11px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full"></span>
               All fields marked with <span className="text-red-500">*</span> are required before submission.
             </p>

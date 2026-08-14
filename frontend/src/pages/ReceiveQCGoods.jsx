@@ -92,7 +92,7 @@ const ReceiveQCGoods = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-500 mx-auto mb-4" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
+            <p className="text-[12px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
           </div>
         </div>
       </div>
@@ -114,7 +114,7 @@ const ReceiveQCGoods = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Receive & QC <span className="text-amber-500">Goods</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
             Procurement • Receiving & Validation
           </p>
         </div>
@@ -133,7 +133,7 @@ const ReceiveQCGoods = () => {
               <button
                 key={key}
                 onClick={() => setStatusFilter(key)}
-                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
                   statusFilter === key ? cls : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -163,7 +163,7 @@ const ReceiveQCGoods = () => {
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <table className="w-full text-left">
               <thead className="bg-slate-50">
-                <tr className="text-[9px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
+                <tr className="text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">PO Number / Project</th>
                   <th className="px-6 py-4">Supplier</th>
                   <th className="px-6 py-4 text-center">Status QC</th>
@@ -180,7 +180,7 @@ const ReceiveQCGoods = () => {
                         </div>
                         <div>
                           <p className="font-black text-slate-800 text-sm">{po.poNumber}</p>
-                          <p className="text-[9px] text-slate-400 mt-0.5">Project: {po.projectId}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">Project: {po.projectId}</p>
                         </div>
                       </div>
                     </td>
@@ -189,13 +189,13 @@ const ReceiveQCGoods = () => {
                     </td>
                     <td className="px-6 py-5 text-center">
                       {po.qcStatus === 'Passed' && (
-                        <span className="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-[9px] font-black uppercase tracking-widest">GOODS PASSED</span>
+                        <span className="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-[11px] font-black uppercase tracking-widest">GOODS PASSED</span>
                       )}
                       {po.qcStatus === 'Returned' && (
-                        <span className="px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-[9px] font-black uppercase tracking-widest">RETURNED</span>
+                        <span className="px-3 py-1 bg-rose-100 text-rose-600 rounded-full text-[11px] font-black uppercase tracking-widest">RETURNED</span>
                       )}
                       {po.qcStatus === 'Waiting Delivery' && (
-                        <span className="px-3 py-1 bg-amber-100 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-widest">WAITING RECEIPT</span>
+                        <span className="px-3 py-1 bg-amber-100 text-amber-600 rounded-full text-[11px] font-black uppercase tracking-widest">WAITING RECEIPT</span>
                       )}
                     </td>
                     <td className="px-6 py-5 text-right">
@@ -203,14 +203,14 @@ const ReceiveQCGoods = () => {
                         <button
                           onClick={() => handleQC(po._id, 'Passed')}
                           disabled={po.qcStatus === 'Passed'}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-emerald-600 rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-emerald-50 hover:border-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-emerald-600 rounded-lg font-black text-[11px] uppercase tracking-widest hover:bg-emerald-50 hover:border-emerald-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         >
                           <CheckCircle size={13} /> PASS
                         </button>
                         <button
                           onClick={() => handleQC(po._id, 'Returned')}
                           disabled={po.qcStatus === 'Passed'}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-rose-500 rounded-lg font-black text-[9px] uppercase tracking-widest hover:bg-rose-50 hover:border-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-rose-500 rounded-lg font-black text-[11px] uppercase tracking-widest hover:bg-rose-50 hover:border-rose-400 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                         >
                           <XCircle size={13} /> RETURN
                         </button>

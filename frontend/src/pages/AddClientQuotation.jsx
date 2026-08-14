@@ -734,7 +734,7 @@ const AddClientQuotation = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Create <span className="text-indigo-600">Quotation</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
             Marketing Module • Revenue Generation
           </p>
         </div>
@@ -745,7 +745,7 @@ const AddClientQuotation = () => {
 
           {quotationMode === 'manual' && (
             <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4">
-              <p className="text-[9px] font-black text-purple-700 uppercase tracking-widest flex items-center gap-2">
+              <p className="text-[11px] font-black text-purple-700 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-2 h-2 bg-purple-500 rounded-full" />
                 Manual Mode: Input items, COGS, dan Sales Price secara manual
               </p>
@@ -754,7 +754,7 @@ const AddClientQuotation = () => {
 
           {quotationMode === 'auto' && formData._id && formData.approvalStatus === 'Draft' && (
             <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-              <p className="text-[9px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-2">
+              <p className="text-[11px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
                 Draft Mode: Quotation tersimpan sebagai draft. Lengkapi semua harga dan submit untuk approval.
               </p>
@@ -762,12 +762,12 @@ const AddClientQuotation = () => {
           )}
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600" /> 01. Project Source
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                   Select Project BJK
                 </label>
                 <StyledSelect
@@ -779,7 +779,7 @@ const AddClientQuotation = () => {
                 />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                   Quotation Date
                 </label>
                 <input
@@ -793,7 +793,7 @@ const AddClientQuotation = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600" /> 02. Items & Pricing
             </h3>
 
@@ -805,26 +805,26 @@ const AddClientQuotation = () => {
               formData.items.length === 0 ? (
                 <div className="p-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
                   <p className="font-black text-slate-400 text-sm italic uppercase tracking-wider">No items available</p>
-                  <p className="text-[10px] text-slate-400 mt-2">Pilih project dengan supplier quotation yang sudah di-approve</p>
+                  <p className="text-[12px] text-slate-400 mt-2">Pilih project dengan supplier quotation yang sudah di-approve</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {formData.items.map((item, index) => (
                     <div key={index} className="grid grid-cols-12 gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-end">
                       <div className="col-span-4 space-y-1">
-                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Item Name</label>
+                        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Item Name</label>
                         <p className="font-bold text-slate-800 text-sm uppercase">{item.itemName}</p>
                       </div>
                       <div className="col-span-2 space-y-1">
-                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Qty</label>
+                        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Qty</label>
                         <p className="font-bold text-slate-800">{item.quantity} {item.unit}</p>
                       </div>
                       <div className="col-span-3 space-y-1">
-                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">COGS (Modal)</label>
+                        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">COGS (Modal)</label>
                         <p className="font-bold text-slate-400 text-sm">Rp {Number(item.cogs || 0).toLocaleString('id-ID')}</p>
                       </div>
                       <div className="col-span-3 space-y-1">
-                        <label className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">
+                        <label className="text-[11px] font-black text-emerald-600 uppercase tracking-widest">
                           Sales Price (to Client) <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -847,7 +847,7 @@ const AddClientQuotation = () => {
                 {manualItems.map((item) => (
                   <div key={item.id} className="grid grid-cols-12 gap-3 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-end">
                     <div className="col-span-3 space-y-1">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Item Name *</label>
+                      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Item Name *</label>
                       <input
                         type="text"
                         value={item.itemName}
@@ -858,7 +858,7 @@ const AddClientQuotation = () => {
                       />
                     </div>
                     <div className="col-span-2 space-y-1">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Qty *</label>
+                      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Qty *</label>
                       <input
                         type="text"
                         value={item.quantity}
@@ -869,7 +869,7 @@ const AddClientQuotation = () => {
                       />
                     </div>
                     <div className="col-span-2 space-y-1">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Unit</label>
+                      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Unit</label>
                       <input
                         type="text"
                         value={item.unit}
@@ -879,7 +879,7 @@ const AddClientQuotation = () => {
                       />
                     </div>
                     <div className="col-span-2 space-y-1">
-                      <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">COGS (Modal) *</label>
+                      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">COGS (Modal) *</label>
                       <input
                         type="text"
                         value={formatRupiah(item.cogs)}
@@ -890,7 +890,7 @@ const AddClientQuotation = () => {
                       />
                     </div>
                     <div className="col-span-2 space-y-1">
-                      <label className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Sales Price *</label>
+                      <label className="text-[11px] font-black text-emerald-600 uppercase tracking-widest">Sales Price *</label>
                       <input
                         type="text"
                         value={formatRupiah(item.salesPrice)}
@@ -916,7 +916,7 @@ const AddClientQuotation = () => {
                 <button
                   type="button"
                   onClick={addManualItem}
-                  className="flex items-center gap-2 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:text-indigo-800 transition-colors mt-2"
+                  className="flex items-center gap-2 text-indigo-600 font-black text-[12px] uppercase tracking-widest hover:text-indigo-800 transition-colors mt-2"
                 >
                   + Add Item
                 </button>
@@ -925,11 +925,11 @@ const AddClientQuotation = () => {
 
             <div className="flex justify-end mt-6 pt-4 border-t border-slate-200">
               <div className="text-right w-80 space-y-2">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Subtotal</p>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Subtotal</p>
                 <p className="text-2xl font-black text-slate-800">Rp {formatRupiah(subtotal)}</p>
 
                 <div className="flex items-center justify-between gap-4 pt-2">
-                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Shipping Fee</label>
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Shipping Fee</label>
                   <input
                     type="text"
                     value={formatRupiah(shippingFee)}
@@ -940,7 +940,7 @@ const AddClientQuotation = () => {
                 </div>
 
                 <div className="flex items-center justify-between gap-4">
-                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
                     Tax / PPN (Rp)
                     <span className="ml-1 text-slate-300 font-normal normal-case tracking-normal">0 = non-PPN</span>
                   </label>
@@ -957,7 +957,7 @@ const AddClientQuotation = () => {
 
                 {isPPN && (
                   <div className="flex justify-end">
-                    <span className="text-[8px] font-black bg-orange-100 text-orange-600 border border-orange-200 rounded-full px-2 py-0.5 uppercase tracking-widest">
+                    <span className="text-[10px] font-black bg-orange-100 text-orange-600 border border-orange-200 rounded-full px-2 py-0.5 uppercase tracking-widest">
                       Kena PPN Rp {formatRupiah(taxAmount)}
                     </span>
                   </div>
@@ -966,11 +966,11 @@ const AddClientQuotation = () => {
                 <div className="border-t border-slate-200 pt-2 mt-2">
                   {isPPN && (
                     <>
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tax / PPN</p>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Tax / PPN</p>
                       <p className="text-sm font-black text-slate-500">Rp {formatRupiah(taxAmount)}</p>
                     </>
                   )}
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">Grand Total</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mt-2">Grand Total</p>
                   <p className="text-3xl font-black text-emerald-600 tracking-tighter">
                     Rp {formatRupiah(grandTotal)}
                   </p>
@@ -980,12 +980,12 @@ const AddClientQuotation = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600" /> 03. Terms & Commercials
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Currency</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Currency</label>
                 <StyledSelect
                   name="currency"
                   value={formData.currency}
@@ -1001,7 +1001,7 @@ const AddClientQuotation = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-amber-500 uppercase tracking-widest ml-1 italic">
+                <label className="text-[12px] font-black text-amber-500 uppercase tracking-widest ml-1 italic">
                   Term of Payment (TOP) <span className="text-red-500">*</span>
                 </label>
                 <div className="flex gap-2">
@@ -1030,14 +1030,14 @@ const AddClientQuotation = () => {
                 {formData.topOption === 'Termin' && (
                   <div className="mt-3 p-4 border-2 border-amber-200 rounded-2xl bg-amber-50/40 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest italic">Skema Termin ({terminRows.length}x)</span>
-                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full ${terminSum === 100 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                      <span className="text-[12px] font-black text-amber-600 uppercase tracking-widest italic">Skema Termin ({terminRows.length}x)</span>
+                      <span className={`text-[12px] font-black px-2.5 py-1 rounded-full ${terminSum === 100 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
                         Total: {terminSum}%
                       </span>
                     </div>
                     {terminRows.map((r, i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <span className="text-[9px] font-black text-slate-500 uppercase w-20 shrink-0">
+                        <span className="text-[11px] font-black text-slate-500 uppercase w-20 shrink-0">
                           {i === 0 ? 'Termin 1 (DP)' : `Termin ${i + 1}`}
                         </span>
                         <input
@@ -1053,24 +1053,24 @@ const AddClientQuotation = () => {
                       </div>
                     ))}
                     {terminRows.length < 6 && (
-                      <button type="button" onClick={addTerminRow} className="w-full mt-1 py-2 border-2 border-dashed border-amber-300 rounded-xl text-[9px] font-black text-amber-600 uppercase tracking-widest hover:bg-amber-100 transition-all">
+                      <button type="button" onClick={addTerminRow} className="w-full mt-1 py-2 border-2 border-dashed border-amber-300 rounded-xl text-[11px] font-black text-amber-600 uppercase tracking-widest hover:bg-amber-100 transition-all">
                         + Tambah Termin
                       </button>
                     )}
-                    <p className="text-[8px] font-bold text-slate-400 italic">Total semua termin wajib = 100%. Tersimpan sebagai: <span className="font-black text-slate-500">{composeTermin(terminRows)}</span></p>
+                    <p className="text-[10px] font-bold text-slate-400 italic">Total semua termin wajib = 100%. Tersimpan sebagai: <span className="font-black text-slate-500">{composeTermin(terminRows)}</span></p>
                   </div>
                 )}
               </div>
             </div>
 
             <div className="space-y-1">
-              <label className={`text-[10px] font-black uppercase tracking-widest ml-1 italic flex items-center gap-2 ${
+              <label className={`text-[12px] font-black uppercase tracking-widest ml-1 italic flex items-center gap-2 ${
                 isPPN ? 'text-orange-500' : 'text-slate-300'
               }`}>
                 Rekening Bank (Wajib jika kena PPN)
                 {isPPN && <span className="text-red-500">*</span>}
                 {!isPPN && (
-                  <span className="text-[8px] bg-slate-100 text-slate-400 rounded-full px-2 py-0.5 font-bold normal-case tracking-normal">
+                  <span className="text-[10px] bg-slate-100 text-slate-400 rounded-full px-2 py-0.5 font-bold normal-case tracking-normal">
                     Aktifkan dengan mengisi nominal Tax di atas
                   </span>
                 )}
@@ -1094,12 +1094,12 @@ const AddClientQuotation = () => {
                 }
               />
               {isPPN && !formData.bankAccount.trim() && (
-                <p className="text-[9px] text-red-500 font-black ml-1 mt-0.5">
+                <p className="text-[11px] text-red-500 font-black ml-1 mt-0.5">
                   &#9888; Rekening bank wajib diisi untuk transaksi kena PPN
                 </p>
               )}
               {isPPN && formData.bankAccount.trim() && (
-                <p className="text-[9px] text-emerald-600 font-black ml-1 mt-0.5">
+                <p className="text-[11px] text-emerald-600 font-black ml-1 mt-0.5">
                   &#10003; Rekening bank tersimpan
                 </p>
               )}
@@ -1107,11 +1107,11 @@ const AddClientQuotation = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600" /> 04. Additional Notes
             </h3>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
+              <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                 Remarks / Notes (Optional)
               </label>
               <textarea
@@ -1130,7 +1130,7 @@ const AddClientQuotation = () => {
               type="button"
               onClick={handleSaveDraft}
               disabled={loading || !formData.projectId || !hasItems}
-              className={`px-6 py-4 rounded-xl font-black text-slate-600 uppercase tracking-widest text-[10px] border-2 border-slate-300 transition-all active:scale-95 ${
+              className={`px-6 py-4 rounded-xl font-black text-slate-600 uppercase tracking-widest text-[12px] border-2 border-slate-300 transition-all active:scale-95 ${
                 loading || !formData.projectId || !hasItems
                   ? 'opacity-50 cursor-not-allowed'
                   : 'hover:bg-slate-50 hover:border-indigo-300'
@@ -1143,7 +1143,7 @@ const AddClientQuotation = () => {
               type="button"
               onClick={() => generatePDF(false)}
               disabled={!formData.projectId || !hasItems}
-              className={`px-6 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center gap-2 ${
+              className={`px-6 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[12px] transition-all active:scale-95 flex items-center gap-2 ${
                 !formData.projectId || !hasItems
                   ? 'bg-slate-300 cursor-not-allowed'
                   : formData.approvalStatus === 'Approved'
@@ -1158,7 +1158,7 @@ const AddClientQuotation = () => {
             <button
               type="submit"
               disabled={loading || !isFormComplete()}
-              className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
+              className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[12px] shadow-lg transition-all active:scale-95 ${
                 loading || !isFormComplete()
                   ? 'bg-slate-400 cursor-not-allowed'
                   : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
@@ -1169,7 +1169,7 @@ const AddClientQuotation = () => {
           </div>
 
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-            <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
+            <p className="text-[11px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
               Approval Required: Quotation akan direview Management sebelum bisa digunakan untuk Client Invoice.
               PDF dapat didownload kapan saja sebagai draft preview.

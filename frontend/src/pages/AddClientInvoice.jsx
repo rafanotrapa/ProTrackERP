@@ -389,7 +389,7 @@ const AddClientInvoice = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Create <span className="text-indigo-600">Client Invoice</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Finance Module • Billing & Collection</p>
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Finance Module • Billing & Collection</p>
         </div>
       </div>
 
@@ -401,7 +401,7 @@ const AddClientInvoice = () => {
               <div className="w-10 h-10 bg-amber-500 rounded-full flex items-center justify-center text-white font-black text-xl">!</div>
               <div>
                 <p className="font-black text-amber-800 uppercase text-sm tracking-tight">Progress Invoice / Remaining Balance</p>
-                <p className="text-[9px] text-amber-600 font-bold uppercase tracking-wider">
+                <p className="text-[11px] text-amber-600 font-bold uppercase tracking-wider">
                   This project already has paid invoice(s). Current billing is for the REMAINING balance.
                 </p>
               </div>
@@ -409,12 +409,12 @@ const AddClientInvoice = () => {
           )}
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 01. Billing Source
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                   Select Project (From Approved Client Quotation)
                 </label>
                 <StyledSelect
@@ -427,69 +427,69 @@ const AddClientInvoice = () => {
                     label: `${q.projectId} - ${q.projectName}${q.totalPaid > 0 ? ` (Paid: Rp ${q.totalPaid.toLocaleString()} | Remaining: Rp ${q.remainingAmount.toLocaleString()})` : ''}`,
                   }))}
                 />
-                <p className="text-[8px] text-slate-400 italic mt-1">
+                <p className="text-[10px] text-slate-400 italic mt-1">
                   * Only projects with approved client quotation and unpaid balance are shown
                 </p>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Invoice Number</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Invoice Number</label>
                 <input type="text" value={formData.invoiceNumber} readOnly className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-500 font-bold outline-none" />
               </div>
             </div>
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 02. Invoice Details
             </h3>
             <div className="p-8 rounded-[2.5rem] bg-slate-50 border-2 border-slate-100 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div>
-                  <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Client Name</label>
+                  <label className="text-[12px] font-black text-indigo-400 uppercase tracking-widest">Client Name</label>
                   <div className="text-2xl font-black text-slate-800 italic uppercase leading-tight">{formData.clientName || '---'}</div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Project Name</label>
+                  <label className="text-[12px] font-black text-indigo-400 uppercase tracking-widest">Project Name</label>
                   <div className="text-xl font-bold text-slate-600 italic leading-tight">{formData.projectName || '---'}</div>
                 </div>
                 <div>
-                  <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Term of Payment</label>
+                  <label className="text-[12px] font-black text-indigo-400 uppercase tracking-widest">Term of Payment</label>
                   <div className="text-xl font-black text-amber-500 italic uppercase leading-tight">{formData.topOption || '---'}</div>
                 </div>
               </div>
 
               <div className="border-t border-slate-200 pt-6">
-                <label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 block">Itemized Billing (with Sales Price)</label>
+                <label className="text-[12px] font-black text-indigo-400 uppercase tracking-widest mb-4 block">Itemized Billing (with Sales Price)</label>
                 <div className="grid grid-cols-1 gap-3">
                   {formData.items.length > 0 ? formData.items.map((item, idx) => (
                     <div key={idx} className="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
                       <div>
                         <span className="font-bold text-slate-700 uppercase text-xs italic">{item.itemName}</span>
-                        <span className="text-[9px] text-slate-400 ml-2">({item.quantity} {item.unit})</span>
+                        <span className="text-[11px] text-slate-400 ml-2">({item.quantity} {item.unit})</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                        <span className="text-[12px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
                           Rp {Number(item.price || 0).toLocaleString()} / unit
                         </span>
                         {item.cogs && (
-                          <p className="text-[8px] text-slate-400 line-through mt-1">COGS: Rp {item.cogs.toLocaleString()}</p>
+                          <p className="text-[10px] text-slate-400 line-through mt-1">COGS: Rp {item.cogs.toLocaleString()}</p>
                         )}
                       </div>
                     </div>
-                  )) : <p className="text-[10px] italic text-slate-400 uppercase font-black tracking-widest">Awaiting data...</p>}
+                  )) : <p className="text-[12px] italic text-slate-400 uppercase font-black tracking-widest">Awaiting data...</p>}
                 </div>
               </div>
             </div>
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 03. Due Date & Pricing
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Payment Due Date</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Payment Due Date</label>
                 <input
                   type="date"
                   required
@@ -499,7 +499,7 @@ const AddClientInvoice = () => {
               </div>
 
               <div className="md:col-span-2 space-y-1">
-                <label className={`text-[10px] font-black uppercase tracking-widest ml-1 italic underline decoration-emerald-500/30 ${
+                <label className={`text-[12px] font-black uppercase tracking-widest ml-1 italic underline decoration-emerald-500/30 ${
                   formData.isProgressInvoice ? 'text-amber-600' : 'text-emerald-600'
                 }`}>
                   {formData.isProgressInvoice ? 'REMAINING BALANCE' : 'Current Billing Amount'} ({formData.billingPhase || 'Full Payment'})
@@ -514,10 +514,10 @@ const AddClientInvoice = () => {
                     value={`Rp ${Number(formData.amount || 0).toLocaleString()}`}
                   />
                   <div className="flex justify-between items-center mt-2 px-1">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase italic">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase italic">
                       Grand Total: <span className="text-slate-600">Rp {Number(formData.totalContractValue || 0).toLocaleString()}</span>
                     </p>
-                    <p className="text-[9px] font-black text-indigo-500 uppercase italic tracking-tighter bg-indigo-50 px-2 py-0.5 rounded-md">
+                    <p className="text-[11px] font-black text-indigo-500 uppercase italic tracking-tighter bg-indigo-50 px-2 py-0.5 rounded-md">
                       TOP: {formData.topOption || 'N/A'}
                     </p>
                   </div>
@@ -530,7 +530,7 @@ const AddClientInvoice = () => {
             <button
               type="submit"
               disabled={loading || formData.amount <= 0 || !formData.dueDate}
-              className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
+              className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[12px] shadow-lg transition-all active:scale-95 ${
                 loading || formData.amount <= 0 || !formData.dueDate ? 'bg-slate-400 cursor-not-allowed' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
               }`}
             >

@@ -110,7 +110,7 @@ const InputPayment = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Payment <span className="text-indigo-600">Submission</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Verification Routing System</p>
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Verification Routing System</p>
         </div>
       </div>
 
@@ -119,7 +119,7 @@ const InputPayment = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">1. Select Reference Invoice</label>
+              <label className="text-[13px] font-black text-slate-400 uppercase tracking-widest italic">1. Select Reference Invoice</label>
               <StyledSelect
                 value={formData.invoiceId || ''}
                 onChange={handleInvoiceChange}
@@ -131,7 +131,7 @@ const InputPayment = () => {
               />
             </div>
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">2. Actual Payment Date</label>
+              <label className="text-[13px] font-black text-slate-400 uppercase tracking-widest italic">2. Actual Payment Date</label>
               <input
                 type="date"
                 required
@@ -145,7 +145,7 @@ const InputPayment = () => {
           <div className="p-12 bg-slate-900 rounded-[2.5rem] shadow-2xl relative overflow-hidden text-white border-b-8 border-indigo-600">
             <div className="relative z-10 flex flex-col gap-8">
               <div>
-                <label className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] italic">Confirmed Billing Amount</label>
+                <label className="text-[12px] font-black text-indigo-400 uppercase tracking-[0.2em] italic">Confirmed Billing Amount</label>
                 <h2 className="text-6xl font-black mt-2 tracking-tighter">
                   Rp {Number(formData.amountToPay).toLocaleString()}
                 </h2>
@@ -154,21 +154,21 @@ const InputPayment = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-white/10">
                 <div className="space-y-4">
                   <div>
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Client Identity</label>
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic">Client Identity</label>
                     <p className="text-lg font-black uppercase leading-none mt-1">{formData.clientName || '-'}</p>
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Project Assignment</label>
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic">Project Assignment</label>
                     <p className="text-lg font-black uppercase leading-none mt-1">{formData.projectName || '-'}</p>
                   </div>
                 </div>
                 <div className="md:text-right space-y-4">
                   <div>
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Total Contract Value</label>
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic">Total Contract Value</label>
                     <p className="text-lg font-black leading-none mt-1 text-slate-300">Rp {Number(formData.totalContractValue).toLocaleString()}</p>
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Billing Phase / TOP</label>
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic">Billing Phase / TOP</label>
                     <p className="text-lg font-black text-indigo-400 uppercase leading-none mt-1">{formData.billingPhase} - {formData.topOption}</p>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ const InputPayment = () => {
           </div>
 
           <div className="space-y-3">
-            <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest italic">3. Transaction Evidence (Image / PDF)</label>
+            <label className="text-[13px] font-black text-slate-400 uppercase tracking-widest italic">3. Transaction Evidence (Image / PDF)</label>
             <div className="relative border-4 border-dashed border-slate-100 rounded-4xl p-16 flex flex-col items-center justify-center hover:border-indigo-200 hover:bg-slate-50 transition-all cursor-pointer group">
               <input
                 type="file"
@@ -200,7 +200,7 @@ const InputPayment = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`px-12 py-5 rounded-2xl font-black text-white uppercase tracking-[0.2em] text-[11px] shadow-2xl transition-all active:scale-95 ${
+              className={`px-12 py-5 rounded-2xl font-black text-white uppercase tracking-[0.2em] text-[13px] shadow-2xl transition-all active:scale-95 ${
                 loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
               }`}
             >

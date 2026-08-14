@@ -118,7 +118,7 @@ const AddVendor = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Vendor <span className="text-indigo-600">Registration</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">Procurement Module • Partner Onboarding</p>
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">Procurement Module • Partner Onboarding</p>
         </div>
       </div>
 
@@ -126,18 +126,18 @@ const AddVendor = () => {
         <form onSubmit={handleSubmit} className="max-w-none w-full space-y-12">
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 01. Company Profile & Target
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Vendor ID</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Vendor ID</label>
                 <input type="text" readOnly value={formData.vendorId} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-indigo-600 font-bold outline-none shadow-sm" />
               </div>
 
               <div className="space-y-1 md:col-span-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Project Target</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Project Target</label>
                 <StyledSelect
                   name="projectId"
                   value={formData.projectId}
@@ -148,7 +148,7 @@ const AddVendor = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Type</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Type</label>
                 <StyledSelect
                   name="companyType"
                   value={formData.companyType}
@@ -160,11 +160,11 @@ const AddVendor = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                <div className="space-y-1 md:col-span-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Legal Company Name</label>
+                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Legal Company Name</label>
                  <input name="vendorName" type="text" required placeholder="e.g. Batavia Jaya Teknologi" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} />
                </div>
                <div className="space-y-1">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Category</label>
+                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Category</label>
                  <input
                    name="category"
                    type="text"
@@ -178,22 +178,22 @@ const AddVendor = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-indigo-600"></span> 02. Contact Information
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Email Address</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Email Address</label>
                 <input name="email" type="email" required placeholder="contact@vendor.com" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Phone / WhatsApp</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Phone / WhatsApp</label>
                 <input name="phone" type="text" placeholder="0812xxxx" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all" value={formData.phone} onChange={handleChange} />
-                <p className="text-[8px] text-slate-400 mt-1 ml-1">Hanya angka (Max 15 digit)</p>
+                <p className="text-[10px] text-slate-400 mt-1 ml-1">Hanya angka (Max 15 digit)</p>
               </div>
             </div>
             <div className="space-y-1 w-full">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Full Office Address</label>
+              <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Full Office Address</label>
               <textarea name="address" placeholder="Detail Alamat Kantor..." className="w-full p-5 bg-white border border-slate-300 rounded-2xl h-28 outline-none font-medium text-slate-700 focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} />
             </div>
           </div>
@@ -202,7 +202,7 @@ const AddVendor = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`px-12 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
+              className={`px-12 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[12px] shadow-lg transition-all active:scale-95 ${
                 loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
               }`}
             >

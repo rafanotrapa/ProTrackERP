@@ -59,7 +59,7 @@ const ClientInvoice = () => {
             <h1 className="text-3xl font-black italic uppercase tracking-tighter leading-none">
               Client <span className="text-indigo-600">Invoices</span>
             </h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 italic leading-none">
+            <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mt-1 italic leading-none">
               Finance Module • ProTrack ERP
             </p>
           </div>
@@ -95,7 +95,7 @@ const ClientInvoice = () => {
                     <div className="h-16 w-16 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-lg">
                       <FileText size={32} />
                     </div>
-                    <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase italic border ${
+                    <span className={`px-4 py-1.5 rounded-full text-[11px] font-black uppercase italic border ${
                       String(inv?.status || '').toLowerCase() === 'unpaid'
                         ? 'bg-amber-100 text-amber-600 border-amber-200'
                         : 'bg-emerald-100 text-emerald-600 border-emerald-200'
@@ -105,7 +105,7 @@ const ClientInvoice = () => {
                   </div>
 
                   <div className="space-y-1 mb-8">
-                    <p className="text-[11px] font-black text-indigo-600 uppercase italic tracking-widest">
+                    <p className="text-[13px] font-black text-indigo-600 uppercase italic tracking-widest">
                       {inv.invoiceNumber || 'NO-REF'}
                     </p>
                     <h2 className="text-2xl font-black uppercase italic leading-tight text-slate-900 truncate">
@@ -117,7 +117,7 @@ const ClientInvoice = () => {
                   </div>
 
                   <div className="py-6 border-y border-dashed border-slate-200 mb-8">
-                    <p className="text-[10px] font-black text-slate-400 uppercase italic mb-1 tracking-widest">
+                    <p className="text-[12px] font-black text-slate-400 uppercase italic mb-1 tracking-widest">
                       Total Amount Receivable
                     </p>
                     <p className="text-3xl font-black text-slate-900 italic tracking-tighter">
@@ -132,7 +132,7 @@ const ClientInvoice = () => {
                       className="flex-1 bg-slate-50 hover:bg-slate-100 p-4 rounded-2xl flex items-center justify-center gap-2 border border-slate-200 transition-all"
                     >
                       <Download size={18} />
-                      <span className="text-[10px] font-black uppercase italic text-slate-600">PDF</span>
+                      <span className="text-[12px] font-black uppercase italic text-slate-600">PDF</span>
                     </button>
 
                     {String(inv?.status || '').toLowerCase() !== 'paid' && (
@@ -140,7 +140,7 @@ const ClientInvoice = () => {
                         onClick={() => navigate(`/client-payment/${inv._id}`)}
                         className="flex-1 bg-slate-900 hover:bg-indigo-600 p-4 rounded-2xl flex items-center justify-center gap-2 text-white shadow-xl active:scale-95 transition-all group"
                       >
-                        <span className="text-[10px] font-black uppercase italic">Process</span>
+                        <span className="text-[12px] font-black uppercase italic">Process</span>
                         <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                       </button>
                     )}

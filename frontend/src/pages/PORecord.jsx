@@ -66,7 +66,7 @@ const PORecord = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-sky-600 mx-auto mb-4" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
+            <p className="text-[12px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
           </div>
         </div>
       </div>
@@ -88,7 +88,7 @@ const PORecord = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             PO <span className="text-sky-600">Track Record</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
             Procurement Module • Issued Orders
           </p>
         </div>
@@ -107,7 +107,7 @@ const PORecord = () => {
               <button
                 key={key}
                 onClick={() => setStatusFilter(key)}
-                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${
+                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
                   statusFilter === key ? cls : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -130,7 +130,7 @@ const PORecord = () => {
             {!bacaSaja && (
             <button
               onClick={() => navigate('/create-po')}
-              className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-sky-600 transition-all shadow-sm whitespace-nowrap"
+              className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[12px] uppercase tracking-widest hover:bg-sky-600 transition-all shadow-sm whitespace-nowrap"
             >
               + Create PO
             </button>
@@ -147,7 +147,7 @@ const PORecord = () => {
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <table className="w-full text-left">
               <thead className="bg-slate-50">
-                <tr className="text-[9px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
+                <tr className="text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">PO Number / Vendor</th>
                   <th className="px-6 py-4 text-center">Linked Project</th>
                   <th className="px-6 py-4 text-center">Payment Status</th>
@@ -160,17 +160,17 @@ const PORecord = () => {
                 {filtered.map((po) => (
                   <tr key={po._id} className="hover:bg-slate-50/50 transition-all">
                     <td className="px-6 py-5">
-                      <p className="text-[10px] font-black text-sky-600 uppercase tracking-wider">{po.poNumber}</p>
+                      <p className="text-[12px] font-black text-sky-600 uppercase tracking-wider">{po.poNumber}</p>
                       <p className="font-black text-slate-800 text-sm mt-0.5">{po.vendorId?.vendorName || 'Unknown Vendor'}</p>
-                      <p className="text-[9px] text-slate-400 mt-0.5">{po.items?.length || 0} Items &bull; {po.topOption}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{po.items?.length || 0} Items &bull; {po.topOption}</p>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <span className="px-3 py-1 bg-sky-50 text-sky-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-sky-100">
+                      <span className="px-3 py-1 bg-sky-50 text-sky-600 rounded-lg text-[11px] font-black uppercase tracking-widest border border-sky-100">
                         {po.projectId || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                      <span className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${
                         po.paymentStatus === 'Paid'    ? 'bg-emerald-100 text-emerald-600' :
                         po.paymentStatus === 'Partial' ? 'bg-sky-100 text-sky-600' :
                                                          'bg-amber-100 text-amber-600'
@@ -182,13 +182,13 @@ const PORecord = () => {
                       <p className="font-black text-sky-600">{po.currency || 'IDR'} {formatRupiah(po.totalAmount)}</p>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <p className="text-[9px] font-bold text-slate-500">{formatDate(po.timestamp)}</p>
+                      <p className="text-[11px] font-bold text-slate-500">{formatDate(po.timestamp)}</p>
                     </td>
                     <td className="px-6 py-5 text-center">
                       <button
                         onClick={() => unduhDokumenPO(po)}
                         title="Unduh dokumen PO"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-sky-700 transition-all active:scale-90"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-sky-700 transition-all active:scale-90"
                       >
                         <Download size={11} /> PDF
                       </button>

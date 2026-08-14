@@ -205,7 +205,7 @@ const FinanceInputPayment = () => {
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter italic uppercase">
             Finance <span className="text-indigo-600">Payment Input</span>
           </h1>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5 italic">Record Client Payment • Upload Evidence</p>
+          <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5 italic">Record Client Payment • Upload Evidence</p>
         </div>
       </div>
 
@@ -213,11 +213,11 @@ const FinanceInputPayment = () => {
         <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-8">
 
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
               <span className="w-8 h-1 bg-indigo-600"></span> 01. Select Project
             </h3>
             <div>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Project</label>
+              <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Project</label>
               <div className="mt-1">
                 <StyledSelect
                   value={selectedProject?.projectId || ''}
@@ -234,11 +234,11 @@ const FinanceInputPayment = () => {
 
           {selectedProject && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
+              <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
                 <span className="w-8 h-1 bg-indigo-600"></span> 02. Select Invoice / Termin
               </h3>
               <div>
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unpaid Invoices</label>
+                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Unpaid Invoices</label>
                 <div className="mt-1">
                   <StyledSelect
                     value={selectedStage ? unpaidStages.indexOf(selectedStage) : ''}
@@ -251,7 +251,7 @@ const FinanceInputPayment = () => {
                   />
                 </div>
                 {unpaidStages.length === 0 && selectedProject && (
-                  <p className="text-[10px] text-amber-600 mt-2">No unpaid invoices for this project</p>
+                  <p className="text-[12px] text-amber-600 mt-2">No unpaid invoices for this project</p>
                 )}
               </div>
             </div>
@@ -261,28 +261,28 @@ const FinanceInputPayment = () => {
             <div className="bg-linear-to-r from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl">
               <div className="flex flex-wrap justify-between items-start gap-4">
                 <div>
-                  <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">INVOICE NUMBER</p>
+                  <p className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">INVOICE NUMBER</p>
                   <p className="text-xl md:text-2xl font-black mt-1">{selectedInvoice.invoiceNumber}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">TERMIN / PHASE</p>
+                  <p className="text-[11px] font-black text-indigo-400 uppercase tracking-widest">TERMIN / PHASE</p>
                   <p className="text-base md:text-lg font-black mt-1 text-amber-300">{selectedStage?.name || '-'}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5 pt-5 border-t border-white/10">
                 <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Client Name</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Client Name</p>
                   <p className="font-bold text-sm uppercase">{selectedProject?.clientName || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Project</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project</p>
                   <p className="font-bold text-sm uppercase">{selectedProject?.projectName || '-'}</p>
                 </div>
               </div>
 
               <div className="mt-5 pt-5 border-t border-white/10 text-right">
-                <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">AMOUNT TO PAY</p>
+                <p className="text-[11px] font-black text-emerald-400 uppercase tracking-widest">AMOUNT TO PAY</p>
                 <p className="text-2xl md:text-3xl font-black tracking-tighter">Rp {selectedInvoice.amount?.toLocaleString()}</p>
               </div>
             </div>
@@ -290,14 +290,14 @@ const FinanceInputPayment = () => {
 
           {selectedInvoice && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
+              <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
                 <span className="w-8 h-1 bg-indigo-600"></span> 03. Payment Details
               </h3>
 
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
-                    <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest ml-1">
+                    <label className="text-[12px] font-black text-emerald-600 uppercase tracking-widest ml-1">
                       Amount Paid <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -311,7 +311,7 @@ const FinanceInputPayment = () => {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Date <span className="text-red-500">*</span></label>
+                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Date <span className="text-red-500">*</span></label>
                     <input
                       type="date"
                       name="paymentDate"
@@ -324,7 +324,7 @@ const FinanceInputPayment = () => {
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Evidence <span className="text-red-500">*</span></label>
+                  <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Payment Evidence <span className="text-red-500">*</span></label>
                   <div className="relative mt-1 group">
                     <input
                       type="file"
@@ -333,15 +333,15 @@ const FinanceInputPayment = () => {
                       onChange={handleFileChange}
                       className="w-full p-4 bg-white border-2 border-dashed border-slate-300 rounded-xl font-bold text-xs text-slate-500 file:hidden cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-all"
                     />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase text-indigo-500 pointer-events-none">
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-black uppercase text-indigo-500 pointer-events-none">
                       Upload File →
                     </div>
                   </div>
-                  <p className="text-[8px] text-slate-400 mt-1">Accepted formats: JPG, PNG, PDF</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Accepted formats: JPG, PNG, PDF</p>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Remarks / Notes (Optional)</label>
+                  <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Remarks / Notes (Optional)</label>
                   <textarea
                     name="remarks"
                     rows="3"
@@ -359,7 +359,7 @@ const FinanceInputPayment = () => {
             <button
               type="submit"
               disabled={loading || !selectedProject || !selectedInvoice || !formData.evidence}
-              className={`px-8 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 ${
+              className={`px-8 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[12px] shadow-lg transition-all active:scale-95 ${
                 loading || !selectedProject || !selectedInvoice || !formData.evidence
                   ? 'bg-slate-400 cursor-not-allowed'
                   : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200'
@@ -370,7 +370,7 @@ const FinanceInputPayment = () => {
           </div>
 
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-            <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
+            <p className="text-[11px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
               Payment will be forwarded to Verification Queue for Finance approval.
             </p>

@@ -93,7 +93,7 @@ const ClientPaymentForm = () => {
       <Header />
       <main className="flex-1 p-8 md:p-16 flex flex-col lg:flex-row gap-16 max-w-7xl mx-auto w-full">
         <div className="lg:w-2/5 space-y-8">
-            <button onClick={() => navigate('/client-invoice')} className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400 hover:text-indigo-600 transition-colors">
+            <button onClick={() => navigate('/client-invoice')} className="flex items-center gap-2 text-[12px] font-black uppercase text-slate-400 hover:text-indigo-600 transition-colors">
               <ArrowLeft size={14} /> Back to Queue
             </button>
             <h1 className="text-5xl font-black italic uppercase tracking-tighter leading-none">Verify <br /><span className="text-indigo-600">Payment</span></h1>
@@ -101,11 +101,11 @@ const ClientPaymentForm = () => {
                 <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-indigo-600 rounded-full blur-[100px] opacity-20"></div>
                 <div className="relative z-10 space-y-8">
                     <div className="flex justify-between items-start">
-                        <div><p className="text-[10px] font-black uppercase text-slate-400 italic mb-1 tracking-widest">Target Invoice</p><p className="text-2xl font-black italic tracking-tighter">{invoice?.invoiceNumber}</p></div>
+                        <div><p className="text-[12px] font-black uppercase text-slate-400 italic mb-1 tracking-widest">Target Invoice</p><p className="text-2xl font-black italic tracking-tighter">{invoice?.invoiceNumber}</p></div>
                         <CreditCard className="text-indigo-400" size={32} />
                     </div>
-                    <div><p className="text-[10px] font-black uppercase text-slate-400 italic mb-1 tracking-widest">Client Name</p><p className="text-xl font-bold uppercase truncate">{invoice?.clientName}</p></div>
-                    <div className="pt-8 border-t border-slate-800"><p className="text-[10px] font-black uppercase text-indigo-400 italic mb-1 tracking-widest">Total Amount</p><p className="text-4xl font-black italic tracking-tighter">Rp {invoice?.amount?.toLocaleString('id-ID')}</p></div>
+                    <div><p className="text-[12px] font-black uppercase text-slate-400 italic mb-1 tracking-widest">Client Name</p><p className="text-xl font-bold uppercase truncate">{invoice?.clientName}</p></div>
+                    <div className="pt-8 border-t border-slate-800"><p className="text-[12px] font-black uppercase text-indigo-400 italic mb-1 tracking-widest">Total Amount</p><p className="text-4xl font-black italic tracking-tighter">Rp {invoice?.amount?.toLocaleString('id-ID')}</p></div>
                 </div>
             </div>
         </div>
@@ -114,14 +114,14 @@ const ClientPaymentForm = () => {
             <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase italic tracking-widest text-slate-500">Destination Bank</label>
+                        <label className="text-[12px] font-black uppercase italic tracking-widest text-slate-500">Destination Bank</label>
                         <div className="relative">
                             <Landmark className="absolute left-4 top-4 text-slate-400" size={20} />
                             <input required type="text" placeholder="e.g. BCA / MANDIRI" className="w-full p-4 pl-12 bg-white border-2 border-slate-200 rounded-2xl font-bold focus:border-indigo-600 transition-all outline-none uppercase" value={formData.bankName} onChange={(e) => setFormData({...formData, bankName: e.target.value})} />
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase italic tracking-widest text-slate-500">Reference Number</label>
+                        <label className="text-[12px] font-black uppercase italic tracking-widest text-slate-500">Reference Number</label>
                         <div className="relative">
                             <Hash className="absolute left-4 top-4 text-slate-400" size={20} />
                             <input type="text" placeholder="Transaction ID" className="w-full p-4 pl-12 bg-white border-2 border-slate-200 rounded-2xl font-bold focus:border-indigo-600 transition-all outline-none" value={formData.referenceNumber} onChange={(e) => setFormData({...formData, referenceNumber: e.target.value})} />
@@ -129,21 +129,21 @@ const ClientPaymentForm = () => {
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase italic tracking-widest text-slate-500">Amount Received (IDR)</label>
+                    <label className="text-[12px] font-black uppercase italic tracking-widest text-slate-500">Amount Received (IDR)</label>
                     <div className="relative">
                         <Banknote className="absolute left-4 top-4 text-slate-400" size={20} />
                         <input required type="number" value={formData.amountPaid} className="w-full p-4 pl-12 bg-white border-2 border-slate-200 rounded-2xl font-black italic focus:border-indigo-600 outline-none text-lg" onChange={(e) => setFormData({...formData, amountPaid: e.target.value})} />
                     </div>
                 </div>
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase italic tracking-widest text-slate-500">Evidence / Transfer Slip</label>
+                    <label className="text-[12px] font-black uppercase italic tracking-widest text-slate-500">Evidence / Transfer Slip</label>
                     <div className="relative group h-48 border-4 border-dashed border-slate-200 rounded-4xl bg-white flex flex-col items-center justify-center transition-all hover:border-indigo-600 overflow-hidden">
                         <input type="file" required className="absolute inset-0 opacity-0 cursor-pointer z-10" onChange={(e) => setFormData({...formData, file: e.target.files[0]})} />
                         <div className="flex flex-col items-center gap-3">
                             <div className="p-4 bg-slate-100 rounded-2xl text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                                 {formData.file ? <FileText size={24} /> : <Upload size={24} />}
                             </div>
-                            <p className="text-[11px] font-black uppercase italic text-slate-900 truncate max-w-50">{formData.file ? formData.file.name : 'Drop Slip Proof'}</p>
+                            <p className="text-[13px] font-black uppercase italic text-slate-900 truncate max-w-50">{formData.file ? formData.file.name : 'Drop Slip Proof'}</p>
                         </div>
                     </div>
                 </div>

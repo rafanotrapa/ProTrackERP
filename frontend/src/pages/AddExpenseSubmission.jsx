@@ -189,7 +189,7 @@ const AddExpenseSubmission = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Submit <span className="text-amber-600">Expense</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
             Biaya Tambahan • Reimburse & Operasional Project
           </p>
         </div>
@@ -199,12 +199,12 @@ const AddExpenseSubmission = () => {
         <form onSubmit={handleSubmit} className="max-w-4xl space-y-10">
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-amber-600" /> 01. Project Reference
             </h3>
 
             <div className="space-y-1" ref={dropdownRef}>
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
+              <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                 Pilih Project <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -234,7 +234,7 @@ const AddExpenseSubmission = () => {
                       />
                     </div>
                     {filteredProjects.length === 0 ? (
-                      <p className="p-4 text-center text-[10px] text-slate-400 italic">Tidak ada project ditemukan</p>
+                      <p className="p-4 text-center text-[12px] text-slate-400 italic">Tidak ada project ditemukan</p>
                     ) : (
                       filteredProjects.map((p) => (
                         <div
@@ -243,21 +243,21 @@ const AddExpenseSubmission = () => {
                           className="px-4 py-3 hover:bg-amber-50 cursor-pointer border-b border-slate-50 last:border-0"
                         >
                           <p className="text-xs font-black text-slate-800">{p.projectId}</p>
-                          <p className="text-[10px] text-slate-500">{p.projectName}</p>
-                          <p className="text-[9px] text-slate-400">{p.clientName}</p>
+                          <p className="text-[12px] text-slate-500">{p.projectName}</p>
+                          <p className="text-[11px] text-slate-400">{p.clientName}</p>
                         </div>
                       ))
                     )}
                   </div>
                 )}
               </div>
-              <p className="text-[9px] text-slate-400 ml-1 mt-1 italic">
+              <p className="text-[11px] text-slate-400 ml-1 mt-1 italic">
                 Project boleh dalam status apa saja — aktif maupun sudah selesai.
               </p>
             </div>
 
             <div className="space-y-1 max-w-xs">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
+              <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                 Currency
               </label>
               <StyledSelect
@@ -277,17 +277,17 @@ const AddExpenseSubmission = () => {
 
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+              <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
                 <span className="w-8 h-1 bg-amber-600" /> 02. Daftar Biaya
               </h3>
-              <span className="text-[9px] font-black text-slate-400 uppercase">{items.length} item</span>
+              <span className="text-[11px] font-black text-slate-400 uppercase">{items.length} item</span>
             </div>
 
             <div className="space-y-4">
               {items.map((item, index) => (
                 <div key={item.id} className="grid grid-cols-12 gap-3 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-start">
                   <div className="col-span-12 md:col-span-4 space-y-1">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
                       Nama Biaya {index === 0 && <span className="text-red-500">*</span>}
                     </label>
                     <input
@@ -299,7 +299,7 @@ const AddExpenseSubmission = () => {
                     />
                   </div>
                   <div className="col-span-12 md:col-span-5 space-y-1">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Deskripsi</label>
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Deskripsi</label>
                     <input
                       type="text"
                       value={item.description}
@@ -309,9 +309,9 @@ const AddExpenseSubmission = () => {
                     />
                   </div>
                   <div className="col-span-9 md:col-span-2 space-y-1">
-                    <label className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Nominal *</label>
+                    <label className="text-[11px] font-black text-amber-600 uppercase tracking-widest">Nominal *</label>
                     <div className="relative">
-                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[10px]">Rp</span>
+                      <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-[12px]">Rp</span>
                       <input
                         type="text"
                         value={formatRupiah(item.amount)}
@@ -341,7 +341,7 @@ const AddExpenseSubmission = () => {
               <button
                 type="button"
                 onClick={addItem}
-                className="flex items-center gap-2 text-amber-600 font-black text-[10px] uppercase tracking-widest hover:text-amber-800 transition-colors"
+                className="flex items-center gap-2 text-amber-600 font-black text-[12px] uppercase tracking-widest hover:text-amber-800 transition-colors"
               >
                 <Plus size={14} /> Tambah Item Biaya
               </button>
@@ -349,7 +349,7 @@ const AddExpenseSubmission = () => {
 
             <div className="flex justify-end pt-4 border-t border-slate-200">
               <div className="text-right w-72">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Pengajuan</p>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Total Pengajuan</p>
                 <p className="text-2xl font-black text-amber-600 tracking-tighter">
                   Rp {formatRupiah(totalAmount)}
                 </p>
@@ -358,12 +358,12 @@ const AddExpenseSubmission = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
+            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
               <span className="w-8 h-1 bg-amber-600" /> 03. Lampiran / Bukti
             </h3>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-amber-500 uppercase tracking-widest ml-1 italic">
+              <label className="text-[12px] font-black text-amber-500 uppercase tracking-widest ml-1 italic">
                 Upload Bukti (Struk / Invoice / Foto) <span className="text-red-500">*</span>
               </label>
               <label
@@ -375,7 +375,7 @@ const AddExpenseSubmission = () => {
                   <p className="text-xs font-black text-amber-700">
                     {formData.file ? formData.file.name : 'Klik untuk upload file'}
                   </p>
-                  <p className="text-[9px] text-amber-500">JPG, PNG, atau PDF — maks 5MB. Satu file untuk semua item di atas.</p>
+                  <p className="text-[11px] text-amber-500">JPG, PNG, atau PDF — maks 5MB. Satu file untuk semua item di atas.</p>
                 </div>
               </label>
               <input
@@ -388,7 +388,7 @@ const AddExpenseSubmission = () => {
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
+              <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">
                 Catatan Tambahan (Optional)
               </label>
               <textarea
@@ -406,7 +406,7 @@ const AddExpenseSubmission = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 flex items-center gap-2 ${
+              className={`px-10 py-4 rounded-xl font-black text-white uppercase tracking-widest text-[12px] shadow-lg transition-all active:scale-95 flex items-center gap-2 ${
                 loading
                   ? 'bg-slate-400 cursor-not-allowed'
                   : 'bg-amber-600 hover:bg-amber-700 shadow-amber-200'
@@ -418,7 +418,7 @@ const AddExpenseSubmission = () => {
           </div>
 
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-            <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
+            <p className="text-[11px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
               Verification Required: Pengajuan ini akan direview Finance sebelum masuk sebagai beban project.
             </p>

@@ -24,7 +24,7 @@ const Header = () => {
           <h1 className="text-xl font-black italic uppercase tracking-tighter text-white leading-none">
             ProTrack <span className="text-xs not-italic tracking-widest text-indigo-400 ml-1">ERP</span>
           </h1>
-          <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Enterprise Resource Planning</p>
+          <p className="text-[11px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1 italic">Enterprise Resource Planning</p>
         </div>
       </div>
 
@@ -33,7 +33,7 @@ const Header = () => {
           <p className="text-sm font-black uppercase leading-none text-white tracking-wide">
             {user.username || user.name || 'User'}
           </p>
-          <p className="mt-1 text-[9px] font-black uppercase tracking-[0.2em] text-indigo-400 italic">
+          <p className="mt-1 text-[11px] font-black uppercase tracking-[0.2em] text-indigo-400 italic">
             {user.role} Access
           </p>
         </div>
@@ -44,7 +44,7 @@ const Header = () => {
 
         <button
           onClick={handleLogout}
-          className="px-6 py-2.5 bg-indigo-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-md transition-all hover:bg-red-600 active:scale-95"
+          className="px-6 py-2.5 bg-indigo-700 text-white rounded-2xl text-[12px] font-black uppercase tracking-widest shadow-md transition-all hover:bg-red-600 active:scale-95"
         >
           Sign Out
         </button>

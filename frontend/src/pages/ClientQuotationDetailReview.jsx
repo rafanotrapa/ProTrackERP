@@ -78,7 +78,7 @@ const ClientQuotationDetailReview = () => {
     <div className="min-h-screen bg-white flex items-center justify-center">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-        <p className="font-black uppercase tracking-widest text-slate-400 text-[10px] italic">LOADING QUOTATION DATA...</p>
+        <p className="font-black uppercase tracking-widest text-slate-400 text-[12px] italic">LOADING QUOTATION DATA...</p>
       </div>
     </div>
   );
@@ -120,7 +120,7 @@ const ClientQuotationDetailReview = () => {
       <div className="p-6 md:p-10 lg:p-12">
         <button
           onClick={() => navigate('/client-quotation-approval')}
-          className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[10px] uppercase tracking-widest mb-6 transition-all group"
+          className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[12px] uppercase tracking-widest mb-6 transition-all group"
         >
           <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform"/> Back to Approval Queue
         </button>
@@ -135,7 +135,7 @@ const ClientQuotationDetailReview = () => {
                 <p className={`font-black uppercase text-sm tracking-tighter ${isApproved ? 'text-emerald-800' : 'text-red-800'}`}>
                   {isApproved ? 'QUOTATION APPROVED' : 'QUOTATION REJECTED'}
                 </p>
-                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mt-1">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mt-1">
                   {isApproved
                     ? 'This quotation is now available for Client Invoice creation'
                     : `Reason: ${quo.rejectionReason || 'No reason provided'}`}
@@ -149,16 +149,16 @@ const ClientQuotationDetailReview = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 pb-6 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-3 mb-3 flex-wrap">
-                <span className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider ${
+                <span className={`text-[11px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider ${
                   isPending ? 'bg-amber-100 text-amber-700' :
                   isApproved ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
                 }`}>
                   {quo.approvalStatus || 'Pending'}
                 </span>
-                <span className="text-[9px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-full">
+                <span className="text-[11px] font-black text-indigo-500 uppercase tracking-widest bg-indigo-50 px-3 py-1.5 rounded-full">
                   {quo.quotationId}
                 </span>
-                <span className={`text-[9px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider ${
+                <span className={`text-[11px] font-black px-3 py-1.5 rounded-full uppercase tracking-wider ${
                   isManualMode ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                 }`}>
                   {isManualMode ? 'MANUAL MODE' : 'AUTO MODE'}
@@ -167,7 +167,7 @@ const ClientQuotationDetailReview = () => {
               <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase tracking-tighter leading-none">
                 {quo.projectName || quo.projectId}
               </h1>
-              <div className="flex flex-wrap gap-4 mt-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <div className="flex flex-wrap gap-4 mt-3 text-[12px] font-bold text-slate-500 uppercase tracking-widest">
                 <span className="flex items-center gap-1"><User size={12}/> {quo.clientName || 'N/A'}</span>
                 <span className="flex items-center gap-1"><Clock size={12}/> {new Date(quo.timestamp).toLocaleDateString('id-ID')}</span>
                 {isManualMode && (
@@ -176,7 +176,7 @@ const ClientQuotationDetailReview = () => {
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Grand Total</p>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Grand Total</p>
               <p className="text-3xl font-black text-emerald-600 tracking-tighter">Rp {grandTotal.toLocaleString('id-ID')}</p>
             </div>
           </div>
@@ -186,19 +186,19 @@ const ClientQuotationDetailReview = () => {
             <div className="lg:col-span-2 space-y-8">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Term of Payment</label>
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block mb-1">Term of Payment</label>
                   <p className="text-base font-black text-amber-600 uppercase">{quo.topOption || 'N/A'}</p>
                 </div>
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Currency</label>
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block mb-1">Currency</label>
                   <p className="text-base font-black text-slate-800 uppercase">{quo.currency || 'IDR'}</p>
                 </div>
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Items Count</label>
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block mb-1">Items Count</label>
                   <p className="text-base font-black text-slate-800">{quo.items?.length || 0} item(s)</p>
                 </div>
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Mode</label>
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest block mb-1">Mode</label>
                   <p className={`text-base font-black uppercase ${isManualMode ? 'text-purple-600' : 'text-blue-600'}`}>
                     {isManualMode ? 'Manual' : 'Auto'}
                   </p>
@@ -206,19 +206,19 @@ const ClientQuotationDetailReview = () => {
               </div>
 
               <div>
-                <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2 mb-5">
+                <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2 mb-5">
                   <span className="w-6 h-0.5 bg-indigo-600"></span> Itemized Price Breakdown
                 </h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b-2 border-slate-200 bg-slate-50">
-                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest rounded-l-xl">Item</th>
-                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Qty</th>
-                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Unit</th>
-                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">COGS (Modal)</th>
-                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Sales Price</th>
-                        <th className="py-4 px-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right rounded-r-xl">Margin</th>
+                        <th className="py-4 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest rounded-l-xl">Item</th>
+                        <th className="py-4 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest text-center">Qty</th>
+                        <th className="py-4 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest text-center">Unit</th>
+                        <th className="py-4 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest text-right">COGS (Modal)</th>
+                        <th className="py-4 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest text-right">Sales Price</th>
+                        <th className="py-4 px-3 text-[11px] font-black text-slate-500 uppercase tracking-widest text-right rounded-r-xl">Margin</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -235,7 +235,7 @@ const ClientQuotationDetailReview = () => {
                             <td className="py-4 px-3 text-right font-bold text-slate-400">Rp {itemCOGS.toLocaleString('id-ID')}</td>
                             <td className="py-4 px-3 text-right font-black text-emerald-600">Rp {itemSales.toLocaleString('id-ID')}</td>
                             <td className="py-4 px-3 text-right">
-                              <span className={`text-[9px] font-black px-2 py-1 rounded-full ${itemMargin >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                              <span className={`text-[11px] font-black px-2 py-1 rounded-full ${itemMargin >= 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
                                 {itemMarginPercent}%
                               </span>
                             </td>
@@ -284,7 +284,7 @@ const ClientQuotationDetailReview = () => {
 
               {quo.remarks && (
                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                     <Package size={12}/> Remarks / Notes
                   </label>
                   <p className="text-sm text-slate-600 italic">{quo.remarks}</p>
@@ -294,7 +294,7 @@ const ClientQuotationDetailReview = () => {
 
             <div className="space-y-6">
               <div className="bg-linear-to-r from-slate-800 to-slate-900 rounded-3xl p-6 text-white shadow-xl">
-                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                <h3 className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                   <DollarSign size={14}/> Financial Summary
                 </h3>
                 <div className="space-y-3">
@@ -328,7 +328,7 @@ const ClientQuotationDetailReview = () => {
                       <span className={`text-xl font-black ${grossProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         Rp {grossProfit.toLocaleString('id-ID')}
                       </span>
-                      <span className={`text-[10px] font-black ml-2 px-2 py-0.5 rounded-full ${grossProfit >= 0 ? 'bg-emerald-500/30 text-emerald-300' : 'bg-red-500/30 text-red-300'}`}>
+                      <span className={`text-[12px] font-black ml-2 px-2 py-0.5 rounded-full ${grossProfit >= 0 ? 'bg-emerald-500/30 text-emerald-300' : 'bg-red-500/30 text-red-300'}`}>
                         {marginPercent}%
                       </span>
                     </div>
@@ -338,24 +338,24 @@ const ClientQuotationDetailReview = () => {
 
               {isPending && (
                 <div className="bg-white border-2 border-slate-100 rounded-3xl p-6 shadow-lg sticky top-6">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <h3 className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <FileText size={14}/> Management Action
                   </h3>
                   <div className="space-y-3">
                     <button
                       onClick={() => handleAction('Approved')}
-                      className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 rounded-2xl font-black text-[13px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                     >
                       <CheckCircle size={16}/> APPROVE QUOTATION
                     </button>
                     <button
                       onClick={() => handleAction('Rejected')}
-                      className="w-full py-4 bg-red-500 hover:bg-red-600 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                      className="w-full py-4 bg-red-500 hover:bg-red-600 rounded-2xl font-black text-[13px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                     >
                       <XCircle size={16}/> REJECT QUOTATION
                     </button>
                   </div>
-                  <p className="text-[8px] text-slate-400 text-center mt-4 uppercase tracking-widest">
+                  <p className="text-[10px] text-slate-400 text-center mt-4 uppercase tracking-widest">
                     Approval will make this quotation available for Client Invoice
                   </p>
                 </div>
@@ -363,7 +363,7 @@ const ClientQuotationDetailReview = () => {
 
               {!isPending && (
                 <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <h3 className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <Clock size={14}/> Approval Information
                   </h3>
                   <div className="space-y-2 text-sm">
@@ -381,7 +381,7 @@ const ClientQuotationDetailReview = () => {
                     </div>
                     {quo.approvalStatus === 'Rejected' && quo.rejectionReason && (
                       <div className="mt-3 pt-3 border-t border-slate-200">
-                        <span className="text-slate-500 block mb-1 text-[9px] font-black uppercase tracking-widest">Rejection Reason</span>
+                        <span className="text-slate-500 block mb-1 text-[11px] font-black uppercase tracking-widest">Rejection Reason</span>
                         <p className="text-slate-700 italic text-xs bg-white p-2 rounded-lg">{quo.rejectionReason}</p>
                       </div>
                     )}
@@ -391,7 +391,7 @@ const ClientQuotationDetailReview = () => {
 
               <button
                 onClick={() => navigate('/client-quotation-approval')}
-                className="w-full py-4 border-2 border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all active:scale-95"
+                className="w-full py-4 border-2 border-slate-200 rounded-2xl font-black text-[12px] uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all active:scale-95"
               >
                 ← Back to Approval List
               </button>

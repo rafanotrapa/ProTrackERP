@@ -107,14 +107,14 @@ const SupplierPaymentDetail = () => {
       return (
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-200">
           <CheckCircle size={16} className="text-emerald-600" />
-          <span className="text-[10px] font-black text-emerald-700 uppercase tracking-wider">PAID</span>
+          <span className="text-[12px] font-black text-emerald-700 uppercase tracking-wider">PAID</span>
         </div>
       );
     }
     return (
       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200">
         <Clock size={16} className="text-amber-600" />
-        <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider">PENDING VERIFICATION</span>
+        <span className="text-[12px] font-black text-amber-700 uppercase tracking-wider">PENDING VERIFICATION</span>
       </div>
     );
   };
@@ -135,7 +135,7 @@ const SupplierPaymentDetail = () => {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="font-black text-slate-400 text-[10px] uppercase tracking-widest">LOADING INVOICE...</p>
+          <p className="font-black text-slate-400 text-[12px] uppercase tracking-widest">LOADING INVOICE...</p>
         </div>
       </div>
     );
@@ -174,7 +174,7 @@ const SupplierPaymentDetail = () => {
             <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
               Supplier <span className="text-emerald-600">Invoice</span>
             </h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+            <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
               {invoice.invoiceNumber}
             </p>
           </div>
@@ -182,13 +182,13 @@ const SupplierPaymentDetail = () => {
         {isPending && (
           <button
             onClick={handleConfirmPayment}
-            className="flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+            className="flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-xl text-[12px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
           >
             <CreditCard size={14} /> Confirm Payment
           </button>
         )}
         {isPaid && (
-          <div className="flex items-center gap-2 px-5 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest">
+          <div className="flex items-center gap-2 px-5 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-[12px] font-black uppercase tracking-widest">
             <CheckCircle size={14} /> Payment Completed
           </div>
         )}
@@ -198,7 +198,7 @@ const SupplierPaymentDetail = () => {
 
         <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
           {getStatusBadge(invoice.status)}
-          <div className="flex items-center gap-4 text-[9px] text-slate-500">
+          <div className="flex items-center gap-4 text-[11px] text-slate-500">
             <span className="flex items-center gap-1">
               <Calendar size={12} /> Submitted: {new Date(invoice.createdAt).toLocaleDateString('id-ID')}
             </span>
@@ -215,24 +215,24 @@ const SupplierPaymentDetail = () => {
           <div className="lg:col-span-2 space-y-8">
 
             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-              <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+              <h3 className="text-[13px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
                 <Building2 size={14} /> Vendor Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Vendor Name</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Vendor Name</p>
                   <p className="text-lg font-black text-slate-800 uppercase mt-1">{invoice.vendorName}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Project ID</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Project ID</p>
                   <p className="text-lg font-black text-slate-800 uppercase mt-1">{invoice.projectId || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">PO Number</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">PO Number</p>
                   <p className="text-base font-black text-indigo-600 uppercase mt-1">{invoice.poNumber || '-'}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Termin / Phase</p>
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Termin / Phase</p>
                   <p className="text-base font-black text-amber-600 uppercase mt-1">{invoice.terminName || 'Full Payment'}</p>
                 </div>
               </div>
@@ -240,7 +240,7 @@ const SupplierPaymentDetail = () => {
 
             {invoice.isImportEnabled && invoice.customsDutyNote && (
               <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100">
-                <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <p className="text-[11px] font-black text-orange-500 uppercase tracking-widest mb-2 flex items-center gap-2">
                   🛃 Customs / Import Duty Note
                 </p>
                 <p className="text-sm text-orange-700 font-medium">{invoice.customsDutyNote}</p>
@@ -249,7 +249,7 @@ const SupplierPaymentDetail = () => {
 
             {invoice.remarks && (
               <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-2">
                   <FileText size={12} /> Internal Notes
                 </p>
                 <p className="text-sm text-slate-600 italic">{invoice.remarks}</p>
@@ -258,39 +258,39 @@ const SupplierPaymentDetail = () => {
 
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
               <div className="p-5 border-b border-slate-100 bg-slate-50">
-                <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
+                <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
                   <User size={14} /> Submission Information
                 </h3>
               </div>
               <div className="p-5 space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-[9px] font-black text-slate-400">Submission ID</span>
-                  <span className="text-[10px] font-bold text-slate-600">{invoice.submissionId || '-'}</span>
+                  <span className="text-[11px] font-black text-slate-400">Submission ID</span>
+                  <span className="text-[12px] font-bold text-slate-600">{invoice.submissionId || '-'}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[9px] font-black text-slate-400">Submitted By</span>
-                  <span className="text-[10px] font-bold text-slate-600">
+                  <span className="text-[11px] font-black text-slate-400">Submitted By</span>
+                  <span className="text-[12px] font-bold text-slate-600">
                     {invoice.user?.name || invoice.user?.username || 'Procurement'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[9px] font-black text-slate-400">Submitted Date</span>
-                  <span className="text-[10px] font-bold text-slate-600">
+                  <span className="text-[11px] font-black text-slate-400">Submitted Date</span>
+                  <span className="text-[12px] font-bold text-slate-600">
                     {new Date(invoice.createdAt).toLocaleString('id-ID')}
                   </span>
                 </div>
                 {invoice.dueDate && (
                   <div className="flex justify-between">
-                    <span className="text-[9px] font-black text-slate-400">Due Date</span>
-                    <span className="text-[10px] font-bold text-amber-600">
+                    <span className="text-[11px] font-black text-slate-400">Due Date</span>
+                    <span className="text-[12px] font-bold text-amber-600">
                       {new Date(invoice.dueDate).toLocaleDateString('id-ID')}
                     </span>
                   </div>
                 )}
                 {invoice.bankInfo && (
                   <div className="flex justify-between">
-                    <span className="text-[9px] font-black text-slate-400">Bank Info</span>
-                    <span className="text-[10px] font-bold text-slate-600">{invoice.bankInfo}</span>
+                    <span className="text-[11px] font-black text-slate-400">Bank Info</span>
+                    <span className="text-[12px] font-bold text-slate-600">{invoice.bankInfo}</span>
                   </div>
                 )}
               </div>
@@ -300,37 +300,37 @@ const SupplierPaymentDetail = () => {
           <div className="space-y-6">
 
             <div className="bg-slate-900 rounded-2xl p-6 text-white shadow-xl sticky top-24">
-              <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">
+              <h3 className="text-[13px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">
                 Financial Summary
               </h3>
               <div className="space-y-3">
 
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-[10px] font-bold text-slate-300">Currency</span>
+                  <span className="text-[12px] font-bold text-slate-300">Currency</span>
                   <span className="font-black text-white">{invoice.currency || 'IDR'}</span>
                 </div>
 
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-[10px] font-bold text-slate-300">Base Amount</span>
+                  <span className="text-[12px] font-bold text-slate-300">Base Amount</span>
                   <span className="font-black text-white">Rp {formatRupiah(invoice.amount)}</span>
                 </div>
 
                 {invoice.isTaxEnabled && invoice.taxAmount > 0 && (
                   <div className="flex justify-between py-2 border-b border-white/10">
-                    <span className="text-[10px] font-bold text-slate-300">PPN / Tax</span>
+                    <span className="text-[12px] font-bold text-slate-300">PPN / Tax</span>
                     <span className="font-black text-amber-300">+ Rp {formatRupiah(invoice.taxAmount)}</span>
                   </div>
                 )}
 
                 {invoice.isImportEnabled && invoice.importDutyAmount > 0 && (
                   <div className="flex justify-between py-2 border-b border-white/10">
-                    <span className="text-[10px] font-bold text-slate-300">Bea Masuk / Import Duty</span>
+                    <span className="text-[12px] font-bold text-slate-300">Bea Masuk / Import Duty</span>
                     <span className="font-black text-orange-300">+ Rp {formatRupiah(invoice.importDutyAmount)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between py-3 mt-2 bg-indigo-500/20 -mx-3 px-3 rounded-xl">
-                  <span className="text-[11px] font-black text-indigo-300 uppercase tracking-wider">TOTAL</span>
+                  <span className="text-[13px] font-black text-indigo-300 uppercase tracking-wider">TOTAL</span>
                   <span className="text-xl font-black text-indigo-300">
                     Rp {formatRupiah(invoice.totalAmount || invoice.amount)}
                   </span>
@@ -339,8 +339,8 @@ const SupplierPaymentDetail = () => {
 
               {isPaid && invoice.paymentDate && (
                 <div className="mt-4 pt-3 border-t border-white/10 text-center">
-                  <p className="text-[8px] text-slate-400">Payment Date</p>
-                  <p className="text-[10px] font-bold text-emerald-300">
+                  <p className="text-[10px] text-slate-400">Payment Date</p>
+                  <p className="text-[12px] font-bold text-emerald-300">
                     {new Date(invoice.paymentDate).toLocaleDateString('id-ID')}
                   </p>
                 </div>
@@ -350,7 +350,7 @@ const SupplierPaymentDetail = () => {
             {invoice.file && (
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b border-slate-100 bg-slate-50">
-                  <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
                     <FileText size={14} /> Invoice Attachment
                   </h3>
                 </div>
@@ -379,8 +379,8 @@ const SupplierPaymentDetail = () => {
                         className="w-full h-40 bg-slate-100 rounded-xl border border-slate-200 flex-col items-center justify-center text-slate-400"
                       >
                         <FileText size={32} className="mb-2" />
-                        <p className="text-[9px] font-black uppercase tracking-widest">Gagal memuat file</p>
-                        <p className="text-[8px] mt-1">{invoice.file}</p>
+                        <p className="text-[11px] font-black uppercase tracking-widest">Gagal memuat file</p>
+                        <p className="text-[10px] mt-1">{invoice.file}</p>
                       </div>
                       <button
                         onClick={() => setShowFile(false)}
@@ -396,8 +396,8 @@ const SupplierPaymentDetail = () => {
                           <FileText size={20} className={isPDF(invoice.file) ? 'text-red-500' : 'text-indigo-500'} />
                         </div>
                         <div>
-                          <p className="text-[10px] font-black text-slate-700 break-all">{invoice.file}</p>
-                          <p className="text-[8px] text-slate-400 mt-0.5">
+                          <p className="text-[12px] font-black text-slate-700 break-all">{invoice.file}</p>
+                          <p className="text-[10px] text-slate-400 mt-0.5">
                             {isPDF(invoice.file) ? 'PDF Document' : 'Image File'}
                           </p>
                         </div>
@@ -413,7 +413,7 @@ const SupplierPaymentDetail = () => {
                   )}
                   <button
                     onClick={() => openSecureFile(invoice.file)}
-                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[9px] font-black text-slate-600 transition-all"
+                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-black text-slate-600 transition-all"
                   >
                     <Download size={12} /> Download / Open in New Tab
                   </button>
@@ -424,7 +424,7 @@ const SupplierPaymentDetail = () => {
             {invoice.itemPhoto && (
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b border-slate-100 bg-slate-50">
-                  <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
                     <FileText size={14} /> Foto Barang
                   </h3>
                 </div>
@@ -438,7 +438,7 @@ const SupplierPaymentDetail = () => {
                     onClick={() => openSecureFile(invoice.itemPhoto)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[9px] font-black text-slate-600 transition-all"
+                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[11px] font-black text-slate-600 transition-all"
                   >
                     <Download size={12} /> Download / Open in New Tab
                   </a>
@@ -449,7 +449,7 @@ const SupplierPaymentDetail = () => {
             {invoice.paymentProof && (
               <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden">
                 <div className="p-5 border-b border-emerald-100 bg-emerald-50">
-                  <h3 className="text-[11px] font-black text-emerald-800 uppercase tracking-[0.3em] flex items-center gap-2">
+                  <h3 className="text-[13px] font-black text-emerald-800 uppercase tracking-[0.3em] flex items-center gap-2">
                     <FileText size={14} /> Bukti Transfer
                   </h3>
                 </div>
@@ -469,7 +469,7 @@ const SupplierPaymentDetail = () => {
                   )}
                   <button
                     onClick={() => openSecureFile(invoice.paymentProof)}
-                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-emerald-100 hover:bg-emerald-200 rounded-xl text-[9px] font-black text-emerald-700 transition-all"
+                    className="mt-3 flex items-center justify-center gap-2 w-full py-2 bg-emerald-100 hover:bg-emerald-200 rounded-xl text-[11px] font-black text-emerald-700 transition-all"
                   >
                     <Download size={12} /> Download / Open in New Tab
                   </button>

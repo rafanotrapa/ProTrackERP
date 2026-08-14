@@ -5,10 +5,15 @@ import { FileText, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { akunBacaSaja } from '../utils/peran';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const SupplierQuotationRecord = () => {
   const navigate = useNavigate();
+  // Akun lihat-saja tetap boleh membuka halaman ini, tapi form tujuannya
+  // ditolak ProtectedRoute. Tombolnya disembunyikan agar tidak jadi
+  // tombol mati yang melempar balik ke dashboard.
+  const bacaSaja = akunBacaSaja();
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -127,12 +132,14 @@ const SupplierQuotationRecord = () => {
               />
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             </div>
+            {!bacaSaja && (
             <button
               onClick={() => navigate('/add-supplier-quotation')}
               className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm whitespace-nowrap"
             >
               + New Quotation
             </button>
+            )}
           </div>
         </div>
 

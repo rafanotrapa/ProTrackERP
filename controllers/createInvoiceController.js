@@ -1,11 +1,10 @@
 const CreateInvoice = require('../models/CreateInvoice');
 const ClientQuotation = require('../models/ClientQuotation');
 
-const getInvoicePaymentStatus = async (invoiceId) => {
-  const Payment = require('../models/Payment');
-  const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
-  return payment ? 'Paid' : 'Unpaid';
-};
+// Salinan ketiga getInvoicePaymentStatus dulu ada di sini, tidak pernah
+// dipanggil, dan menganggap invoice lunas begitu ada satu pembayaran
+// terverifikasi berapa pun nominalnya. Dihapus supaya tidak ada yang memakainya
+// lagi — status pembayaran klien dihitung di utils/clientPaymentStatus.js.
 
 exports.createNewInvoice = async (req, res) => {
   try {

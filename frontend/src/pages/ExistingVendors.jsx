@@ -5,8 +5,13 @@ import { Building2, Search } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { akunBacaSaja } from '../utils/peran';
 const ExistingVendors = () => {
   const navigate = useNavigate();
+  // Akun lihat-saja tetap boleh membuka halaman ini, tapi form tujuannya
+  // ditolak ProtectedRoute. Tombolnya disembunyikan agar tidak jadi
+  // tombol mati yang melempar balik ke dashboard.
+  const bacaSaja = akunBacaSaja();
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -101,12 +106,14 @@ const ExistingVendors = () => {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           </div>
 
+          {!bacaSaja && (
           <button
             onClick={() => navigate('/add-vendor')}
             className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm whitespace-nowrap"
           >
             + New Vendor
           </button>
+          )}
         </div>
 
         {filtered.length === 0 ? (

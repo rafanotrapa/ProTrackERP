@@ -10,10 +10,12 @@ const { parsePaymentStages, resolveTopOption } = require('../utils/paymentTerms'
 const { computePOPaymentStatuses, UNPAID } = require('../utils/poPaymentStatus');
 const { computeProcessSteps } = require('../utils/processProgress');
 
-const getInvoicePaymentStatus = async (invoiceId) => {
-  const payment = await Payment.findOne({ invoiceId, status: 'Verified' });
-  return payment ? 'Paid' : 'Unpaid';
-};
+// Berkas ini dulu punya getInvoicePaymentStatus sendiri yang hanya memeriksa
+// ADA atau TIDAK pembayaran terverifikasi, tanpa membandingkan nominalnya
+// dengan nilai tagihan. Akibatnya bayar sebagian tampil "Paid" di timeline,
+// dan karena paidStages memberi makan progressPercent serta paymentFraction,
+// persentase progres project ikut naik lebih cepat dari kenyataan.
+const { statusPerInvoice, totalTerbayarPerInvoice } = require('../utils/clientPaymentStatus');
 
 const getVerifiedPayment = async (invoiceId) => {
   return Payment.findOne({ invoiceId, status: 'Verified' }).sort({ paymentDate: -1 });
@@ -47,11 +49,16 @@ exports.getProjectTimeline = async (req, res) => {
     const topOption = resolveTopOption(clientQuotation?.topOption, clientQuotation?.customTop) || '—';
     const rawInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
 
+    // Status seluruh invoice diambil sekali di depan, dan diturunkan dari
+    // nominal yang benar-benar masuk — bisa Paid, Partial, atau Unpaid.
+    const statusInvoice = await statusPerInvoice(rawInvoices);
+    const terbayarInvoice = await totalTerbayarPerInvoice(rawInvoices.map((i) => i._id));
+
     const clientInvoices = await Promise.all(
       rawInvoices.map(async (inv) => {
-        const payStatus = await getInvoicePaymentStatus(inv._id);
+        const payStatus = statusInvoice.get(String(inv._id)) || 'Unpaid';
         let paymentDate = null;
-        if (payStatus === 'Paid') {
+        if (payStatus !== 'Unpaid') {
           const verifiedPayment = await getVerifiedPayment(inv._id);
           paymentDate = verifiedPayment?.paymentDate || null;
         }
@@ -63,19 +70,22 @@ exports.getProjectTimeline = async (req, res) => {
           dueDate: inv.dueDate,
           createdAt: inv.createdAt,
           status: payStatus,
+          paidAmount: terbayarInvoice.get(String(inv._id)) || 0,
           paymentDate,
           topOption: inv.topOption
         };
       })
     );
 
+    // Dijumlahkan dari uang yang benar-benar masuk, bukan dari nilai invoice
+    // yang kebetulan berstatus Paid. Dengan cara lama, invoice yang baru
+    // dibayar sebagian dihitung penuh di totalPaid; dan begitu status Partial
+    // ada, invoice itu justru hilang dari kedua penjumlahan.
     const totalPaidFromInvoices = clientInvoices
-      .filter(inv => inv.status === 'Paid')
-      .reduce((sum, inv) => sum + inv.amount, 0);
+      .reduce((sum, inv) => sum + inv.paidAmount, 0);
 
-    const totalUnpaidFromInvoices = clientInvoices
-      .filter(inv => inv.status === 'Unpaid')
-      .reduce((sum, inv) => sum + inv.amount, 0);
+    const totalBilled = clientInvoices.reduce((sum, inv) => sum + Number(inv.amount || 0), 0);
+    const totalUnpaidFromInvoices = Math.max(totalBilled - totalPaidFromInvoices, 0);
 
     const expectedStages = parseTopOption(topOption, grandTotal);
     const paymentStages = expectedStages.map((stage, idx) => {

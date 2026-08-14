@@ -5,10 +5,15 @@ import { FileText, Clock, CheckCircle, XCircle, Eye, Search } from 'lucide-react
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { akunBacaSaja } from '../utils/peran';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const QuotationLog = () => {
   const navigate = useNavigate();
+  // Akun lihat-saja tetap boleh membuka halaman ini, tapi form tujuannya
+  // ditolak ProtectedRoute. Tombolnya disembunyikan agar tidak jadi
+  // tombol mati yang melempar balik ke dashboard.
+  const bacaSaja = akunBacaSaja();
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading]       = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,12 +142,14 @@ const QuotationLog = () => {
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <FileText size={48} className="text-slate-300 mx-auto" />
             <p className="text-slate-400 font-black text-lg uppercase tracking-tighter italic mt-3">No quotations found</p>
+            {!bacaSaja && (
             <button
               onClick={() => navigate('/client-quote')}
               className="mt-4 text-[10px] font-black text-indigo-600 underline"
             >
               Create your first quotation →
             </button>
+            )}
           </div>
         ) : (
           <div className="border border-slate-200 rounded-2xl overflow-hidden">

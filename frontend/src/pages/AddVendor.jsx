@@ -64,6 +64,13 @@ const AddVendor = () => {
       return;
     }
 
+    // Email selalu huruf kecil supaya alamat yang sama tidak tersimpan dalam
+    // beberapa bentuk penulisan yang berbeda.
+    if (name === 'email') {
+      setFormData({ ...formData, email: value.toLowerCase() });
+      return;
+    }
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -184,7 +191,7 @@ const AddVendor = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-1">
                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Email Address</label>
-                <input name="email" type="email" required placeholder="contact@vendor.com" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} />
+                <input name="email" type="email" required placeholder="contact@vendor.com" className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all" value={formData.email} autoCapitalize="none" autoCorrect="off" spellCheck={false} onChange={handleChange} />
               </div>
               <div className="space-y-1">
                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Phone / WhatsApp</label>

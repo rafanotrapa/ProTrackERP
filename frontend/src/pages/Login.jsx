@@ -142,7 +142,10 @@ const Login = () => {
                     className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 text-sm font-medium outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
                     placeholder="admin@protrack.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    onChange={(e) => setEmail(e.target.value.toLowerCase())}
                   />
                 </div>
               </div>

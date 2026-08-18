@@ -80,7 +80,10 @@ const ForgotPassword = () => {
                   className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500"
                   placeholder="email@protrack.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  onChange={(e) => setEmail(e.target.value.toLowerCase())}
                 />
               </div>
             </div>

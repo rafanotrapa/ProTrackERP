@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import PasswordChecklist from '../components/PasswordChecklist';
+import { passwordValid } from '../utils/passwordPolicy';
 
 const ResetPassword = () => {
   const { token } = useParams();
@@ -20,8 +22,8 @@ const ResetPassword = () => {
       return;
     }
     
-    if (password.length < 6) {
-      alert('Password minimal 6 karakter!');
+    if (!passwordValid(password)) {
+      alert('Password belum memenuhi semua syarat yang tercantum di bawah kolom password.');
       return;
     }
 
@@ -30,7 +32,12 @@ const ResetPassword = () => {
       await axios.post(`http://localhost:5000/api/auth/reset-password/${token}`, { password });
       setSubmitted(true);
     } catch (err) {
-      alert(err.response?.data?.msg || 'Token tidak valid atau sudah kadaluarsa.');
+      const rincian = err.response?.data?.errors;
+      alert(
+        Array.isArray(rincian)
+          ? `${err.response.data.msg}\n\n- ${rincian.join('\n- ')}`
+          : (err.response?.data?.msg || 'Token tidak valid atau sudah kadaluarsa.')
+      );
     } finally {
       setLoading(false);
     }
@@ -78,7 +85,7 @@ const ResetPassword = () => {
                   type={showPassword ? "text" : "password"}
                   required
                   className="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500"
-                  placeholder="Minimal 6 karakter"
+                  placeholder="Password baru"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -90,6 +97,7 @@ const ResetPassword = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              <PasswordChecklist password={password} />
             </div>
 
             <div>

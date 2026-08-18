@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import PasswordChecklist from '../components/PasswordChecklist';
+import { passwordValid } from '../utils/passwordPolicy';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -80,6 +82,15 @@ const Register = () => {
       });
     }
 
+    if (!passwordValid(formData.password, { username: formData.username, email: formData.email })) {
+      return Swal.fire({
+        icon: 'warning',
+        title: 'Password Belum Aman',
+        text: 'Lengkapi dulu semua syarat password yang tercantum di bawah kolom password.',
+        confirmButtonColor: '#4f46e5',
+      });
+    }
+
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -101,9 +112,17 @@ const Register = () => {
       });
 
     } catch (err) {
+      // Backend mengirim daftar syarat yang belum terpenuhi lewat field errors.
+      const rincian = err.response?.data?.errors;
       Swal.fire({
         title: 'ERROR!',
-        text: err.response?.data?.msg || 'Gagal registrasi user',
+        text: Array.isArray(rincian) ? undefined : (err.response?.data?.msg || 'Gagal registrasi user'),
+        html: Array.isArray(rincian)
+          ? `<p class="text-slate-700">${err.response.data.msg}</p>
+             <ul class="text-left text-sm text-slate-600 mt-3 list-disc pl-5">
+               ${rincian.map((e) => `<li>${e}</li>`).join('')}
+             </ul>`
+          : undefined,
         icon: 'error',
         confirmButtonColor: '#ef4444',
       });
@@ -153,7 +172,11 @@ const Register = () => {
                   type="email" required
                   className="w-full rounded-2xl bg-slate-50 border border-slate-100 p-4 font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all text-slate-600"
                   placeholder="johndoe@gmail.com"
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  value={formData.email}
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  onChange={(e) => setFormData({...formData, email: e.target.value.toLowerCase()})}
                 />
               </div>
 
@@ -247,6 +270,11 @@ const Register = () => {
                     )}
                   </button>
                 </div>
+                <PasswordChecklist
+                  password={formData.password}
+                  username={formData.username}
+                  email={formData.email}
+                />
               </div>
             </div>
 

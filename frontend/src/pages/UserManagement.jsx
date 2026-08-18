@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { cekSyarat, RINGKASAN_ATURAN } from '../utils/passwordPolicy';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -32,12 +33,24 @@ const UserManagement = () => {
     fetchUsers();
   }, []);
 
-  const resetPasswordManual = async (id, username) => {
+  const resetPasswordManual = async (id, username, email) => {
     const { value: newPass } = await Swal.fire({
       title: 'FORCE RESET PASSWORD',
-      html: `Set password baru untuk <strong>${username}</strong>`,
+      html: `Set password baru untuk <strong>${username}</strong>
+             <p class="text-slate-500 text-[11px] mt-3 leading-relaxed">${RINGKASAN_ATURAN}
+             Tidak boleh memuat username, email, atau kata yang mudah ditebak.</p>`,
       input: 'password',
-      inputPlaceholder: 'Input password (min. 6 karakter)',
+      inputPlaceholder: 'Password baru',
+      // Divalidasi di dalam modal supaya Admin langsung tahu bagian mana yang
+      // kurang, tanpa modalnya keburu tertutup.
+      inputValidator: (value) => {
+        if (!value) return 'Password wajib diisi.';
+        const belum = cekSyarat(value, { username, email })
+          .filter((s) => !s.lolos)
+          .map((s) => s.label);
+        if (belum.length) return `Belum memenuhi: ${belum.join(', ')}.`;
+        return undefined;
+      },
       showCancelButton: true,
       confirmButtonColor: '#4f46e5',
       cancelButtonColor: '#94a3b8',
@@ -52,15 +65,6 @@ const UserManagement = () => {
     });
 
     if (newPass) {
-      if (newPass.length < 6) {
-        return Swal.fire({
-          icon: 'error',
-          title: 'PASSWORD TERLALU PENDEK!',
-          text: 'Password minimal 6 karakter.',
-          confirmButtonColor: '#ef4444'
-        });
-      }
-
       try {
         const token = localStorage.getItem('token');
         await axios.patch(`http://localhost:5000/api/auth/reset-admin/${id}`,
@@ -75,10 +79,17 @@ const UserManagement = () => {
         });
         fetchUsers();
       } catch (err) {
+        const rincian = err.response?.data?.errors;
         Swal.fire({
           icon: 'error',
           title: 'GAGAL!',
-          text: err.response?.data?.msg || "Gagal reset password",
+          text: Array.isArray(rincian) ? undefined : (err.response?.data?.msg || "Gagal reset password"),
+          html: Array.isArray(rincian)
+            ? `<p class="text-slate-700">${err.response.data.msg}</p>
+               <ul class="text-left text-sm text-slate-600 mt-3 list-disc pl-5">
+                 ${rincian.map((e) => `<li>${e}</li>`).join('')}
+               </ul>`
+            : undefined,
           confirmButtonColor: '#ef4444'
         });
       }
@@ -271,7 +282,7 @@ const UserManagement = () => {
                           )}
 
                           <button
-                            onClick={() => resetPasswordManual(u._id, u.username)}
+                            onClick={() => resetPasswordManual(u._id, u.username, u.email)}
                             className="flex flex-col items-center group/btn"
                           >
                             <span className="text-indigo-600 font-black text-[12px] uppercase tracking-tighter group-hover/btn:underline">

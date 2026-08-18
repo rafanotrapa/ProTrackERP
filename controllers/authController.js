@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const { sendEmail } = require('../utils/emailService');
 const { resetPasswordTemplate } = require('../utils/emailTemplates');
 const { MODUL_BISA_DILIHAT } = require('../middleware/auth');
+const { validatePassword } = require('../utils/passwordPolicy');
 
 const RESET_EXPIRE_MINUTES = 10;
 
@@ -35,6 +36,14 @@ exports.register = async (req, res) => {
 
     if (role === 'Viewer' && (!Array.isArray(viewModules) || viewModules.length === 0)) {
       return res.status(400).json({ msg: 'Pilih minimal satu modul yang boleh dilihat akun Viewer.' });
+    }
+
+    const cekPassword = validatePassword(password, { username, email });
+    if (!cekPassword.valid) {
+      return res.status(400).json({
+        msg: 'Password belum memenuhi ketentuan keamanan.',
+        errors: cekPassword.errors
+      });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -234,6 +243,17 @@ exports.adminResetPassword = async (req, res) => {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ msg: 'User tidak ditemukan' });
 
+    const cekPassword = validatePassword(password, {
+      username: user.username,
+      email: user.email
+    });
+    if (!cekPassword.valid) {
+      return res.status(400).json({
+        msg: 'Password belum memenuhi ketentuan keamanan.',
+        errors: cekPassword.errors
+      });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -374,6 +394,17 @@ exports.resetPassword = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         msg: 'Token tidak valid atau sudah kadaluarsa.'
+      });
+    }
+
+    const cekPassword = validatePassword(password, {
+      username: user.username,
+      email: user.email
+    });
+    if (!cekPassword.valid) {
+      return res.status(400).json({
+        msg: 'Password belum memenuhi ketentuan keamanan.',
+        errors: cekPassword.errors
       });
     }
 

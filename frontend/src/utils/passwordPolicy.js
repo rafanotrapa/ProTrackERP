@@ -46,8 +46,14 @@ export const cekSyarat = (password = '', { username = '', email = '' } = {}) => 
   ];
 };
 
+// Batas bcrypt dihitung dalam BYTE, bukan karakter — harus sama dengan
+// Buffer.byteLength() di backend. Satu huruf beraksen memakan 2 byte dan emoji
+// bisa 4, jadi memakai password.length akan menampilkan checklist hijau untuk
+// password yang justru ditolak server.
+const panjangByte = (teks) => new TextEncoder().encode(teks).length;
+
 export const passwordValid = (password, identitas) =>
-  password.length <= PANJANG_MAX &&
+  panjangByte(password) <= PANJANG_MAX &&
   password === password.trim() &&
   cekSyarat(password, identitas).every((s) => s.lolos);
 

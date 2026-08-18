@@ -6,7 +6,6 @@ const {
   getExpenseById,
   getExpensesByProject,
   reviewExpense,
-  updateExpense,
   deleteExpense,
   getPendingExpenses,
 } = require('../controllers/expenseSubmissionController');
@@ -26,7 +25,8 @@ router.get('/:id', protect, getExpenseById);
 
 router.patch('/:id/review', protect, authorizeRoles('Finance','Admin'), reviewExpense);
 
-router.patch('/:id', protect, upload.single('file'), updateExpense);
+// Tidak ada rute edit. Pengajuan bersifat sekali kirim; setelah diajukan hanya
+// Finance yang boleh mengubah keadaannya, lewat /:id/review.
 
 router.delete('/:id', protect, deleteExpense);
 

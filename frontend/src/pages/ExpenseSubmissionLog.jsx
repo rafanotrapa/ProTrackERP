@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import {
-  CheckCircle, Clock, XCircle, Eye, Pencil, Trash2,
+  CheckCircle, Clock, XCircle, Eye, Trash2,
   FileText, Search, Plus,
 } from 'lucide-react';
 import Header from '../components/Header';
@@ -12,7 +12,6 @@ import { openSecureFile } from '../utils/secureFile';
 import { akunBacaSaja } from '../utils/peran';
 
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
-const stripNonNumeric = (str) => str.toString().replace(/[^0-9]/g, '');
 
 
 const ExpenseSubmissionLog = () => {
@@ -31,9 +30,6 @@ const ExpenseSubmissionLog = () => {
   // Akun lihat-saja tidak ditawari tombol yang mengubah data.
   const bacaSaja = akunBacaSaja();
 
-  const [editTarget, setEditTarget] = useState(null);
-  const [editForm, setEditForm]     = useState({ items: [], remarks: '' });
-  const [savingEdit, setSavingEdit] = useState(false);
 
   const fetchExpenses = async () => {
     try {
@@ -111,75 +107,6 @@ const ExpenseSubmissionLog = () => {
     }
   };
 
-  const openEdit = (exp) => {
-    setEditTarget(exp);
-    setEditForm({
-      items: (exp.items || []).map((it, idx) => ({
-        id: idx,
-        name: it.name || '',
-        description: it.description || '',
-        amount: it.amount || '',
-      })),
-      remarks: exp.remarks || '',
-    });
-  };
-
-  const updateEditItem = (id, field, value) => {
-    setEditForm((prev) => ({
-      ...prev,
-      items: prev.items.map((it) => {
-        if (it.id !== id) return it;
-        if (field === 'amount') {
-          const raw = stripNonNumeric(value);
-          return { ...it, amount: raw ? Number(raw) : '' };
-        }
-        return { ...it, [field]: value };
-      }),
-    }));
-  };
-
-  const addEditItem = () => {
-    setEditForm((prev) => ({
-      ...prev,
-      items: [...prev.items, { id: Date.now(), name: '', description: '', amount: '' }],
-    }));
-  };
-
-  const removeEditItem = (id) => {
-    setEditForm((prev) => ({
-      ...prev,
-      items: prev.items.length > 1 ? prev.items.filter((it) => it.id !== id) : prev.items,
-    }));
-  };
-
-  const handleSaveEdit = async () => {
-    const validItems = editForm.items.filter((it) => it.name.trim() && Number(it.amount) > 0);
-    if (validItems.length === 0) {
-      return Swal.fire('ITEM TIDAK VALID', 'Minimal satu item dengan nama & nominal wajib diisi!', 'warning');
-    }
-
-    setSavingEdit(true);
-    try {
-      const token = localStorage.getItem('token');
-      await axios.patch(
-        `http://localhost:5000/api/expense-submission/${editTarget._id}`,
-        {
-          items: JSON.stringify(validItems.map((it) => ({
-            name: it.name, description: it.description, amount: Number(it.amount),
-          }))),
-          remarks: editForm.remarks,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      Swal.fire({ icon: 'success', title: 'TERSIMPAN', timer: 1200, showConfirmButton: false });
-      setEditTarget(null);
-      fetchExpenses();
-    } catch (err) {
-      Swal.fire('GAGAL', err.response?.data?.msg || 'Gagal menyimpan perubahan', 'error');
-    } finally {
-      setSavingEdit(false);
-    }
-  };
 
   const handleDelete = async (exp) => {
     const result = await Swal.fire({
@@ -346,23 +273,17 @@ const ExpenseSubmissionLog = () => {
                           </button>
                         )}
 
+                        {/* Tidak ada tombol Edit: pengajuan bersifat sekali kirim.
+                            Setelah diajukan, satu-satunya kelanjutan yang sah
+                            adalah Approve atau Reject oleh Finance. */}
                         {!bacaSaja && exp.status !== 'Approved' && (
-                          <>
-                            <button
-                              onClick={() => openEdit(exp)}
-                              className="p-2 text-slate-500 hover:text-amber-600 transition-all"
-                              title="Edit"
-                            >
-                              <Pencil size={15} />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(exp)}
-                              className="p-2 text-slate-500 hover:text-rose-600 transition-all"
-                              title="Hapus"
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </>
+                          <button
+                            onClick={() => handleDelete(exp)}
+                            className="p-2 text-slate-500 hover:text-rose-600 transition-all"
+                            title="Hapus"
+                          >
+                            <Trash2 size={15} />
+                          </button>
                         )}
 
                         {!bacaSaja && isFinance && exp.status === 'Pending Verification' && (
@@ -391,97 +312,6 @@ const ExpenseSubmissionLog = () => {
         )}
       </main>
 
-      {editTarget && (
-        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 space-y-4 my-8">
-            <div className="flex justify-between items-center">
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter">
-                Edit Submission — {editTarget.submissionId}
-              </h3>
-              <button onClick={() => setEditTarget(null)} className="text-slate-400 hover:text-slate-600 text-lg font-black">✕</button>
-            </div>
-
-            <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
-              {editForm.items.map((it) => (
-                <div key={it.id} className="grid grid-cols-12 gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <div className="col-span-4">
-                    <label className="text-[10px] font-black text-slate-400 uppercase">Nama Biaya</label>
-                    <input
-                      type="text"
-                      value={it.name}
-                      onChange={(e) => updateEditItem(it.id, 'name', e.target.value)}
-                      className="w-full p-2 mt-0.5 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-amber-500"
-                    />
-                  </div>
-                  <div className="col-span-5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase">Deskripsi</label>
-                    <input
-                      type="text"
-                      value={it.description}
-                      onChange={(e) => updateEditItem(it.id, 'description', e.target.value)}
-                      className="w-full p-2 mt-0.5 bg-white border border-slate-300 rounded-lg text-xs outline-none focus:border-amber-500"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase">Nominal</label>
-                    <input
-                      type="text"
-                      value={formatRupiah(it.amount)}
-                      onChange={(e) => updateEditItem(it.id, 'amount', e.target.value)}
-                      className="w-full p-2 mt-0.5 bg-white border border-slate-300 rounded-lg text-xs font-black text-amber-600 text-right outline-none focus:border-amber-500"
-                    />
-                  </div>
-                  <div className="col-span-1 flex items-end justify-center pb-1">
-                    {editForm.items.length > 1 && (
-                      <button onClick={() => removeEditItem(it.id)} className="text-red-400 hover:text-red-600">
-                        <Trash2 size={14} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-              <button
-                onClick={addEditItem}
-                className="flex items-center gap-1.5 text-amber-600 font-black text-[11px] uppercase tracking-widest hover:text-amber-800"
-              >
-                <Plus size={12} /> Tambah Item
-              </button>
-            </div>
-
-            <div>
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Catatan</label>
-              <textarea
-                rows="2"
-                value={editForm.remarks}
-                onChange={(e) => setEditForm((p) => ({ ...p, remarks: e.target.value }))}
-                className="w-full p-2.5 mt-1 bg-white border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500 resize-none"
-              />
-            </div>
-
-            {editTarget.status === 'Rejected' && (
-              <p className="text-[11px] text-amber-600 bg-amber-50 rounded-lg p-2 font-bold">
-                ⚠ Submission ini sebelumnya ditolak. Setelah diedit, status akan kembali menjadi Pending Verification.
-              </p>
-            )}
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => setEditTarget(null)}
-                className="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest text-slate-500 border border-slate-200 hover:bg-slate-50"
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                disabled={savingEdit}
-                className="px-5 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50"
-              >
-                {savingEdit ? 'Menyimpan...' : 'Simpan'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Footer />
     </div>

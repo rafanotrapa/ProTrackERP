@@ -80,12 +80,34 @@ exports.submitExpense = async (req, res) => {
   }
 };
 
+/**
+ * Peran yang boleh melihat pengajuan milik semua orang.
+ *
+ * Finance memverifikasinya; Administrator, Owner, Management, dan Super Admin
+ * mengawasi. Sisanya — Marketing dan Procurement — adalah pihak pengaju, dan
+ * hanya boleh melihat pengajuannya sendiri.
+ *
+ * 'Admin' ikut disebut karena nama peran lama itu masih dipakai di sebagian
+ * rute; lihat catatan di middleware/auth.js.
+ */
+const PERAN_LIHAT_SEMUA = [
+  'Finance', 'Administrator', 'Admin', 'Owner', 'Management', 'Super Admin',
+];
+
+const bolehLihatSemua = (user) => PERAN_LIHAT_SEMUA.includes(user?.role);
+
 exports.getAllExpenses = async (req, res) => {
   try {
     const { status, projectId } = req.query;
     const filter = {};
     if (status)    filter.status    = status;
     if (projectId) filter.projectId = { $regex: projectId, $options: 'i' };
+
+    // Penyaringan dilakukan di query, bukan di frontend, supaya pengajuan orang
+    // lain tidak pernah ikut terkirim ke browser pengaju.
+    if (!bolehLihatSemua(req.user)) {
+      filter.submittedBy = req.user.id;
+    }
 
     const expenses = await ExpenseSubmission.find(filter)
       .populate('submittedBy', 'name username')
@@ -106,6 +128,13 @@ exports.getExpenseById = async (req, res) => {
       .populate('reviewedBy', 'name username');
 
     if (!expense) return res.status(404).json({ msg: 'Submission tidak ditemukan' });
+
+    // Menyaring daftar saja tidak cukup: tanpa pemeriksaan ini, pengaju masih
+    // bisa membuka milik orang lain dengan menebak/menyalin ID-nya.
+    if (!bolehLihatSemua(req.user) && String(expense.submittedBy?._id || expense.submittedBy) !== String(req.user.id)) {
+      return res.status(403).json({ msg: 'Anda hanya bisa melihat pengajuan sendiri.' });
+    }
+
     res.json(expense);
   } catch (err) {
     console.error('Error get expense by id:', err);
@@ -174,56 +203,11 @@ exports.reviewExpense = async (req, res) => {
   }
 };
 
-exports.updateExpense = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const existing = await ExpenseSubmission.findById(id);
-    if (!existing) return res.status(404).json({ msg: 'Submission tidak ditemukan' });
-
-    if (existing.status === 'Approved') {
-      return res.status(400).json({ msg: 'Submission yang sudah Approved tidak bisa diedit' });
-    }
-
-    const { currency, remarks, projectId, projectName } = req.body;
-
-    const userId   = req.user ? (req.user._id || req.user.id) : null;
-    const userName = req.user ? (req.user.name || req.user.username || 'System') : 'System';
-
-    const updateData = {
-      currency:    currency    || existing.currency,
-      remarks:     remarks     !== undefined ? remarks : existing.remarks,
-      projectId:   projectId   || existing.projectId,
-      projectName: projectName || existing.projectName,
-      status: existing.status === 'Rejected' ? 'Pending Verification' : existing.status,
-      $push: {
-        statusHistory: {
-          status:        existing.status === 'Rejected' ? 'Pending Verification' : existing.status,
-          changedBy:     userId,
-          changedByName: userName,
-          note:          'Submission diedit',
-          timestamp:     new Date(),
-        },
-      },
-    };
-
-    if (req.body.items !== undefined) {
-      const items = parseItems(req.body.items);
-      if (items.length === 0) {
-        return res.status(400).json({ msg: 'Minimal satu item biaya wajib diisi (nama & nominal)' });
-      }
-      updateData.items  = items;
-      updateData.amount = items.reduce((sum, it) => sum + it.amount, 0);
-    }
-
-    if (req.file) updateData.file = req.file.filename;
-
-    const updated = await ExpenseSubmission.findByIdAndUpdate(id, updateData, { new: true });
-    res.json({ success: true, msg: 'Submission berhasil diupdate', data: updated });
-  } catch (err) {
-    console.error('Error update expense:', err);
-    res.status(500).json({ msg: err.message });
-  }
-};
+// updateExpense sengaja dihapus. Pengajuan biaya bersifat sekali kirim: setelah
+// diajukan, satu-satunya perubahan yang sah datang dari Finance lewat
+// reviewExpense (Approved / Rejected). Mengizinkan pengaju menyunting isinya
+// membuat jejak audit tidak bisa dipercaya — nominal yang disetujui Finance bisa
+// berbeda dengan yang dilihatnya saat memutuskan.
 
 exports.deleteExpense = async (req, res) => {
   try {

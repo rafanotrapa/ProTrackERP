@@ -120,7 +120,13 @@ const CreatePO = () => {
                   value={formData.quotationId}
                   onChange={handleQuoteChange}
                   placeholder="-- Pilih Quotation Dasar (Deal) --"
-                  options={quotations.map((q) => ({ value: q._id, label: `${q.quotationId} (Project: ${q.projectId})` }))}
+                  options={quotations.map((q) => ({
+                    value: q._id,
+                    label: q.quotationId,
+                    // Nama project ditaruh di baris kedua supaya bisa dicari tanpa
+                    // harus ingat kode projectnya.
+                    sub: q.projectName ? `${q.projectName} • ${q.projectId}` : q.projectId,
+                  }))}
                 />
               </div>
 
@@ -134,9 +140,18 @@ const CreatePO = () => {
                <h3 className="text-[13px] font-black text-slate-300 uppercase tracking-[0.3em] flex items-center gap-3 italic mb-6"><span className="w-8 h-1 bg-blue-500"></span> 02. Goods Summary</h3>
                {selectedQuote ? (
                  <div className="flex-1 flex flex-col">
-                    <div className="mb-6 p-4 bg-slate-800 rounded-xl">
-                       <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-1">Vendor ID / Supplier</p>
-                       <p className="text-white font-bold">{selectedQuote.vendorId}</p>
+                    <div className="mb-6 space-y-3">
+                       <div className="p-4 bg-slate-800 rounded-xl">
+                          <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-1">Project</p>
+                          <p className="text-white font-bold">{selectedQuote.projectName || selectedQuote.projectId}</p>
+                          {selectedQuote.projectName && (
+                            <p className="mt-0.5 font-mono text-[12px] font-bold text-slate-500">{selectedQuote.projectId}</p>
+                          )}
+                       </div>
+                       <div className="p-4 bg-slate-800 rounded-xl">
+                          <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-1">Vendor ID / Supplier</p>
+                          <p className="text-white font-bold">{selectedQuote.vendorId}</p>
+                       </div>
                     </div>
 
                     <div className="flex-1 space-y-3 overflow-y-auto max-h-55 pr-2 custom-scrollbar">

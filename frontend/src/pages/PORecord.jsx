@@ -47,7 +47,8 @@ const PORecord = () => {
     const matchSearch =
       (po.poNumber             || '').toLowerCase().includes(term) ||
       (po.vendorId?.vendorName || '').toLowerCase().includes(term) ||
-      (po.projectId            || '').toLowerCase().includes(term);
+      (po.projectId            || '').toLowerCase().includes(term) ||
+      (po.projectName          || '').toLowerCase().includes(term);
     const matchStatus = statusFilter === 'all' ? true : po.paymentStatus === statusFilter;
     return matchSearch && matchStatus;
   });
@@ -168,6 +169,9 @@ const PORecord = () => {
                       <span className="px-3 py-1 bg-sky-50 text-sky-600 rounded-lg text-[11px] font-black uppercase tracking-widest border border-sky-100">
                         {po.projectId || 'N/A'}
                       </span>
+                      {po.projectName && (
+                        <p className="mt-1.5 text-[11px] font-bold text-slate-500">{po.projectName}</p>
+                      )}
                     </td>
                     <td className="px-6 py-5 text-center">
                       <span className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${

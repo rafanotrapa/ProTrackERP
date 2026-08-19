@@ -51,7 +51,8 @@ const SupplierQuotationRecord = () => {
     const matchSearch =
       (q.quotationId || '').toLowerCase().includes(term) ||
       (q.vendorId    || '').toLowerCase().includes(term) ||
-      (q.projectId   || '').toLowerCase().includes(term);
+      (q.projectId   || '').toLowerCase().includes(term) ||
+      (q.projectName || '').toLowerCase().includes(term);
     const currentStatus = q.approvalStatus || 'Pending';
     const matchStatus = statusFilter === 'all' ? true : currentStatus === statusFilter;
     return matchSearch && matchStatus;
@@ -176,6 +177,9 @@ const SupplierQuotationRecord = () => {
                         <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[11px] font-black uppercase tracking-widest border border-indigo-100">
                           {quo.projectId || 'N/A'}
                         </span>
+                        {quo.projectName && (
+                          <p className="mt-1.5 text-[11px] font-bold text-slate-500">{quo.projectName}</p>
+                        )}
                       </td>
                       <td className="px-6 py-5 text-center">
                         <span className={`px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${

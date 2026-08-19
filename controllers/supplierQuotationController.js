@@ -1,5 +1,6 @@
 const SupplierQuotation = require('../models/SupplierQuotation');
 const Vendor = require('../models/Vendor');
+const { lengkapiNamaProject } = require('../utils/projectNames');
 
 exports.createQuotation = async (req, res) => {
   try {
@@ -61,8 +62,10 @@ exports.createQuotation = async (req, res) => {
 
 exports.getAllQuotations = async (req, res) => {
   try {
-    const data = await SupplierQuotation.find().sort({ timestamp: -1 });
-    res.json(data);
+    // projectName ditempelkan di sini supaya daftar pilihan di layar bisa
+    // menampilkan nama project, bukan kodenya saja.
+    const data = await SupplierQuotation.find().sort({ timestamp: -1 }).lean();
+    res.json(await lengkapiNamaProject(data));
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

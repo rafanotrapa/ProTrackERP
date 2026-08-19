@@ -2,6 +2,7 @@ const PurchaseOrder = require('../models/PurchaseOrder');
 const SupplierQuotation = require('../models/SupplierQuotation');
 const Vendor = require('../models/Vendor');
 const { computePOPaymentStatuses, UNPAID } = require('../utils/poPaymentStatus');
+const { lengkapiNamaProject } = require('../utils/projectNames');
 
 // Field vendor yang dibutuhkan dokumen PO. Sebelumnya di sini tertulis
 // 'vendorContact', yang tidak ada di skema Vendor — nama sebenarnya
@@ -121,7 +122,9 @@ exports.getAllPOs = async (req, res) => {
       paymentStatus: statusMap.get(po.poNumber) || UNPAID,
     }));
 
-    res.json(hasil);
+    // Nama project ikut dikirim supaya daftar PO bisa dibaca dan dicari tanpa
+    // harus hafal kode projectnya.
+    res.json(await lengkapiNamaProject(hasil));
   } catch (err) {
     console.error('Error get all PO:', err.message);
     res.status(500).json({ msg: 'Gagal mengambil data PO' });

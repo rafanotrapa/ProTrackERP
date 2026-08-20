@@ -17,7 +17,7 @@ const PasswordChecklist = ({ password = '', username = '', email = '', tampil = 
       {syarat.map((s) => (
         <li
           key={s.label}
-          className={`flex items-center gap-2 text-[11px] font-bold ${
+          className={`flex items-center gap-2 text-xs font-bold ${
             s.lolos ? 'text-emerald-600' : 'text-slate-400'
           }`}
         >

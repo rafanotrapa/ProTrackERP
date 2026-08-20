@@ -62,7 +62,7 @@ const StyledSelect = ({
           {selected?.label || placeholder}
           {selected?.sub && <span className="ml-2 font-semibold text-slate-500">{selected.sub}</span>}
         </span>
-        <span className={`text-[10px] ml-2 transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
+        <span className={`text-2xs ml-2 transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
       </div>
 
       {open && (
@@ -79,13 +79,13 @@ const StyledSelect = ({
           )}
           <ul className="max-h-48 overflow-y-auto">
             {filtered.length === 0 ? (
-              <li className="px-4 py-3 text-[12px] font-black text-slate-300 uppercase">No options</li>
+              <li className="px-4 py-3 text-xs font-black text-slate-300 uppercase">No options</li>
             ) : (
               filtered.map((opt) => (
                 <li
                   key={String(opt.value)}
                   onClick={() => pick(opt)}
-                  className={`group px-4 py-3 text-[12px] font-black uppercase transition-all ${
+                  className={`group px-4 py-3 text-xs font-black uppercase transition-all ${
                     opt.disabled
                       ? 'text-slate-300 cursor-not-allowed'
                       : String(opt.value) === String(value)
@@ -99,7 +99,7 @@ const StyledSelect = ({
                   {opt.sub ? <span className="block truncate">{opt.label}</span> : opt.label}
                   {opt.sub && (
                     <span
-                      className={`mt-0.5 block truncate text-[11px] font-bold normal-case tracking-normal ${
+                      className={`mt-0.5 block truncate text-xs font-bold normal-case tracking-normal ${
                         opt.disabled
                           ? 'text-slate-300'
                           : String(opt.value) === String(value)

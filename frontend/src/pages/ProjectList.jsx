@@ -115,7 +115,7 @@ const ProjectList = () => {
 
   const SortTh = ({ label, field, className = '' }) => (
     <th
-      className={`px-4 py-3 text-left text-[11px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap select-none cursor-pointer hover:text-white transition-colors ${className}`}
+      className={`px-4 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-400 whitespace-nowrap select-none cursor-pointer hover:text-white transition-colors ${className}`}
       onClick={() => handleSort(field)}
     >
       {label}
@@ -128,7 +128,7 @@ const ProjectList = () => {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4" />
-          <p className="font-black text-slate-400 text-[12px] uppercase tracking-widest">LOADING PROJECTS...</p>
+          <p className="font-black text-slate-400 text-xs uppercase tracking-widest">LOADING PROJECTS...</p>
         </div>
       </div>
     );
@@ -149,7 +149,7 @@ const ProjectList = () => {
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter italic uppercase">
             Project <span className="text-indigo-600">List</span>
           </h1>
-          <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] italic">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] italic">
             {projects.length} Projects &bull; Real-time Status
           </p>
         </div>
@@ -167,7 +167,7 @@ const ProjectList = () => {
               <button
                 key={t.key}
                 onClick={() => setStatusFilter(t.key)}
-                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest border transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${
                   statusFilter === t.key ? t.active : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -182,7 +182,7 @@ const ProjectList = () => {
               placeholder="Cari Project ID, Nama, Client..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-[14px] font-medium outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-300"
+              className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-300"
             />
           </div>
         </div>
@@ -191,7 +191,7 @@ const ProjectList = () => {
           <div className="py-32 text-center bg-white rounded-2xl border border-slate-100">
             <FolderOpen size={36} className="text-slate-200 mx-auto mb-3" />
             <p className="text-slate-400 font-black text-base uppercase tracking-tighter italic">Tidak ada project</p>
-            <p className="text-[12px] text-slate-400 mt-1">Coba ubah filter atau kata kunci pencarian</p>
+            <p className="text-xs text-slate-400 mt-1">Coba ubah filter atau kata kunci pencarian</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
@@ -203,9 +203,9 @@ const ProjectList = () => {
                     <SortTh label="Project Name" field="projectName" className="min-w-45" />
                     <SortTh label="Client" field="clientName" className="min-w-35" />
                     <SortTh label="Total Contract" field="totalContract" className="w-44" />
-                    <th className="px-4 py-3 text-left text-[11px] font-black uppercase tracking-widest text-slate-400 w-48">Progress</th>
-                    <th className="px-4 py-3 text-left text-[11px] font-black uppercase tracking-widest text-slate-400 w-32">Status</th>
-                    <th className="px-4 py-3 text-center text-[11px] font-black uppercase tracking-widest text-slate-400 w-16">Detail</th>
+                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-400 w-48">Progress</th>
+                    <th className="px-4 py-3 text-left text-xs font-black uppercase tracking-widest text-slate-400 w-32">Status</th>
+                    <th className="px-4 py-3 text-center text-xs font-black uppercase tracking-widest text-slate-400 w-16">Detail</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -219,23 +219,23 @@ const ProjectList = () => {
                         className={`group cursor-pointer transition-colors hover:bg-indigo-50 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}
                       >
                         <td className="px-4 py-3.5 whitespace-nowrap">
-                          <span className="text-[12px] font-black text-indigo-600 bg-indigo-50 group-hover:bg-indigo-100 px-2 py-1 rounded-lg transition-colors">
+                          <span className="text-xs font-black text-indigo-600 bg-indigo-50 group-hover:bg-indigo-100 px-2 py-1 rounded-lg transition-colors">
                             {p.projectId}
                           </span>
                         </td>
                         <td className="px-4 py-3.5">
-                          <p className="font-black text-slate-800 uppercase italic tracking-tight text-[14px] line-clamp-1 group-hover:text-indigo-700 transition-colors">
+                          <p className="font-black text-slate-800 uppercase italic tracking-tight text-sm line-clamp-1 group-hover:text-indigo-700 transition-colors">
                             {p.projectName || 'Untitled'}
                           </p>
                         </td>
                         <td className="px-4 py-3.5">
-                          <p className="text-[13px] font-semibold text-slate-600 line-clamp-1">
+                          <p className="text-sm font-semibold text-slate-600 line-clamp-1">
                             {p.clientName || p.institutionName || '—'}
                           </p>
                         </td>
                         <td className="px-4 py-3.5 whitespace-nowrap">
-                          <p className="text-[14px] font-black text-slate-800">{fmt(p.totalContract)}</p>
-                          <p className="text-[10px] text-emerald-600 font-bold">Paid: {fmt(p.totalPaid)}</p>
+                          <p className="text-sm font-black text-slate-800">{fmt(p.totalContract)}</p>
+                          <p className="text-2xs text-emerald-600 font-bold">Paid: {fmt(p.totalPaid)}</p>
                         </td>
                         <td className="px-4 py-3.5">
                           <div className="flex items-center gap-2">
@@ -245,16 +245,16 @@ const ProjectList = () => {
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
-                            <span className={`text-[12px] font-black w-8 text-right ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>
+                            <span className={`text-xs font-black w-8 text-right ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>
                               {pct}%
                             </span>
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-0.5">
+                          <p className="text-2xs text-slate-400 mt-0.5">
                             {p.paidCount || 0}/{p.stagesCount || 1} stages paid
                           </p>
                         </td>
                         <td className="px-4 py-3.5">
-                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black uppercase ${s.bg} ${s.text}`}>
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xs font-black uppercase ${s.bg} ${s.text}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
                             {s.label}
                           </span>
@@ -271,10 +271,10 @@ const ProjectList = () => {
               </table>
             </div>
             <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                 {filtered.length} dari {projects.length} project
               </p>
-              <p className="text-[11px] text-slate-300 font-black uppercase italic">
+              <p className="text-xs text-slate-300 font-black uppercase italic">
                 Klik baris untuk lihat timeline
               </p>
             </div>

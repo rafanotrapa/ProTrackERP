@@ -37,7 +37,7 @@ const UserManagement = () => {
     const { value: newPass } = await Swal.fire({
       title: 'FORCE RESET PASSWORD',
       html: `Set password baru untuk <strong>${username}</strong>
-             <p class="text-slate-500 text-[11px] mt-3 leading-relaxed">${RINGKASAN_ATURAN}
+             <p class="text-slate-500 text-xs mt-3 leading-relaxed">${RINGKASAN_ATURAN}
              Tidak boleh memuat username, email, atau kata yang mudah ditebak.</p>`,
       input: 'password',
       inputPlaceholder: 'Password baru',
@@ -59,8 +59,8 @@ const UserManagement = () => {
       customClass: {
         title: 'font-black italic uppercase tracking-tighter',
         input: 'rounded-xl border-slate-200 font-bold',
-        confirmButton: 'rounded-xl font-black text-[12px] tracking-widest px-6 py-3',
-        cancelButton: 'rounded-xl font-black text-[12px] tracking-widest px-6 py-3'
+        confirmButton: 'rounded-xl font-black text-xs tracking-widest px-6 py-3',
+        cancelButton: 'rounded-xl font-black text-xs tracking-widest px-6 py-3'
       }
     });
 
@@ -108,8 +108,8 @@ const UserManagement = () => {
       cancelButtonText: 'BATAL',
       customClass: {
         title: 'font-black italic uppercase tracking-tighter',
-        confirmButton: 'rounded-xl font-black text-[12px] tracking-widest px-6 py-3',
-        cancelButton: 'rounded-xl font-black text-[12px] tracking-widest px-6 py-3'
+        confirmButton: 'rounded-xl font-black text-xs tracking-widest px-6 py-3',
+        cancelButton: 'rounded-xl font-black text-xs tracking-widest px-6 py-3'
       }
     });
 
@@ -149,8 +149,8 @@ const UserManagement = () => {
       cancelButtonText: 'CANCEL',
       customClass: {
         title: 'font-black italic uppercase tracking-tighter',
-        confirmButton: 'rounded-xl font-black text-[12px] tracking-widest px-6 py-3',
-        cancelButton: 'rounded-xl font-black text-[12px] tracking-widest px-6 py-3'
+        confirmButton: 'rounded-xl font-black text-xs tracking-widest px-6 py-3',
+        cancelButton: 'rounded-xl font-black text-xs tracking-widest px-6 py-3'
       }
     });
 
@@ -193,7 +193,7 @@ const UserManagement = () => {
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
               User <span className="text-indigo-600">Management</span>
             </h1>
-            <p className="text-slate-400 font-bold text-[12px] uppercase tracking-[0.2em] mt-2 italic">Administrative Control • Password Override</p>
+            <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em] mt-2 italic">Administrative Control • Password Override</p>
           </div>
         </div>
 
@@ -211,12 +211,12 @@ const UserManagement = () => {
         <div className="mx-auto w-full max-w-7xl bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden">
 
           <div className="px-8 py-8 md:px-10">
-             <span className="text-[13px] font-black text-slate-400 uppercase tracking-[0.4em] italic">Registered Personnel</span>
+             <span className="text-sm font-black text-slate-400 uppercase tracking-[0.4em] italic">Registered Personnel</span>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-slate-900 text-white uppercase text-[12px] font-black tracking-[0.2em] italic">
+              <thead className="bg-slate-900 text-white uppercase text-xs font-black tracking-[0.2em] italic">
                 <tr>
                   <th className="px-8 md:px-10 py-6 whitespace-nowrap">Karyawan / Division</th>
                   <th className="px-8 md:px-10 py-6 whitespace-nowrap">Email Address</th>
@@ -243,7 +243,7 @@ const UserManagement = () => {
                       <td className="px-8 md:px-10 py-6">
                         <div className="flex flex-col">
                           <span className="font-black text-slate-800 italic uppercase tracking-tight text-lg">{u.username}</span>
-                          <span className={`w-fit mt-1 px-3 py-0.5 rounded-full text-[11px] font-black uppercase shadow-sm ${
+                          <span className={`w-fit mt-1 px-3 py-0.5 rounded-full text-xs font-black uppercase shadow-sm ${
                             u.role === 'Admin' ? 'bg-red-500 text-white shadow-red-100' :
                             u.role === 'Management' ? 'bg-purple-600 text-white shadow-purple-100' :
                             'bg-indigo-600 text-white shadow-indigo-100'
@@ -257,11 +257,11 @@ const UserManagement = () => {
 
                       <td className="px-8 md:px-10 py-6 text-center">
                         {u.isLocked ? (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black bg-red-100 text-red-600 shadow-sm">
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-red-100 text-red-600 shadow-sm">
                             🔒 LOCKED
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-600 shadow-sm">
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-600 shadow-sm">
                             ✓ ACTIVE
                           </span>
                         )}
@@ -274,10 +274,10 @@ const UserManagement = () => {
                               onClick={() => unlockAccount(u._id, u.username)}
                               className="flex flex-col items-center group/btn"
                             >
-                              <span className="text-amber-600 font-black text-[12px] uppercase tracking-tighter group-hover/btn:underline">
+                              <span className="text-amber-600 font-black text-xs uppercase tracking-tighter group-hover/btn:underline">
                                 🔓 Unlock
                               </span>
-                              <span className="text-[11px] opacity-30 italic font-bold">Buka Blokir</span>
+                              <span className="text-xs opacity-30 italic font-bold">Buka Blokir</span>
                             </button>
                           )}
 
@@ -285,10 +285,10 @@ const UserManagement = () => {
                             onClick={() => resetPasswordManual(u._id, u.username, u.email)}
                             className="flex flex-col items-center group/btn"
                           >
-                            <span className="text-indigo-600 font-black text-[12px] uppercase tracking-tighter group-hover/btn:underline">
+                            <span className="text-indigo-600 font-black text-xs uppercase tracking-tighter group-hover/btn:underline">
                               Reset Pass
                             </span>
-                            <span className="text-[11px] opacity-30 italic font-bold">Override</span>
+                            <span className="text-xs opacity-30 italic font-bold">Override</span>
                           </button>
 
                           <div className="w-px h-8 bg-slate-100"></div>
@@ -297,10 +297,10 @@ const UserManagement = () => {
                             onClick={() => deleteUser(u._id, u.username)}
                             className="flex flex-col items-center group/del"
                           >
-                            <span className="text-red-400 font-black text-[12px] uppercase tracking-tighter group-hover/del:text-red-600 group-hover/del:underline">
+                            <span className="text-red-400 font-black text-xs uppercase tracking-tighter group-hover/del:text-red-600 group-hover/del:underline">
                               Remove
                             </span>
-                            <span className="text-[11px] opacity-30 italic font-bold">Revoke</span>
+                            <span className="text-xs opacity-30 italic font-bold">Revoke</span>
                           </button>
                         </div>
                       </td>

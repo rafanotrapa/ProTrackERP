@@ -37,7 +37,7 @@ const ExpenseSubmissionMenu = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Expense <span className="text-amber-600">Submission</span>
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">
             Biaya Tambahan • Reimburse & Operasional Project
           </p>
         </div>
@@ -45,7 +45,7 @@ const ExpenseSubmissionMenu = () => {
 
       <main className="flex-1 p-8 md:p-12 lg:p-16 max-w-5xl mx-auto w-full">
         <div className="flex justify-between items-end mb-6 px-2">
-          <h2 className="text-[13px] font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">
+          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">
             Expense Operations
           </h2>
         </div>
@@ -61,9 +61,9 @@ const ExpenseSubmissionMenu = () => {
                 {React.cloneElement(menu.icon, { size: 20, className: "text-slate-600 group-hover:text-white transition-all" })}
               </div>
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-1">{menu.title}</h3>
-              <p className="text-[11px] font-bold text-slate-400 leading-relaxed mb-3">{menu.desc}</p>
+              <p className="text-xs font-bold text-slate-400 leading-relaxed mb-3">{menu.desc}</p>
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Access</span>
+                <span className="text-2xs font-black text-slate-400 uppercase tracking-widest">Access</span>
                 <ArrowRight size={12} className="text-slate-300 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
               </div>
             </div>
@@ -71,7 +71,7 @@ const ExpenseSubmissionMenu = () => {
         </div>
 
         <div className="mt-8 bg-amber-50 border border-amber-200 rounded-2xl p-4">
-          <p className="text-[11px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
+          <p className="text-xs font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
             <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
             Setiap pengajuan akan masuk sebagai beban tambahan project setelah disetujui Finance.
           </p>

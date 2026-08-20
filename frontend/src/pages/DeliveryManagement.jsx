@@ -40,12 +40,12 @@ const DeliveryManagement = () => {
       title: 'SET DELIVERY SCHEDULE',
       html: `
         <div class="text-left space-y-4">
-          <div><label class="text-[12px] font-black uppercase text-slate-400">Tgl Pengiriman</label><input id="swal-date" type="date" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-[12px] font-black uppercase text-slate-400">Jumlah Barang</label><input id="swal-qty" type="number" min="1" value="${totalQtyPO || ''}" placeholder="Total unit yang dikirim" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-[12px] font-black uppercase text-slate-400">Kurir / Ekspedisi</label><input id="swal-courier" placeholder="Misal: Lalamove / Kurir Internal" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-[12px] font-black uppercase text-slate-400">Nomor Resi (Opsional)</label><input id="swal-resi" placeholder="Bisa diisi nanti" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-[12px] font-black uppercase text-slate-400">Nama Penandatangan (Pengirim)</label><input id="swal-signer" placeholder="Nama pihak pengirim" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-[12px] font-black uppercase text-slate-400">Foto Barang</label><input id="swal-photo" type="file" accept="image/*" class="w-full p-3 border rounded-lg outline-none text-xs"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">Tgl Pengiriman</label><input id="swal-date" type="date" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">Jumlah Barang</label><input id="swal-qty" type="number" min="1" value="${totalQtyPO || ''}" placeholder="Total unit yang dikirim" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">Kurir / Ekspedisi</label><input id="swal-courier" placeholder="Misal: Lalamove / Kurir Internal" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">Nomor Resi (Opsional)</label><input id="swal-resi" placeholder="Bisa diisi nanti" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">Nama Penandatangan (Pengirim)</label><input id="swal-signer" placeholder="Nama pihak pengirim" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">Foto Barang</label><input id="swal-photo" type="file" accept="image/*" class="w-full p-3 border rounded-lg outline-none text-xs"></div>
         </div>
       `,
       focusConfirm: false,
@@ -266,7 +266,7 @@ const DeliveryManagement = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-500 mx-auto mb-4" />
-            <p className="text-[12px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-400">Loading...</p>
           </div>
         </div>
       </div>
@@ -288,7 +288,7 @@ const DeliveryManagement = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Delivery <span className="text-cyan-500">Management</span>
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
             Logistics • Client Shipment
           </p>
         </div>
@@ -308,7 +308,7 @@ const DeliveryManagement = () => {
               <button
                 key={key}
                 onClick={() => setStatusFilter(key)}
-                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                   statusFilter === key ? cls : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -338,7 +338,7 @@ const DeliveryManagement = () => {
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <table className="w-full text-left">
               <thead className="bg-slate-50">
-                <tr className="text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
+                <tr className="text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">Project / Target</th>
                   <th className="px-6 py-4">Schedule & Courier</th>
                   <th className="px-6 py-4 text-center">Delivery Status</th>
@@ -355,24 +355,24 @@ const DeliveryManagement = () => {
                         </div>
                         <div>
                           <p className="font-black text-slate-800 text-sm">Proj: {po.projectId}</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5 line-clamp-1 max-w-[250px]">{po.shippingAddress}</p>
+                          <p className="text-xs text-slate-400 mt-0.5 line-clamp-1 max-w-[250px]">{po.shippingAddress}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-5">
                       {po.deliveryStatus === 'Pending' || !po.deliveryStatus ? (
-                        <span className="text-[12px] font-bold text-slate-300 uppercase">Not Scheduled Yet</span>
+                        <span className="text-xs font-bold text-slate-300 uppercase">Not Scheduled Yet</span>
                       ) : (
                         <div>
                           <p className="text-xs font-black text-slate-700">{formatDate(po.deliveryDate)}</p>
-                          <p className="text-[11px] font-bold text-cyan-600 uppercase tracking-widest mt-0.5">
+                          <p className="text-xs font-bold text-cyan-600 uppercase tracking-widest mt-0.5">
                             {po.courierName} {po.trackingNumber ? `(${po.trackingNumber})` : ''}
                           </p>
                           {po.deliveryPhoto && (
                             <button
                               type="button"
                               onClick={() => openSecureFile(po.deliveryPhoto)}
-                              className="inline-block mt-1 text-[11px] font-black text-indigo-600 hover:underline uppercase tracking-widest"
+                              className="inline-block mt-1 text-xs font-black text-indigo-600 hover:underline uppercase tracking-widest"
                             >
                               📷 Lihat Foto
                             </button>
@@ -382,16 +382,16 @@ const DeliveryManagement = () => {
                     </td>
                     <td className="px-6 py-5 text-center">
                       {(po.deliveryStatus === 'Pending' || !po.deliveryStatus) && (
-                        <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-[11px] font-black uppercase tracking-widest">PENDING</span>
+                        <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-black uppercase tracking-widest">PENDING</span>
                       )}
                       {po.deliveryStatus === 'Scheduled' && (
-                        <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-[11px] font-black uppercase tracking-widest">SCHEDULED</span>
+                        <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-xs font-black uppercase tracking-widest">SCHEDULED</span>
                       )}
                       {po.deliveryStatus === 'In Transit' && (
-                        <span className="px-3 py-1 bg-amber-100 text-amber-600 rounded-full text-[11px] font-black uppercase tracking-widest animate-pulse">IN TRANSIT</span>
+                        <span className="px-3 py-1 bg-amber-100 text-amber-600 rounded-full text-xs font-black uppercase tracking-widest animate-pulse">IN TRANSIT</span>
                       )}
                       {po.deliveryStatus === 'Delivered' && (
-                        <span className="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-[11px] font-black uppercase tracking-widest">DELIVERED</span>
+                        <span className="px-3 py-1 bg-emerald-100 text-emerald-600 rounded-full text-xs font-black uppercase tracking-widest">DELIVERED</span>
                       )}
                     </td>
                     <td className="px-6 py-5 text-right">
@@ -399,7 +399,7 @@ const DeliveryManagement = () => {
                         {(po.deliveryStatus === 'Pending' || !po.deliveryStatus) && (
                           <button
                             onClick={() => handleSchedule(po)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg font-black text-[11px] uppercase tracking-widest hover:bg-cyan-600 transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-cyan-600 transition-all"
                           >
                             <CalendarClock size={13} /> SCHEDULE
                           </button>
@@ -407,7 +407,7 @@ const DeliveryManagement = () => {
                         {po.deliveryStatus === 'Scheduled' && (
                           <button
                             onClick={() => updateStatus(po._id, 'In Transit')}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg font-black text-[11px] uppercase tracking-widest hover:bg-blue-700 transition-all"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all"
                           >
                             <Truck size={13} /> MARK SENT
                           </button>
@@ -415,7 +415,7 @@ const DeliveryManagement = () => {
                         {po.deliveryStatus === 'In Transit' && (
                           <button
                             onClick={() => updateStatus(po._id, 'Delivered')}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg font-black text-[11px] uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-sm"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-white rounded-lg font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-sm"
                           >
                             <PackageCheck size={13} /> ARRIVED
                           </button>

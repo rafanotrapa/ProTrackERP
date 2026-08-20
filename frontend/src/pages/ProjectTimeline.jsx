@@ -37,7 +37,7 @@ const StatusPill = ({ status, size = 'sm' }) => {
   };
   const cfg = map[status] || map['Pending'];
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wide ${cfg.bg} ${cfg.text}`}>
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-2xs font-black uppercase tracking-wide ${cfg.bg} ${cfg.text}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
       {status || 'Pending'}
     </span>
@@ -52,9 +52,9 @@ const Section = ({ icon, title, badge, id, open, onToggle, children }) => (
     >
       <div className="flex items-center gap-2.5">
         <span className="text-slate-400 group-hover:text-indigo-500 transition-colors">{icon}</span>
-        <span className="text-[13px] font-black text-slate-600 uppercase tracking-widest">{title}</span>
+        <span className="text-sm font-black text-slate-600 uppercase tracking-widest">{title}</span>
         {badge != null && (
-          <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-2 py-0.5 rounded-full">
+          <span className="bg-slate-100 text-slate-500 text-2xs font-black px-2 py-0.5 rounded-full">
             {badge}
           </span>
         )}
@@ -67,7 +67,7 @@ const Section = ({ icon, title, badge, id, open, onToggle, children }) => (
 
 const InfoRow = ({ label, value, valueClass = 'text-slate-800', border = true }) => (
   <div className={`flex justify-between items-center py-2.5 ${border ? 'border-b border-slate-100' : ''}`}>
-    <span className="text-[13px] font-semibold text-slate-500">{label}</span>
+    <span className="text-sm font-semibold text-slate-500">{label}</span>
     <span className={`font-black text-sm ${valueClass}`}>{value}</span>
   </div>
 );
@@ -112,7 +112,7 @@ const ProjectTimeline = () => {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4" />
-          <p className="font-black text-slate-400 text-[12px] uppercase tracking-widest">LOADING TIMELINE...</p>
+          <p className="font-black text-slate-400 text-xs uppercase tracking-widest">LOADING TIMELINE...</p>
         </div>
       </div>
     );
@@ -124,8 +124,8 @@ const ProjectTimeline = () => {
         <div className="text-center">
           <AlertCircle size={40} className="text-slate-300 mx-auto mb-3" />
           <p className="font-black text-slate-700 text-xl uppercase tracking-tight">Project Not Found</p>
-          <p className="text-[12px] text-slate-400 mt-1">{projectId}</p>
-          <button onClick={() => navigate('/timeline')} className="mt-5 px-5 py-2 bg-indigo-600 text-white rounded-xl text-[12px] font-black uppercase hover:bg-indigo-700 transition-all">
+          <p className="text-xs text-slate-400 mt-1">{projectId}</p>
+          <button onClick={() => navigate('/timeline')} className="mt-5 px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase hover:bg-indigo-700 transition-all">
             ← Kembali ke List
           </button>
         </div>
@@ -162,19 +162,19 @@ const ProjectTimeline = () => {
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg font-black text-slate-900 uppercase tracking-tight">{project.projectId}</h1>
-              <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${isComplete ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+              <span className={`px-2.5 py-0.5 rounded-full text-2xs font-black uppercase ${isComplete ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                 {isComplete ? '✓ SELESAI' : '● BERJALAN'}
               </span>
             </div>
-            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Project Timeline</p>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Project Timeline</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Grand Total</p>
+            <p className="text-2xs font-black text-slate-400 uppercase tracking-wider">Grand Total</p>
             <p className="text-sm font-black text-slate-800">{fmt(financial.grandTotal)}</p>
           </div>
-          <div className={`px-3 py-1.5 rounded-xl text-[13px] font-black bg-slate-100 ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>
+          <div className={`px-3 py-1.5 rounded-xl text-sm font-black bg-slate-100 ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>
             {pct}% progress
           </div>
         </div>
@@ -188,7 +188,7 @@ const ProjectTimeline = () => {
               {project.projectName}
             </h2>
             {guaranteeActive && (
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-700 whitespace-nowrap">
+              <span className="px-2.5 py-0.5 rounded-full text-2xs font-black uppercase bg-emerald-100 text-emerald-700 whitespace-nowrap">
                 ✓ Done with 1 Year Guarantee
               </span>
             )}
@@ -203,8 +203,8 @@ const ProjectTimeline = () => {
               { label: 'Terms of Payment', value: financial.topOption, bg: 'bg-amber-50', text: 'text-amber-700' }
             ].map((item, i) => (
               <div key={i} className={`${item.bg} rounded-xl p-3`}>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-0.5">{item.label}</p>
-                <p className={`text-[13px] font-black ${item.text} line-clamp-1`}>{item.value}</p>
+                <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-0.5">{item.label}</p>
+                <p className={`text-sm font-black ${item.text} line-clamp-1`}>{item.value}</p>
               </div>
             ))}
           </div>
@@ -212,12 +212,12 @@ const ProjectTimeline = () => {
           {(project.clientContact || project.clientAddress) && (
             <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-slate-100">
               {project.clientContact && (
-                <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
+                <span className="flex items-center gap-1.5 text-xs text-slate-500">
                   <Phone size={11} className="text-slate-400" /> {project.clientContact}
                 </span>
               )}
               {project.clientAddress && (
-                <span className="flex items-center gap-1.5 text-[12px] text-slate-500">
+                <span className="flex items-center gap-1.5 text-xs text-slate-500">
                   <MapPin size={11} className="text-slate-400" /> {project.clientAddress}
                 </span>
               )}
@@ -227,15 +227,20 @@ const ProjectTimeline = () => {
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[13px] font-black text-slate-400 uppercase tracking-widest">Progress Project</h3>
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Progress Project</h3>
             <span className={`text-2xl font-black ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>{pct}%</span>
           </div>
           <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden mb-2">
             <div className={`h-full rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${Math.min(pct, 100)}%` }} />
           </div>
-          <div className="flex justify-between text-[11px] font-black text-slate-400">
-            <span>{fmt(financial.totalPaid)} terbayar ({progress.paymentPercent ?? pct}% payment)</span>
-            <span>{fmt(financial.grandTotal)} total kontrak</span>
+          {/* slate-400 di atas latar putih hanya mencapai kontras 2,6:1, di bawah
+              ambang WCAG AA 4,5:1. slate-500 mencapai 4,8:1. Nominalnya sendiri
+              dinaikkan ke slate-700 supaya terbaca sebagai data, bukan caption —
+              ini pasangan angka terpenting di halaman dan sebelumnya justru yang
+              paling pudar. */}
+          <div className="flex justify-between text-xs font-black text-slate-500">
+            <span><span className="text-slate-700">{fmt(financial.totalPaid)}</span> terbayar ({progress.paymentPercent ?? pct}% payment)</span>
+            <span><span className="text-slate-700">{fmt(financial.grandTotal)}</span> total kontrak</span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mt-5 pt-5 border-t border-slate-100">
@@ -244,7 +249,7 @@ const ProjectTimeline = () => {
                 {m.done
                   ? <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
                   : <Clock size={14} className={`shrink-0 ${m.percent > 0 ? 'text-amber-400' : 'text-slate-300'}`} />}
-                <span className={`text-[11px] font-black uppercase ${m.done ? 'text-emerald-700' : m.percent > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
+                <span className={`text-xs font-black uppercase ${m.done ? 'text-emerald-700' : m.percent > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
                   {m.label}{!m.done && m.percent > 0 ? ` ${m.percent}%` : ''}
                 </span>
               </div>
@@ -258,7 +263,7 @@ const ProjectTimeline = () => {
         >
           {paymentStages.length === 0 ? (
             <div className="px-6 py-10 text-center">
-              <p className="text-[12px] font-black text-slate-300 uppercase">Belum ada stages — approve client quotation terlebih dahulu</p>
+              <p className="text-xs font-black text-slate-300 uppercase">Belum ada stages — approve client quotation terlebih dahulu</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -271,7 +276,7 @@ const ProjectTimeline = () => {
                     stage.status === 'Unpaid' ? 'bg-amber-50/40' : 'bg-white'
                   }`}
                 >
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-[13px] font-black ${
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-black ${
                     stage.status === 'Paid' ? 'bg-emerald-500 text-white' :
                     stage.status === 'Partial' ? 'bg-sky-100 text-sky-700' :
                     stage.status === 'Unpaid' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-400'
@@ -282,15 +287,15 @@ const ProjectTimeline = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-black text-slate-800">{stage.name}</p>
-                      <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{stage.percentage}%</span>
+                      <span className="text-2xs font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{stage.percentage}%</span>
                     </div>
                     {stage.invoice && (
-                      <p className="text-[11px] text-indigo-500 font-bold mt-0.5">
+                      <p className="text-xs text-indigo-500 font-bold mt-0.5">
                         {stage.invoice.invoiceNumber} &bull; Due {fmtDate(stage.invoice.dueDate)}
                       </p>
                     )}
                     {!stage.invoice && (
-                      <p className="text-[11px] text-slate-400 mt-0.5">Invoice belum diterbitkan</p>
+                      <p className="text-xs text-slate-400 mt-0.5">Invoice belum diterbitkan</p>
                     )}
                   </div>
 
@@ -316,7 +321,7 @@ const ProjectTimeline = () => {
             <InfoRow label={`Pajak (${financial.taxPercentage}%)`} value={fmt(financial.taxAmount)} />
 
             <div className="flex justify-between items-center py-3 -mx-6 px-6 bg-slate-900 text-white my-1">
-              <span className="text-[13px] font-black uppercase tracking-wider">Grand Total</span>
+              <span className="text-sm font-black uppercase tracking-wider">Grand Total</span>
               <span className="font-black text-base">{fmt(financial.grandTotal)}</span>
             </div>
 
@@ -333,7 +338,7 @@ const ProjectTimeline = () => {
           {clientInvoices.length === 0 ? (
             <div className="px-6 py-10 text-center">
               <FileText size={28} className="text-slate-200 mx-auto mb-2" />
-              <p className="text-[12px] font-black text-slate-300 uppercase">Belum ada invoice diterbitkan</p>
+              <p className="text-xs font-black text-slate-300 uppercase">Belum ada invoice diterbitkan</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -341,17 +346,17 @@ const ProjectTimeline = () => {
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
                     {['No Invoice', 'Phase', 'Jumlah', 'Jatuh Tempo', 'Status'].map((h, i) => (
-                      <th key={i} className="px-5 py-2.5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                      <th key={i} className="px-5 py-2.5 text-left text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {clientInvoices.map((inv) => (
                     <tr key={inv._id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-5 py-3"><span className="font-black text-indigo-600 text-[13px]">{inv.invoiceNumber}</span></td>
-                      <td className="px-5 py-3"><span className="text-[13px] text-slate-600 font-medium">{inv.billingPhase}</span></td>
+                      <td className="px-5 py-3"><span className="font-black text-indigo-600 text-sm">{inv.invoiceNumber}</span></td>
+                      <td className="px-5 py-3"><span className="text-sm text-slate-600 font-medium">{inv.billingPhase}</span></td>
                       <td className="px-5 py-3"><span className="font-black text-slate-800">{fmt(inv.amount)}</span></td>
-                      <td className="px-5 py-3"><span className="text-[13px] text-slate-500">{fmtDate(inv.dueDate)}</span></td>
+                      <td className="px-5 py-3"><span className="text-sm text-slate-500">{fmtDate(inv.dueDate)}</span></td>
                       <td className="px-5 py-3"><StatusPill status={inv.status} /></td>
                     </tr>
                   ))}
@@ -368,7 +373,7 @@ const ProjectTimeline = () => {
           {purchaseOrders.length === 0 ? (
             <div className="px-6 py-10 text-center">
               <Package size={28} className="text-slate-200 mx-auto mb-2" />
-              <p className="text-[12px] font-black text-slate-300 uppercase">Belum ada PO dibuat</p>
+              <p className="text-xs font-black text-slate-300 uppercase">Belum ada PO dibuat</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -377,26 +382,26 @@ const ProjectTimeline = () => {
                   <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
                     <div>
                       <p className="font-black text-slate-800 text-base">{po.poNumber}</p>
-                      <p className="text-[12px] text-slate-500 mt-0.5">Vendor: <span className="font-bold text-slate-700">{po.vendorName}</span></p>
-                      {po.vendorContact && <p className="text-[11px] text-slate-400">{po.vendorContact}</p>}
+                      <p className="text-xs text-slate-500 mt-0.5">Vendor: <span className="font-bold text-slate-700">{po.vendorName}</span></p>
+                      {po.vendorContact && <p className="text-xs text-slate-400">{po.vendorContact}</p>}
                     </div>
                     <div className="text-right">
                       <p className="font-black text-slate-800">{fmt(po.totalAmount)}</p>
-                      <p className="text-[10px] text-slate-400 mt-0.5">{fmtDate(po.createdAt)}</p>
+                      <p className="text-2xs text-slate-400 mt-0.5">{fmtDate(po.createdAt)}</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Payment Status</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-1">Payment Status</p>
                       <StatusPill status={po.paymentStatus} />
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">QC Status</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-1">QC Status</p>
                       <StatusPill status={po.qcStatus} />
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Delivery Status</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-1">Delivery Status</p>
                       <StatusPill status={po.deliveryStatus} />
                     </div>
                   </div>
@@ -407,18 +412,18 @@ const ProjectTimeline = () => {
                         <thead>
                           <tr className="border-b border-slate-100">
                             {['Item', 'Qty', 'Unit', 'COGS/unit', 'Subtotal'].map((h, i) => (
-                              <th key={i} className="py-1.5 text-left text-[10px] font-black text-slate-400 uppercase tracking-wider pr-4">{h}</th>
+                              <th key={i} className="py-1.5 text-left text-2xs font-black text-slate-400 uppercase tracking-wider pr-4">{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                           {po.items.map((item, i) => (
                             <tr key={i}>
-                              <td className="py-1.5 pr-4 text-[13px] font-medium text-slate-700">{item.itemName}</td>
-                              <td className="py-1.5 pr-4 text-[13px] text-slate-600">{item.quantity}</td>
-                              <td className="py-1.5 pr-4 text-[13px] text-slate-600">{item.unit}</td>
-                              <td className="py-1.5 pr-4 text-[13px] text-slate-600">{fmt(item.cogs)}</td>
-                              <td className="py-1.5 font-black text-[13px] text-slate-800">{fmt((item.cogs || 0) * (item.quantity || 1))}</td>
+                              <td className="py-1.5 pr-4 text-sm font-medium text-slate-700">{item.itemName}</td>
+                              <td className="py-1.5 pr-4 text-sm text-slate-600">{item.quantity}</td>
+                              <td className="py-1.5 pr-4 text-sm text-slate-600">{item.unit}</td>
+                              <td className="py-1.5 pr-4 text-sm text-slate-600">{fmt(item.cogs)}</td>
+                              <td className="py-1.5 font-black text-sm text-slate-800">{fmt((item.cogs || 0) * (item.quantity || 1))}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -441,24 +446,24 @@ const ProjectTimeline = () => {
                   <p className="font-black text-slate-700 text-sm mb-3">{po.poNumber} &mdash; {po.vendorName}</p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Delivery Status</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">Delivery Status</p>
                       <StatusPill status={po.deliveryStatus} />
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Tanggal Kirim</p>
-                      <p className="text-[13px] font-black text-slate-700">{fmtDate(po.deliveryDate)}</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">Tanggal Kirim</p>
+                      <p className="text-sm font-black text-slate-700">{fmtDate(po.deliveryDate)}</p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Kurir</p>
-                      <p className="text-[13px] font-black text-slate-700">{po.courierName}</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">Kurir</p>
+                      <p className="text-sm font-black text-slate-700">{po.courierName}</p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Resi / Tracking</p>
-                      <p className="text-[13px] font-black text-slate-700">{po.trackingNumber}</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">Resi / Tracking</p>
+                      <p className="text-sm font-black text-slate-700">{po.trackingNumber}</p>
                     </div>
                   </div>
                   {po.qcRemarks && (
-                    <p className="mt-3 text-[12px] text-slate-500 bg-slate-50 rounded-lg px-3 py-2">
+                    <p className="mt-3 text-xs text-slate-500 bg-slate-50 rounded-lg px-3 py-2">
                       <span className="font-black text-slate-600">QC Notes:</span> {po.qcRemarks}
                     </p>
                   )}
@@ -474,22 +479,22 @@ const ProjectTimeline = () => {
         >
           <div className="px-6 py-4 grid grid-cols-3 gap-3 border-b border-slate-100">
             <div className="bg-red-50 rounded-xl p-3">
-              <p className="text-[10px] font-black text-red-400 uppercase tracking-wider mb-1">Total Terbayar</p>
+              <p className="text-2xs font-black text-red-400 uppercase tracking-wider mb-1">Total Terbayar</p>
               <p className="font-black text-red-700">{fmt(cashOut.totalPaid)}</p>
             </div>
             <div className="bg-amber-50 rounded-xl p-3">
-              <p className="text-[10px] font-black text-amber-500 uppercase tracking-wider mb-1">Menunggu Bayar</p>
+              <p className="text-2xs font-black text-amber-500 uppercase tracking-wider mb-1">Menunggu Bayar</p>
               <p className="font-black text-amber-700">{fmt(cashOut.totalPending)}</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-3">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Total Tagihan</p>
+              <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-1">Total Tagihan</p>
               <p className="font-black text-slate-800">{fmt(cashOut.total)}</p>
             </div>
           </div>
 
           {supplierInvoices.length === 0 ? (
             <div className="px-6 py-8 text-center">
-              <p className="text-[12px] font-black text-slate-300 uppercase">Belum ada tagihan supplier</p>
+              <p className="text-xs font-black text-slate-300 uppercase">Belum ada tagihan supplier</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -497,19 +502,19 @@ const ProjectTimeline = () => {
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
                     {['No Invoice', 'Vendor', 'Termin', 'Jumlah', 'Status', 'Tgl Bayar'].map((h, i) => (
-                      <th key={i} className="px-5 py-2.5 text-left text-[11px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
+                      <th key={i} className="px-5 py-2.5 text-left text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {supplierInvoices.map((si) => (
                     <tr key={si._id} className="hover:bg-slate-50 transition-colors">
-                      <td className="px-5 py-3"><span className="font-black text-indigo-600 text-[13px]">{si.invoiceNumber}</span></td>
-                      <td className="px-5 py-3"><span className="text-[13px] font-medium text-slate-700">{si.vendorName}</span></td>
-                      <td className="px-5 py-3"><span className="text-[13px] text-slate-500">{si.terminName}</span></td>
+                      <td className="px-5 py-3"><span className="font-black text-indigo-600 text-sm">{si.invoiceNumber}</span></td>
+                      <td className="px-5 py-3"><span className="text-sm font-medium text-slate-700">{si.vendorName}</span></td>
+                      <td className="px-5 py-3"><span className="text-sm text-slate-500">{si.terminName}</span></td>
                       <td className="px-5 py-3"><span className="font-black text-slate-800">{fmt(si.amount)}</span></td>
                       <td className="px-5 py-3"><StatusPill status={si.status} /></td>
-                      <td className="px-5 py-3"><span className="text-[13px] text-slate-500">{fmtDate(si.paymentDate)}</span></td>
+                      <td className="px-5 py-3"><span className="text-sm text-slate-500">{fmtDate(si.paymentDate)}</span></td>
                     </tr>
                   ))}
                 </tbody>
@@ -524,11 +529,11 @@ const ProjectTimeline = () => {
         >
           <div className="px-6 py-4 grid grid-cols-2 gap-3 border-b border-slate-100">
             <div className="bg-orange-50 rounded-xl p-3">
-              <p className="text-[10px] font-black text-orange-500 uppercase tracking-wider mb-1">Disetujui (mengurangi profit)</p>
+              <p className="text-2xs font-black text-orange-500 uppercase tracking-wider mb-1">Disetujui (mengurangi profit)</p>
               <p className="font-black text-orange-700">{fmt(expenses.totalApproved)}</p>
             </div>
             <div className="bg-amber-50 rounded-xl p-3">
-              <p className="text-[10px] font-black text-amber-500 uppercase tracking-wider mb-1">Menunggu Verifikasi Finance</p>
+              <p className="text-2xs font-black text-amber-500 uppercase tracking-wider mb-1">Menunggu Verifikasi Finance</p>
               <p className="font-black text-amber-700">{fmt(expenses.totalPending)}</p>
             </div>
           </div>
@@ -536,7 +541,7 @@ const ProjectTimeline = () => {
           {expenses.items.length === 0 ? (
             <div className="px-6 py-10 text-center">
               <Wallet size={28} className="text-slate-200 mx-auto mb-2" />
-              <p className="text-[12px] font-black text-slate-300 uppercase">Belum ada pengajuan biaya untuk project ini</p>
+              <p className="text-xs font-black text-slate-300 uppercase">Belum ada pengajuan biaya untuk project ini</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -553,8 +558,8 @@ const ProjectTimeline = () => {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="text-[10px] font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{e.submissionId}</span>
-                      <span className="text-[10px] font-bold text-slate-400">{(e.items || []).length} item</span>
+                      <span className="text-2xs font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{e.submissionId}</span>
+                      <span className="text-2xs font-bold text-slate-400">{(e.items || []).length} item</span>
                     </div>
                     <div className="space-y-1">
                       {(e.items || []).map((it, idx) => (
@@ -562,18 +567,18 @@ const ProjectTimeline = () => {
                           <div>
                             <p className="font-black text-slate-800 text-sm">{it.name}</p>
                             {it.description && (
-                              <p className="text-[12px] text-slate-500">{it.description}</p>
+                              <p className="text-xs text-slate-500">{it.description}</p>
                             )}
                           </div>
-                          <span className="text-[12px] font-bold text-slate-600 shrink-0">{fmt(it.amount)}</span>
+                          <span className="text-xs font-bold text-slate-600 shrink-0">{fmt(it.amount)}</span>
                         </div>
                       ))}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-2">
+                    <p className="text-xs text-slate-400 mt-2">
                       Diajukan oleh <span className="font-bold text-slate-500">{e.submittedByName}</span> &bull; {fmtDate(e.createdAt)}
                     </p>
                     {e.status === 'Rejected' && e.rejectionReason && (
-                      <p className="text-[11px] text-rose-500 mt-1 bg-rose-50 rounded-lg px-2 py-1 inline-block">
+                      <p className="text-xs text-rose-500 mt-1 bg-rose-50 rounded-lg px-2 py-1 inline-block">
                         Ditolak: {e.rejectionReason}
                       </p>
                     )}
@@ -581,7 +586,7 @@ const ProjectTimeline = () => {
                       <button
                         type="button"
                         onClick={() => openSecureFile(e.file)}
-                        className="text-[11px] text-indigo-500 font-bold mt-1 inline-block hover:underline"
+                        className="text-xs text-indigo-500 font-bold mt-1 inline-block hover:underline"
                       >
                         📎 Lihat Lampiran
                       </button>
@@ -590,7 +595,7 @@ const ProjectTimeline = () => {
 
                   <div className="text-right shrink-0">
                     <p className="font-black text-slate-800">{fmt(e.amount)}</p>
-                    <p className="text-[10px] text-slate-400">Total &bull; {e.currency}</p>
+                    <p className="text-2xs text-slate-400">Total &bull; {e.currency}</p>
                   </div>
 
                   <div className="shrink-0">
@@ -608,19 +613,19 @@ const ProjectTimeline = () => {
           <div className="px-6 py-5">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
               <div className="bg-indigo-50 rounded-xl p-4">
-                <p className="text-[10px] font-black text-indigo-400 uppercase tracking-wider mb-1">Sales Price (Client)</p>
+                <p className="text-2xs font-black text-indigo-400 uppercase tracking-wider mb-1">Sales Price (Client)</p>
                 <p className="text-xl font-black text-indigo-800">{fmt(profitMargin.salesPrice)}</p>
               </div>
               <div className="bg-red-50 rounded-xl p-4">
-                <p className="text-[10px] font-black text-red-400 uppercase tracking-wider mb-1">Total COGS (Supplier)</p>
+                <p className="text-2xs font-black text-red-400 uppercase tracking-wider mb-1">Total COGS (Supplier)</p>
                 <p className="text-xl font-black text-red-800">{fmt(profitMargin.cogs)}</p>
               </div>
               <div className="bg-orange-50 rounded-xl p-4">
-                <p className="text-[10px] font-black text-orange-400 uppercase tracking-wider mb-1">Biaya Lain (Reimburse)</p>
+                <p className="text-2xs font-black text-orange-400 uppercase tracking-wider mb-1">Biaya Lain (Reimburse)</p>
                 <p className="text-xl font-black text-orange-800">{fmt(profitMargin.otherExpense)}</p>
               </div>
               <div className={`${profitMargin.netProfit >= 0 ? 'bg-emerald-50' : 'bg-red-50'} rounded-xl p-4`}>
-                <p className={`text-[10px] font-black uppercase tracking-wider mb-1 ${profitMargin.netProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                <p className={`text-2xs font-black uppercase tracking-wider mb-1 ${profitMargin.netProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   Net Profit
                 </p>
                 <p className={`text-xl font-black ${profitMargin.netProfit >= 0 ? 'text-emerald-800' : 'text-red-800'}`}>
@@ -631,19 +636,19 @@ const ProjectTimeline = () => {
 
             <div className="bg-slate-50 rounded-xl p-4 mb-5 space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-[12px] font-bold text-slate-500">Gross Profit (sebelum biaya lain)</span>
+                <span className="text-xs font-bold text-slate-500">Gross Profit (sebelum biaya lain)</span>
                 <span className={`text-sm font-black ${profitMargin.grossProfit >= 0 ? 'text-slate-700' : 'text-red-600'}`}>
                   {fmt(profitMargin.grossProfit)}
                 </span>
               </div>
               {profitMargin.otherExpense > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-[12px] font-bold text-orange-500">− Biaya Lain (Reimburse Approved)</span>
+                  <span className="text-xs font-bold text-orange-500">− Biaya Lain (Reimburse Approved)</span>
                   <span className="text-sm font-black text-orange-600">({fmt(profitMargin.otherExpense)})</span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                <span className="text-[13px] font-black text-slate-700">Net Profit</span>
+                <span className="text-sm font-black text-slate-700">Net Profit</span>
                 <span className={`text-base font-black ${profitMargin.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                   {fmt(profitMargin.netProfit)}
                 </span>
@@ -652,7 +657,7 @@ const ProjectTimeline = () => {
 
             <div className="mb-2">
               <div className="flex items-center justify-between mb-1.5">
-                <p className="text-[11px] font-black text-slate-500 uppercase tracking-wider">Net Margin</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Net Margin</p>
                 <div className="flex items-center gap-1.5">
                   {profitMargin.netProfit >= 0
                     ? <TrendingUp size={14} className="text-emerald-500" />
@@ -669,7 +674,7 @@ const ProjectTimeline = () => {
                 />
               </div>
               {profitMargin.cogs === 0 && (
-                <p className="text-[11px] text-slate-400 mt-2 text-center italic">
+                <p className="text-xs text-slate-400 mt-2 text-center italic">
                   COGS akan muncul setelah supplier invoice dibayar (Paid)
                 </p>
               )}
@@ -677,26 +682,26 @@ const ProjectTimeline = () => {
 
             {profitMargin.estimatedCOGS !== undefined && (
               <div className="bg-indigo-50 rounded-xl p-4 mt-4">
-                <p className="text-[11px] font-black text-indigo-500 uppercase tracking-wider mb-3">
+                <p className="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">
                   Estimasi (Supplier Quotation) vs Aktual (Supplier Invoice Paid)
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="bg-white rounded-lg p-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase">Estimasi COGS</p>
+                    <p className="text-2xs font-black text-slate-400 uppercase">Estimasi COGS</p>
                     <p className="text-sm font-black text-slate-700">{fmt(profitMargin.estimatedCOGS)}</p>
                   </div>
                   <div className="bg-white rounded-lg p-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase">Aktual COGS</p>
+                    <p className="text-2xs font-black text-slate-400 uppercase">Aktual COGS</p>
                     <p className="text-sm font-black text-red-600">{fmt(profitMargin.cogs)}</p>
                   </div>
                   <div className="bg-white rounded-lg p-3">
-                    <p className="text-[10px] font-black text-slate-400 uppercase">Selisih</p>
+                    <p className="text-2xs font-black text-slate-400 uppercase">Selisih</p>
                     <p className={`text-sm font-black ${(profitMargin.cogs - profitMargin.estimatedCOGS) > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
                       {(profitMargin.cogs - profitMargin.estimatedCOGS) > 0 ? '+' : ''}{fmt(profitMargin.cogs - profitMargin.estimatedCOGS)}
                     </p>
                   </div>
                 </div>
-                <p className="text-[10px] text-indigo-400 italic mt-2">
+                <p className="text-2xs text-indigo-400 italic mt-2">
                   Bea cukai & PPN vendor baru terhitung di Aktual — belum diketahui saat quotation dibuat.
                 </p>
               </div>
@@ -717,7 +722,7 @@ const ProjectTimeline = () => {
             <p className={`font-black text-xs uppercase tracking-tighter ${
               isComplete ? 'text-emerald-800' : pct >= 75 ? 'text-indigo-800' : pct >= 40 ? 'text-amber-800' : 'text-slate-600'
             }`}>Project Health</p>
-            <p className={`text-[11px] mt-1 ${
+            <p className={`text-xs mt-1 ${
               isComplete ? 'text-emerald-600' : pct >= 75 ? 'text-indigo-600' : pct >= 40 ? 'text-amber-600' : 'text-slate-500'
             }`}>
               {isComplete

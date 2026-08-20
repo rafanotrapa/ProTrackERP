@@ -22,7 +22,7 @@ const ProjectCenter = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Project <span className="text-indigo-600">Center</span>
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Create & Manage Projects</p>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Create & Manage Projects</p>
         </div>
       </div>
 
@@ -40,10 +40,10 @@ const ProjectCenter = () => {
               <FolderPlus size={28} className="text-indigo-600 group-hover:text-white" />
             </div>
             <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Add Project</h2>
-            <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
               Daftarkan project baru dengan data client dan kontrak.
             </p>
-            <div className="mt-6 flex items-center gap-2 text-[12px] font-black text-indigo-600 group-hover:translate-x-2 transition-transform">
+            <div className="mt-6 flex items-center gap-2 text-xs font-black text-indigo-600 group-hover:translate-x-2 transition-transform">
               Start Creating <span>→</span>
             </div>
           </div>
@@ -59,10 +59,10 @@ const ProjectCenter = () => {
               <FolderClock size={28} className="text-slate-600 group-hover:text-white" />
             </div>
             <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Project Log</h2>
-            <p className="text-[12px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
               Lihat semua project yang sudah terdaftar di sistem.
             </p>
-            <div className="mt-6 flex items-center gap-2 text-[12px] font-black text-slate-600 group-hover:translate-x-2 transition-transform">
+            <div className="mt-6 flex items-center gap-2 text-xs font-black text-slate-600 group-hover:translate-x-2 transition-transform">
               View History <span>→</span>
             </div>
           </div>

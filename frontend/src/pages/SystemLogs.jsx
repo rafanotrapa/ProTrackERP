@@ -71,7 +71,7 @@ const SystemLogs = () => {
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
               System <span className="text-red-600">Audit Logs</span>
             </h1>
-            <p className="text-slate-400 font-bold text-[12px] uppercase tracking-[0.2em] mt-2 italic">Security Monitoring • Cross-Module Activity</p>
+            <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em] mt-2 italic">Security Monitoring • Cross-Module Activity</p>
           </div>
         </div>
 
@@ -81,13 +81,13 @@ const SystemLogs = () => {
             placeholder="Cari user / aksi / modul..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-64 px-5 py-4 bg-white border border-slate-200 rounded-2xl text-[13px] font-bold outline-none focus:border-red-300 shadow-sm"
+            className="w-full md:w-64 px-5 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-red-300 shadow-sm"
           />
 
           <div className="relative w-full md:w-auto" ref={dropdownRef}>
             <div
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="bg-white border border-slate-200 rounded-2xl px-6 py-4 text-[12px] font-black uppercase tracking-widest cursor-pointer flex justify-between md:justify-center items-center gap-4 shadow-sm hover:border-red-200 transition-all text-slate-600"
+              className="bg-white border border-slate-200 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest cursor-pointer flex justify-between md:justify-center items-center gap-4 shadow-sm hover:border-red-200 transition-all text-slate-600"
             >
               <span>{currentLabel}</span>
               <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -101,7 +101,7 @@ const SystemLogs = () => {
                   <div
                     key={c.value}
                     onClick={() => { setFilter(c.value); setIsDropdownOpen(false); }}
-                    className="px-5 py-4 text-[12px] font-black uppercase italic tracking-widest text-slate-500 hover:bg-red-600 hover:text-white cursor-pointer transition-all border-b border-slate-50 last:border-none"
+                    className="px-5 py-4 text-xs font-black uppercase italic tracking-widest text-slate-500 hover:bg-red-600 hover:text-white cursor-pointer transition-all border-b border-slate-50 last:border-none"
                   >
                     {c.label}
                   </div>
@@ -116,7 +116,7 @@ const SystemLogs = () => {
         <div className="mx-auto w-full max-w-7xl bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden min-h-[500px]">
 
           <div className="px-8 py-8 md:px-10 border-b border-slate-50">
-             <span className="text-[13px] font-black text-slate-400 uppercase tracking-[0.4em] italic">Activity Records</span>
+             <span className="text-sm font-black text-slate-400 uppercase tracking-[0.4em] italic">Activity Records</span>
           </div>
 
           <div className="p-8 md:p-10">
@@ -128,24 +128,24 @@ const SystemLogs = () => {
               filteredLogs.map((log) => (
                 <div key={log._id} className="flex flex-col md:flex-row md:items-center justify-between p-6 rounded-[2.5rem] bg-slate-50 border border-slate-100 hover:border-red-200 hover:bg-white transition-all group shadow-sm mb-4 gap-4 md:gap-0">
                   <div className="flex items-center gap-6">
-                    <div className={`w-28 text-center py-2 rounded-xl font-black text-[11px] uppercase italic tracking-tighter ${
+                    <div className={`w-28 text-center py-2 rounded-xl font-black text-xs uppercase italic tracking-tighter ${
                       log.category === 'ACCOUNT' ? 'bg-red-500 text-white shadow-lg shadow-red-100' : 'bg-indigo-600 text-white shadow-lg shadow-indigo-100'
                     }`}>
                       {log.category}
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="text-[12px] font-black text-slate-400 uppercase italic underline decoration-red-500/20">{log.user}</p>
-                        <span className="text-[10px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-black uppercase italic">{log.type}</span>
+                        <p className="text-xs font-black text-slate-400 uppercase italic underline decoration-red-500/20">{log.user}</p>
+                        <span className="text-2xs bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-black uppercase italic">{log.type}</span>
                       </div>
                       <h3 className="text-sm font-black text-slate-800 uppercase italic tracking-tight group-hover:text-red-600 transition-colors">{log.action}</h3>
                     </div>
                   </div>
                   <div className="text-left md:text-right ml-34 md:ml-0">
-                    <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest">
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                       {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
                     </p>
-                    <p className="text-[10px] font-bold text-slate-200 mt-1">ID: {log._id.slice(-6).toUpperCase()}</p>
+                    <p className="text-2xs font-bold text-slate-200 mt-1">ID: {log._id.slice(-6).toUpperCase()}</p>
                   </div>
                 </div>
               ))

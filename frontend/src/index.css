@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+/* Skala font kecil dipatok dalam piksel, bukan rem.
+ *
+ * html di bawah menaikkan font-size bertingkat (14px -> 15px -> 16px) supaya
+ * jarak dan padding ikut mengecil di layar sempit. Efek sampingnya: token rem
+ * bawaan Tailwind ikut menyusut, sehingga text-xs jatuh ke 11,25px di layar
+ * 768-1279px — lebih kecil daripada ukuran 12px yang ditulis manual. Dua skala
+ * bergerak berlawanan arah, dan itulah sebabnya ukuran huruf di aplikasi ini
+ * terasa acak.
+ *
+ * Dengan dipatok px, tangga html tetap bekerja untuk spacing tapi tidak lagi
+ * menarik ukuran huruf ke bawah lantai. Lantainya 12px.
+ *
+ * text-2xs adalah token tambahan untuk label mikro (eyebrow uppercase di atas
+ * sebuah nilai). Line-height-nya WAJIB ikut didefinisikan: token buatan sendiri
+ * tidak punya nilai bawaan, dan var() yang tidak terselesaikan membuat
+ * line-height diam-diam jatuh ke inherit. */
+@theme {
+  --text-2xs: 12px;
+  --text-2xs--line-height: calc(1 / 0.75);
+  --text-xs: 13px;
+  --text-sm: 14px;
+  --text-base: 16px;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -183,15 +207,30 @@ input[type="submit"] {
   }
 }
 
-h1, .text-4xl, .text-5xl, .text-6xl {
-  font-size: clamp(1.5rem, 5vw, 3rem);
-  line-height: 1.2;
-}
+/* Aturan elemen telanjang WAJIB berada di dalam @layer base.
+ *
+ * Tailwind v4 menaruh seluruh utility-nya di @layer utilities, sedangkan CSS
+ * tanpa layer selalu menang atas CSS berlayer — berapa pun spesifisitasnya.
+ * Waktu blok ini masih tanpa layer, aturan `p` menimpa SETIAP kelas ukuran yang
+ * dipasang pada sebuah <p>: 351 elemen ber-text-[Npx] terpaksa render 16px,
+ * sementara <span> dengan kelas yang sama render pada ukuran sebenarnya.
+ * Hasilnya hierarki terbalik — judul seksi tampil lebih besar daripada isinya.
+ *
+ * Nama kelas Tailwind juga sudah dicabut dari selektor. Mendefinisikan ulang
+ * .text-3xl atau .text-base di sini hanya menyesatkan: sesudah berlayer,
+ * utility Tailwind memang selalu menang, jadi baris itu tidak berpengaruh
+ * apa-apa selain membuat pembaca berikutnya salah menduga. */
+@layer base {
+  h1 {
+    font-size: clamp(1.5rem, 5vw, 3rem);
+    line-height: 1.2;
+  }
 
-h2, .text-3xl {
-  font-size: clamp(1.25rem, 4vw, 2rem);
-}
+  h2 {
+    font-size: clamp(1.25rem, 4vw, 2rem);
+  }
 
-p, .text-base {
-  font-size: clamp(0.875rem, 2vw, 1rem);
+  p {
+    font-size: clamp(0.875rem, 2vw, 1rem);
+  }
 }

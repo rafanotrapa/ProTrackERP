@@ -34,12 +34,12 @@ const PaymentVerification = () => {
 
   const getStatusBadge = (status) => {
     if (status === 'Verified') {
-      return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-600"><CheckCircle size={12} /> VERIFIED</span>;
+      return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-600"><CheckCircle size={12} /> VERIFIED</span>;
     }
     if (status === 'Rejected') {
-      return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black bg-rose-100 text-rose-600"><XCircle size={12} /> REJECTED</span>;
+      return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-rose-100 text-rose-600"><XCircle size={12} /> REJECTED</span>;
     }
-    return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-600"><Clock size={12} /> PENDING</span>;
+    return <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-600"><Clock size={12} /> PENDING</span>;
   };
 
   const filtered = payments.filter((p) => {
@@ -66,7 +66,7 @@ const PaymentVerification = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4" />
-            <p className="text-[12px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-400">Loading...</p>
           </div>
         </div>
       </div>
@@ -88,7 +88,7 @@ const PaymentVerification = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Payment <span className="text-indigo-600">Verification</span>
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
             Finance Module • Client Payment Review
           </p>
         </div>
@@ -107,7 +107,7 @@ const PaymentVerification = () => {
               <button
                 key={key}
                 onClick={() => setStatusFilter(key)}
-                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                   statusFilter === key ? cls : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -137,7 +137,7 @@ const PaymentVerification = () => {
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <table className="w-full text-left">
               <thead className="bg-slate-50">
-                <tr className="text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
+                <tr className="text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">Invoice #</th>
                   <th className="px-6 py-4">Client / Project</th>
                   <th className="px-6 py-4 text-right">Amount Paid</th>
@@ -150,21 +150,21 @@ const PaymentVerification = () => {
                 {filtered.map((p) => (
                   <tr key={p._id} className="hover:bg-slate-50/50 transition-all">
                     <td className="px-6 py-5">
-                      <p className="text-[12px] font-black text-indigo-600 uppercase tracking-wider">
+                      <p className="text-xs font-black text-indigo-600 uppercase tracking-wider">
                         {p.invoiceId?.invoiceNumber || '-'}
                       </p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">{p.invoiceId?.billingPhase || '-'}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{p.invoiceId?.billingPhase || '-'}</p>
                     </td>
                     <td className="px-6 py-5">
                       <p className="font-bold text-slate-800 text-sm">{p.invoiceId?.clientName || '-'}</p>
-                      <p className="text-[11px] text-slate-400">{p.invoiceId?.projectId || '-'}</p>
+                      <p className="text-xs text-slate-400">{p.invoiceId?.projectId || '-'}</p>
                     </td>
                     <td className="px-6 py-5 text-right">
                       <p className="font-black text-emerald-600">Rp {formatRupiah(p.amountPaid)}</p>
                     </td>
                     <td className="px-6 py-5 text-center">{getStatusBadge(p.status)}</td>
                     <td className="px-6 py-5 text-center">
-                      <p className="text-[11px] font-bold text-slate-500">
+                      <p className="text-xs font-bold text-slate-500">
                         {p.paymentDate ? new Date(p.paymentDate).toLocaleDateString('id-ID') : '-'}
                       </p>
                     </td>

@@ -41,13 +41,13 @@ const ClientQuotationApproval = () => {
   const getModeBadge = (mode) => {
     if (mode === 'manual') {
       return (
-        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase italic bg-purple-100 text-purple-600 flex items-center gap-1">
+        <span className="px-2 py-0.5 rounded-full text-2xs font-black uppercase italic bg-purple-100 text-purple-600 flex items-center gap-1">
           <Package size={8}/> MANUAL
         </span>
       );
     }
     return (
-      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase italic bg-blue-100 text-blue-600 flex items-center gap-1">
+      <span className="px-2 py-0.5 rounded-full text-2xs font-black uppercase italic bg-blue-100 text-blue-600 flex items-center gap-1">
         <TrendingUp size={8}/> AUTO
       </span>
     );
@@ -68,7 +68,7 @@ const ClientQuotationApproval = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Client Quotation <span className="text-indigo-600">Approval</span>
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Management Verification • Pricing & Terms</p>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Management Verification • Pricing & Terms</p>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ const ClientQuotationApproval = () => {
           ) : quotations.length === 0 ? (
             <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-[3rem]">
               <p className="text-slate-300 font-black italic uppercase text-lg tracking-tighter">No Pending Approvals</p>
-              <p className="text-[12px] text-slate-400 font-bold uppercase tracking-widest mt-2">All client quotations have been processed</p>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-2">All client quotations have been processed</p>
             </div>
           ) : (
             quotations.map((quo) => {
@@ -104,11 +104,11 @@ const ClientQuotationApproval = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-3 flex-wrap">
-                        <p className="text-[12px] font-black text-indigo-500 group-hover:text-indigo-200 uppercase italic tracking-widest">
+                        <p className="text-xs font-black text-indigo-500 group-hover:text-indigo-200 uppercase italic tracking-widest">
                           {quo.quotationId}
                         </p>
                         {getModeBadge(quo.quotationMode)}
-                        <span className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase italic ${
+                        <span className={`px-3 py-0.5 rounded-full text-2xs font-black uppercase italic ${
                           quo.approvalStatus === 'Approved' ? 'bg-emerald-100 text-emerald-600' :
                           quo.approvalStatus === 'Rejected' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
                         }`}>
@@ -119,14 +119,14 @@ const ClientQuotationApproval = () => {
                         {quo.projectName || quo.projectId}
                       </h3>
                       <div className="flex items-center gap-4 mt-2 flex-wrap">
-                        <span className="text-[12px] font-bold text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest flex items-center gap-1">
+                        <span className="text-xs font-bold text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest flex items-center gap-1">
                           <Clock size={12}/> {new Date(quo.timestamp).toLocaleDateString()}
                         </span>
-                        <span className="text-[12px] font-bold text-slate-600 group-hover:text-white uppercase tracking-widest flex items-center gap-1">
+                        <span className="text-xs font-bold text-slate-600 group-hover:text-white uppercase tracking-widest flex items-center gap-1">
                           Client: {quo.clientName}
                         </span>
                         {(quo.shippingFee || 0) > 0 && (
-                          <span className="text-[10px] font-bold text-slate-500 group-hover:text-indigo-300 uppercase tracking-widest flex items-center gap-1">
+                          <span className="text-2xs font-bold text-slate-500 group-hover:text-indigo-300 uppercase tracking-widest flex items-center gap-1">
                             <Truck size={8}/> + Ongkir
                           </span>
                         )}
@@ -136,14 +136,14 @@ const ClientQuotationApproval = () => {
 
                   <div className="flex flex-row md:flex-col gap-4 md:gap-1 items-end bg-white md:bg-transparent p-4 md:p-0 rounded-2xl md:rounded-none w-full md:w-auto border border-slate-100 md:border-none shadow-sm md:shadow-none">
                     <div className="flex flex-col text-right flex-1 md:flex-none">
-                       <span className="text-[11px] font-black text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest">Bill to Client</span>
+                       <span className="text-xs font-black text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest">Bill to Client</span>
                        <span className="text-base font-black text-indigo-600 group-hover:text-white">
                          {quo.currency} {formatCurrency(grandTotal)}
                        </span>
                     </div>
                     <div className="hidden md:block w-px h-8 bg-slate-200 group-hover:bg-indigo-400 mx-2"></div>
                     <div className="flex flex-col text-right flex-1 md:flex-none">
-                       <span className="text-[11px] font-black text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest flex items-center justify-end gap-1"><DollarSign size={10}/> Gross Margin</span>
+                       <span className="text-xs font-black text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest flex items-center justify-end gap-1"><DollarSign size={10}/> Gross Margin</span>
                        <span className={`text-sm font-black ${grossProfit >= 0 ? 'text-emerald-500' : 'text-red-500'} group-hover:text-emerald-300`}>
                          {marginPerc}%
                        </span>

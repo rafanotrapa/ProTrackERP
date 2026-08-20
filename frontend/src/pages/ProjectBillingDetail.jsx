@@ -227,7 +227,7 @@ const ProjectBillingDetail = () => {
       <div className="p-6 md:p-10 lg:p-12">
         <button
           onClick={() => navigate('/project-billing')}
-          className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-[12px] uppercase tracking-widest mb-6"
+          className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black text-xs uppercase tracking-widest mb-6"
         >
           <ArrowLeft size={16} /> Back to Billing List
         </button>
@@ -236,33 +236,33 @@ const ProjectBillingDetail = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Package size={18} className="text-indigo-500" />
-              <p className="text-[12px] font-black text-indigo-500 uppercase">{data.projectId}</p>
+              <p className="text-xs font-black text-indigo-500 uppercase">{data.projectId}</p>
             </div>
             <h1 className="text-3xl md:text-4xl font-black text-slate-900 uppercase">{data.projectName}</h1>
             <p className="text-slate-500 font-bold text-xs mt-2">{data.clientName}</p>
           </div>
           <div className="text-right">
-            <p className="text-[11px] font-black text-slate-400 uppercase">Total Contract</p>
+            <p className="text-xs font-black text-slate-400 uppercase">Total Contract</p>
             <p className="text-3xl font-black text-emerald-600">Rp {data.totalContractValue?.toLocaleString()}</p>
-            <p className="text-[11px] font-black text-slate-400 uppercase mt-1">TOP: {data.topOption}</p>
+            <p className="text-xs font-black text-slate-400 uppercase mt-1">TOP: {data.topOption}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-slate-50 p-5 rounded-2xl border">
-            <p className="text-[10px] font-black text-slate-400 uppercase">Progress</p>
+            <p className="text-2xs font-black text-slate-400 uppercase">Progress</p>
             <p className="text-2xl font-black">{summary.progressPercent?.toFixed(0)}%</p>
           </div>
           <div className="bg-slate-50 p-5 rounded-2xl border">
-            <p className="text-[10px] font-black text-slate-400 uppercase">Total Paid</p>
+            <p className="text-2xs font-black text-slate-400 uppercase">Total Paid</p>
             <p className="text-2xl font-black text-emerald-600">Rp {summary.totalPaid?.toLocaleString()}</p>
           </div>
           <div className="bg-slate-50 p-5 rounded-2xl border">
-            <p className="text-[10px] font-black text-slate-400 uppercase">Remaining</p>
+            <p className="text-2xs font-black text-slate-400 uppercase">Remaining</p>
             <p className="text-2xl font-black text-amber-600">Rp {summary.remainingAmount?.toLocaleString()}</p>
           </div>
           <div className="bg-slate-50 p-5 rounded-2xl border">
-            <p className="text-[10px] font-black text-slate-400 uppercase">Status</p>
+            <p className="text-2xs font-black text-slate-400 uppercase">Status</p>
             <div className="flex items-center gap-2">
               {summary.isComplete ? (
                 <><CheckCircle size={18} className="text-emerald-500" /><span className="font-black text-emerald-600">COMPLETE</span></>
@@ -273,18 +273,18 @@ const ProjectBillingDetail = () => {
           </div>
         </div>
 
-        <h3 className="text-[13px] font-black text-slate-800 uppercase mb-5">Payment Stages</h3>
+        <h3 className="text-sm font-black text-slate-800 uppercase mb-5">Payment Stages</h3>
 
         <div className="overflow-x-auto mb-8">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b-2 border-slate-200 bg-slate-50">
-                <th className="py-4 px-4 text-[11px] font-black text-slate-500 uppercase">Stage</th>
-                <th className="py-4 px-4 text-[11px] font-black text-slate-500 uppercase">Description</th>
-                <th className="py-4 px-4 text-[11px] font-black text-slate-500 uppercase text-right">Amount</th>
-                <th className="py-4 px-4 text-[11px] font-black text-slate-500 uppercase text-center">Status</th>
-                <th className="py-4 px-4 text-[11px] font-black text-slate-500 uppercase text-center">Tgl Bayar</th>
-                <th className="py-4 px-4 text-[11px] font-black text-slate-500 uppercase text-right">Action</th>
+                <th className="py-4 px-4 text-xs font-black text-slate-500 uppercase">Stage</th>
+                <th className="py-4 px-4 text-xs font-black text-slate-500 uppercase">Description</th>
+                <th className="py-4 px-4 text-xs font-black text-slate-500 uppercase text-right">Amount</th>
+                <th className="py-4 px-4 text-xs font-black text-slate-500 uppercase text-center">Status</th>
+                <th className="py-4 px-4 text-xs font-black text-slate-500 uppercase text-center">Tgl Bayar</th>
+                <th className="py-4 px-4 text-xs font-black text-slate-500 uppercase text-right">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -295,25 +295,25 @@ const ProjectBillingDetail = () => {
                   <td className="py-4 px-4 text-right font-black text-emerald-600">Rp {stage.expectedAmount?.toLocaleString()}</td>
                   <td className="py-4 px-4 text-center">
                     {stage.status === 'Paid' ? (
-                      <span className="px-3 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-600">✓ PAID</span>
+                      <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-600">✓ PAID</span>
                     ) : stage.status === 'Partial' ? (
                       /* Sebagian tagihan sudah dibayar. Tanpa cabang ini termin
                          tampil "UNPAID" padahal uangnya sudah masuk sebagian —
                          menyesatkan Finance yang membaca daftar ini. */
-                      <span className="px-3 py-1 rounded-full text-[11px] font-black bg-sky-100 text-sky-600">◐ PARTIAL</span>
+                      <span className="px-3 py-1 rounded-full text-xs font-black bg-sky-100 text-sky-600">◐ PARTIAL</span>
                     ) : stage.invoice ? (
-                      <span className="px-3 py-1 rounded-full text-[11px] font-black bg-amber-100 text-amber-600">⏳ UNPAID</span>
+                      <span className="px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-600">⏳ UNPAID</span>
                     ) : (
-                      <span className="px-3 py-1 rounded-full text-[11px] font-black bg-slate-100 text-slate-500">NOT GENERATED</span>
+                      <span className="px-3 py-1 rounded-full text-xs font-black bg-slate-100 text-slate-500">NOT GENERATED</span>
                     )}
                   </td>
                   <td className="py-4 px-4 text-center">
                     {stage.invoice?.paymentDate ? (
-                      <span className="text-[12px] font-bold text-slate-600">
+                      <span className="text-xs font-bold text-slate-600">
                         {new Date(stage.invoice.paymentDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
                     ) : (
-                      <span className="text-[12px] text-slate-300">-</span>
+                      <span className="text-xs text-slate-300">-</span>
                     )}
                   </td>
                   <td className="py-4 px-4 text-right">
@@ -321,7 +321,7 @@ const ProjectBillingDetail = () => {
                       <button
                         onClick={handleGenerateNext}
                         disabled={generating}
-                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-[11px] uppercase disabled:opacity-50"
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase disabled:opacity-50"
                       >
                         {generating ? 'GENERATING...' : 'Generate Invoice'}
                       </button>
@@ -329,13 +329,13 @@ const ProjectBillingDetail = () => {
                     {stage.invoice && stage.status !== 'Paid' && (
                       <button
                         onClick={() => navigate('/finance-input-payment', { state: { projectId } })}
-                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[11px] uppercase"
+                        className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-xs uppercase"
                       >
                         Record Payment
                       </button>
                     )}
                     {stage.invoice && stage.status === 'Paid' && (
-                      <span className="text-[11px] font-black text-emerald-600">✓ Settled</span>
+                      <span className="text-xs font-black text-emerald-600">✓ Settled</span>
                     )}
                   </td>
                 </tr>
@@ -350,7 +350,7 @@ const ProjectBillingDetail = () => {
               <TrendingUp size={20} className="text-indigo-600" />
               <div>
                 <p className="font-black text-indigo-800 text-sm uppercase">Ready to Generate Next Invoice</p>
-                <p className="text-[11px] text-indigo-600 font-bold uppercase mt-1">
+                <p className="text-xs text-indigo-600 font-bold uppercase mt-1">
                   Click "Generate Invoice" to create the next invoice. PDF will be downloaded automatically.
                 </p>
               </div>

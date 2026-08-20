@@ -64,7 +64,7 @@ const ExistingVendors = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4" />
-            <p className="text-[12px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-400">Loading...</p>
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@ const ExistingVendors = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Vendor <span className="text-indigo-600">Track Record</span>
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
             Procurement Module • Project Attachment
           </p>
         </div>
@@ -109,7 +109,7 @@ const ExistingVendors = () => {
           {!bacaSaja && (
           <button
             onClick={() => navigate('/add-vendor')}
-            className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-[12px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm whitespace-nowrap"
+            className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm whitespace-nowrap"
           >
             + New Vendor
           </button>
@@ -125,7 +125,7 @@ const ExistingVendors = () => {
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <table className="w-full text-left">
               <thead className="bg-slate-50">
-                <tr className="text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
+                <tr className="text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">ID / Company Name</th>
                   <th className="px-6 py-4 text-center">Linked Project</th>
                   <th className="px-6 py-4 text-right">Registration Date</th>
@@ -140,19 +140,19 @@ const ExistingVendors = () => {
                           <Building2 size={18} />
                         </div>
                         <div>
-                          <p className="text-[12px] font-black text-indigo-600 uppercase tracking-wider">{vendor.vendorId}</p>
+                          <p className="text-xs font-black text-indigo-600 uppercase tracking-wider">{vendor.vendorId}</p>
                           <p className="font-black text-slate-800 text-sm mt-0.5">{formatVendorName(vendor)}</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">{vendor.email} &bull; {vendor.phone || 'N/A'}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">{vendor.email} &bull; {vendor.phone || 'N/A'}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[11px] font-black uppercase tracking-widest border border-indigo-100">
+                      <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-black uppercase tracking-widest border border-indigo-100">
                         {vendor.projectId || 'N/A'}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <p className="text-[11px] font-bold text-slate-500">{formatDate(vendor.createdAt)}</p>
+                      <p className="text-xs font-bold text-slate-500">{formatDate(vendor.createdAt)}</p>
                     </td>
                   </tr>
                 ))}

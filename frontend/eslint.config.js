@@ -24,6 +24,24 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+
+      // Ukuran huruf ditulis sebagai piksel arbitrer sampai ada 929 kemunculan
+      // di 61 berkas, dengan lima ukuran berbeda yang batasnya tidak pernah
+      // disepakati. Sekarang semuanya memakai token di @theme pada index.css.
+      // Aturan ini menjaganya: tanpa pagar, ukuran baru terus menyelinap masuk
+      // lewat setiap komponen baru. Selektor kedua diperlukan karena sebagian
+      // kelas hidup di dalam template literal dan string HTML SweetAlert, bukan
+      // hanya di atribut className.
+      'no-restricted-syntax': ['error',
+        {
+          selector: 'Literal[value=/text-\\[\\d+px\\]/]',
+          message: 'Jangan pakai ukuran huruf piksel arbitrer. Pakai text-2xs / text-xs / text-sm, atau tambahkan token baru di @theme pada src/index.css.',
+        },
+        {
+          selector: 'TemplateElement[value.raw=/text-\\[\\d+px\\]/]',
+          message: 'Jangan pakai ukuran huruf piksel arbitrer. Pakai text-2xs / text-xs / text-sm, atau tambahkan token baru di @theme pada src/index.css.',
+        },
+      ],
     },
   },
 ])

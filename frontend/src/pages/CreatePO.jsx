@@ -97,7 +97,7 @@ const CreatePO = () => {
           <h1 className="text-3xl font-black italic leading-none tracking-tighter uppercase text-slate-900">
             Purchase <span className="text-blue-600">Order</span>
           </h1>
-          <p className="mt-1 text-[12px] font-black italic leading-none tracking-[0.2em] uppercase text-slate-400">Procurement • Tied to Client Deal</p>
+          <p className="mt-1 text-xs font-black italic leading-none tracking-[0.2em] uppercase text-slate-400">Procurement • Tied to Client Deal</p>
         </div>
       </div>
 
@@ -106,15 +106,15 @@ const CreatePO = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
             <div className="p-8 space-y-6 bg-white border border-slate-200 shadow-sm rounded-4xl h-fit">
-              <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-blue-600"></span> 01. Order Identity</h3>
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-blue-600"></span> 01. Order Identity</h3>
 
               <div className="space-y-1">
-                <label className="mb-1.5 ml-1 text-[12px] font-black italic leading-none tracking-widest uppercase text-slate-400">PO Number</label>
+                <label className="mb-1.5 ml-1 text-xs font-black italic leading-none tracking-widest uppercase text-slate-400">PO Number</label>
                 <input type="text" readOnly value={formData.poNumber} className="w-full p-4 font-mono font-bold outline-none bg-slate-50 border-slate-200 rounded-xl text-blue-600" />
               </div>
 
               <div className="space-y-1">
-                <label className="mb-1.5 ml-1 text-[12px] font-black italic leading-none tracking-widest uppercase text-slate-400">Link to Marketing Quotation</label>
+                <label className="mb-1.5 ml-1 text-xs font-black italic leading-none tracking-widest uppercase text-slate-400">Link to Marketing Quotation</label>
                 <StyledSelect
                   name="quotationId"
                   value={formData.quotationId}
@@ -131,25 +131,25 @@ const CreatePO = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="mb-1.5 ml-1 text-[12px] font-black italic leading-none tracking-widest uppercase text-slate-400">Shipping Address / Delivery Target</label>
+                <label className="mb-1.5 ml-1 text-xs font-black italic leading-none tracking-widest uppercase text-slate-400">Shipping Address / Delivery Target</label>
                 <textarea name="shippingAddress" value={formData.shippingAddress} onChange={(e)=>setFormData({...formData, shippingAddress: e.target.value})} required placeholder="Alamat gudang / site proyek..." className="w-full h-32 p-4 font-medium outline-none transition-all bg-slate-50 border-slate-300 rounded-xl text-slate-700 focus:border-blue-600 focus:bg-white" />
               </div>
             </div>
 
             <div className="p-8 bg-slate-900 border border-slate-800 shadow-xl rounded-4xl flex flex-col">
-               <h3 className="text-[13px] font-black text-slate-300 uppercase tracking-[0.3em] flex items-center gap-3 italic mb-6"><span className="w-8 h-1 bg-blue-500"></span> 02. Goods Summary</h3>
+               <h3 className="text-sm font-black text-slate-300 uppercase tracking-[0.3em] flex items-center gap-3 italic mb-6"><span className="w-8 h-1 bg-blue-500"></span> 02. Goods Summary</h3>
                {selectedQuote ? (
                  <div className="flex-1 flex flex-col">
                     <div className="mb-6 space-y-3">
                        <div className="p-4 bg-slate-800 rounded-xl">
-                          <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-1">Project</p>
+                          <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Project</p>
                           <p className="text-white font-bold">{selectedQuote.projectName || selectedQuote.projectId}</p>
                           {selectedQuote.projectName && (
-                            <p className="mt-0.5 font-mono text-[12px] font-bold text-slate-500">{selectedQuote.projectId}</p>
+                            <p className="mt-0.5 font-mono text-xs font-bold text-slate-500">{selectedQuote.projectId}</p>
                           )}
                        </div>
                        <div className="p-4 bg-slate-800 rounded-xl">
-                          <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-1">Vendor ID / Supplier</p>
+                          <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Vendor ID / Supplier</p>
                           <p className="text-white font-bold">{selectedQuote.vendorId}</p>
                        </div>
                     </div>
@@ -161,7 +161,7 @@ const CreatePO = () => {
                                <div className="p-2 bg-blue-500/20 text-blue-400 rounded-lg"><ShoppingCart size={16}/></div>
                                <div>
                                   <p className="text-white font-bold text-sm leading-tight">{item.itemName}</p>
-                                  <p className="text-slate-400 text-[12px] font-black uppercase tracking-wider mt-0.5">{item.quantity} {item.unit} • {formatRupiah(item.cogs)}/unit</p>
+                                  <p className="text-slate-400 text-xs font-black uppercase tracking-wider mt-0.5">{item.quantity} {item.unit} • {formatRupiah(item.cogs)}/unit</p>
                                </div>
                             </div>
                             <div className="text-right">
@@ -173,20 +173,20 @@ const CreatePO = () => {
 
                     <div className="mt-6 pt-4 border-t border-slate-700 space-y-2">
                        <div className="flex justify-between items-center text-slate-400">
-                          <p className="text-[12px] font-black uppercase tracking-widest">Subtotal Barang</p>
+                          <p className="text-xs font-black uppercase tracking-widest">Subtotal Barang</p>
                           <p className="text-xs font-bold">{formatRupiah(selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0))}</p>
                        </div>
 
                        {selectedQuote.isTaxIncluded && (
                          <div className="flex justify-between items-center text-slate-300">
-                            <p className="text-[12px] font-black uppercase tracking-widest">PPN ({selectedQuote.taxPercentage}%)</p>
+                            <p className="text-xs font-black uppercase tracking-widest">PPN ({selectedQuote.taxPercentage}%)</p>
                             <p className="text-xs font-bold">+ {formatRupiah(selectedQuote.taxAmount)}</p>
                          </div>
                        )}
 
                        {selectedQuote.additionalFee > 0 && (
                          <div className="flex justify-between items-center text-amber-500">
-                            <p className="text-[12px] font-black uppercase tracking-widest">
+                            <p className="text-xs font-black uppercase tracking-widest">
                               {selectedQuote.additionalFeeRemarks || 'Additional Fee'}
                             </p>
                             <p className="text-xs font-bold">+ {formatRupiah(selectedQuote.additionalFee)}</p>
@@ -194,7 +194,7 @@ const CreatePO = () => {
                        )}
 
                        <div className="flex justify-between items-end pt-2 border-t border-slate-700/50 mt-2">
-                          <p className="text-[12px] font-black text-white uppercase tracking-widest italic">Grand Total</p>
+                          <p className="text-xs font-black text-white uppercase tracking-widest italic">Grand Total</p>
                           <p className="text-2xl font-black text-white italic">
                             {formatRupiah(
                                (selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0) || 0) +
@@ -209,7 +209,7 @@ const CreatePO = () => {
                  <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-center">
                     <ShoppingCart size={48} className="mb-4 opacity-20" />
                     <p className="text-sm font-black uppercase tracking-widest italic">No Quotation Selected</p>
-                    <p className="text-[12px] mt-2 max-w-50 mx-auto">Silakan pilih Quotation Dasar di sebelah kiri untuk melihat daftar barang yang akan di-order.</p>
+                    <p className="text-xs mt-2 max-w-50 mx-auto">Silakan pilih Quotation Dasar di sebelah kiri untuk melihat daftar barang yang akan di-order.</p>
                  </div>
                )}
             </div>

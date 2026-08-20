@@ -41,7 +41,7 @@ const QuotationApproval = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Verification <span className="text-indigo-600">Queue</span>
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Procurement • Cost Center Verification</p>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Procurement • Cost Center Verification</p>
         </div>
       </div>
 
@@ -52,7 +52,7 @@ const QuotationApproval = () => {
           ) : quotations.length === 0 ? (
             <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-[3rem]">
               <p className="text-slate-300 font-black italic uppercase text-lg tracking-tighter">No Pending Approvals</p>
-              <p className="text-[12px] text-slate-400 font-bold uppercase tracking-widest mt-2">All supplier quotations have been processed</p>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-2">All supplier quotations have been processed</p>
             </div>
           ) : (
             quotations.map((quo) => (
@@ -66,15 +66,15 @@ const QuotationApproval = () => {
                     <FileText size={24}/>
                   </div>
                   <div>
-                    <p className="text-[12px] font-black text-indigo-500 group-hover:text-indigo-200 uppercase italic tracking-widest">{quo.quotationId}</p>
+                    <p className="text-xs font-black text-indigo-500 group-hover:text-indigo-200 uppercase italic tracking-widest">{quo.quotationId}</p>
                     <h3 className="text-xl font-black text-slate-800 group-hover:text-white uppercase italic tracking-tighter">
                       Project: {quo.projectId}
                     </h3>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-[11px] font-bold text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest flex items-center gap-1">
+                      <span className="text-xs font-bold text-slate-400 group-hover:text-indigo-200 uppercase tracking-widest flex items-center gap-1">
                         <Clock size={10}/> {new Date(quo.timestamp).toLocaleDateString()}
                       </span>
-                      <span className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase italic ${
+                      <span className={`px-3 py-0.5 rounded-full text-2xs font-black uppercase italic ${
                         quo.approvalStatus === 'Approved' ? 'bg-emerald-100 text-emerald-600' :
                         quo.approvalStatus === 'Rejected' ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
                       }`}>

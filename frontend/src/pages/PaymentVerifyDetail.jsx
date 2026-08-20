@@ -246,7 +246,7 @@ const PaymentVerifyDetail = () => {
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4"></div>
-          <p className="font-bold uppercase tracking-widest text-slate-400 text-[12px]">LOADING DATA...</p>
+          <p className="font-bold uppercase tracking-widest text-slate-400 text-xs">LOADING DATA...</p>
         </div>
       </div>
     );
@@ -283,11 +283,11 @@ const PaymentVerifyDetail = () => {
         <div className="flex items-center justify-between border-b border-slate-100 pb-8 flex-wrap gap-4">
           <div className="border-l-4 border-slate-900 pl-4">
             <h1 className="text-2xl font-bold uppercase tracking-tight">Payment Review</h1>
-            <p className="text-slate-500 text-[12px] uppercase font-bold tracking-widest">Transaction ID: {payment._id}</p>
+            <p className="text-slate-500 text-xs uppercase font-bold tracking-widest">Transaction ID: {payment._id}</p>
           </div>
           <button
             onClick={() => navigate('/verify-payment')}
-            className="px-6 py-2 border border-slate-200 rounded-xl text-[12px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
+            className="px-6 py-2 border border-slate-200 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
           >
             ← Back to List
           </button>
@@ -303,7 +303,7 @@ const PaymentVerifyDetail = () => {
                 {isVerified ? '✓ PAYMENT VERIFIED & MARKED AS PAID' : '✗ PAYMENT REJECTED'}
               </p>
             </div>
-            <p className="text-[12px] font-bold uppercase tracking-widest mt-2 opacity-75">
+            <p className="text-xs font-bold uppercase tracking-widest mt-2 opacity-75">
               This payment has already been processed - View only mode
             </p>
           </div>
@@ -311,7 +311,7 @@ const PaymentVerifyDetail = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="space-y-4">
-            <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Transfer Evidence Attachment</label>
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Transfer Evidence Attachment</label>
             <div className="bg-slate-50 p-4 rounded-4xl border border-slate-100 shadow-inner overflow-hidden">
               {payment.evidencePath ? (
                 <img
@@ -332,7 +332,7 @@ const PaymentVerifyDetail = () => {
 
           <div className="space-y-8">
             <div className="p-10 bg-slate-900 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
-              <label className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Payment Amount</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">Payment Amount</label>
               <h2 className="text-5xl font-black mt-2 tracking-tighter">Rp {Number(payment.amountPaid || 0).toLocaleString()}</h2>
 
               {/* Tanpa nilai tagihan sebagai pembanding, Finance tidak punya cara
@@ -343,12 +343,12 @@ const PaymentVerifyDetail = () => {
                 return (
                   <div className="mt-4 pt-4 border-t border-white/10 space-y-1">
                     <div className="flex justify-between items-center">
-                      <span className="text-[12px] font-bold text-slate-400 uppercase tracking-widest">Nilai Tagihan</span>
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nilai Tagihan</span>
                       <span className="text-sm font-black text-slate-200">Rp {billed.toLocaleString()}</span>
                     </div>
                     {diff !== 0 && (
                       <div className="flex justify-between items-center">
-                        <span className={`text-[12px] font-black uppercase tracking-widest ${diff > 0 ? 'text-amber-400' : 'text-rose-400'}`}>
+                        <span className={`text-xs font-black uppercase tracking-widest ${diff > 0 ? 'text-amber-400' : 'text-rose-400'}`}>
                           {diff > 0 ? 'Lebih Bayar' : 'Kurang Bayar'}
                         </span>
                         <span className={`text-sm font-black ${diff > 0 ? 'text-amber-400' : 'text-rose-400'}`}>
@@ -362,17 +362,17 @@ const PaymentVerifyDetail = () => {
 
               <div className="absolute top-6 right-6">
                 {isVerified && (
-                  <div className="bg-emerald-500 text-white px-4 py-2 rounded-full text-[12px] font-black uppercase tracking-wider shadow-lg">
+                  <div className="bg-emerald-500 text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider shadow-lg">
                     ✓ VERIFIED
                   </div>
                 )}
                 {isRejected && (
-                  <div className="bg-red-500 text-white px-4 py-2 rounded-full text-[12px] font-black uppercase tracking-wider shadow-lg">
+                  <div className="bg-red-500 text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider shadow-lg">
                     ✗ REJECTED
                   </div>
                 )}
                 {isPending && (
-                  <div className="bg-amber-500 text-white px-4 py-2 rounded-full text-[12px] font-black uppercase tracking-wider animate-pulse shadow-lg">
+                  <div className="bg-amber-500 text-white px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider animate-pulse shadow-lg">
                     ● PENDING
                   </div>
                 )}
@@ -380,24 +380,24 @@ const PaymentVerifyDetail = () => {
 
               <div className="grid grid-cols-2 gap-8 mt-10 pt-10 border-t border-white/10">
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase">Client Name</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Client Name</label>
                   <p className="font-bold uppercase">{displayInvoice?.clientName || payment.invoiceId?.clientName || '-'}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase">Project</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Project</label>
                   <p className="font-bold uppercase">{displayInvoice?.projectName || payment.invoiceId?.projectName || '-'}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase">Invoice Number</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Invoice Number</label>
                   <p className="font-bold uppercase">{displayInvoice?.invoiceNumber || payment.invoiceId?.invoiceNumber || '-'}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase">Transfer Date</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Transfer Date</label>
                   <p className="font-bold uppercase">{payment.paymentDate ? new Date(payment.paymentDate).toLocaleDateString('id-ID') : '-'}</p>
                 </div>
                 {payment.remarks && (
                   <div className="col-span-2 space-y-1 mt-2 pt-2 border-t border-white/10">
-                    <label className="text-[11px] font-bold text-slate-500 uppercase">Remarks</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase">Remarks</label>
                     <p className="text-sm italic text-slate-300">{payment.remarks}</p>
                   </div>
                 )}
@@ -408,7 +408,7 @@ const PaymentVerifyDetail = () => {
               <button
                 onClick={() => downloadInvoicePDF(displayInvoice)}
                 disabled={downloading}
-                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-bold text-[12px] uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
               >
                 {downloading ? 'GENERATING PDF...' : '📄 Download Invoice PDF'}
               </button>
@@ -419,7 +419,7 @@ const PaymentVerifyDetail = () => {
                 <button
                   onClick={() => handleAction('Rejected')}
                   disabled={actionLoading}
-                  className={`flex-1 py-4 border-2 rounded-2xl font-bold text-[12px] uppercase tracking-widest transition-all active:scale-95 ${
+                  className={`flex-1 py-4 border-2 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 ${
                     actionLoading
                       ? 'border-slate-100 text-slate-300 cursor-not-allowed'
                       : 'border-slate-100 text-slate-400 hover:text-red-600 hover:bg-red-50'
@@ -430,7 +430,7 @@ const PaymentVerifyDetail = () => {
                 <button
                   onClick={() => handleAction('Verified')}
                   disabled={actionLoading}
-                  className={`flex-1 py-4 rounded-2xl font-bold text-[12px] uppercase tracking-widest shadow-xl transition-all active:scale-95 ${
+                  className={`flex-1 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-xl transition-all active:scale-95 ${
                     actionLoading
                       ? 'bg-slate-300 text-white cursor-not-allowed'
                       : 'bg-slate-900 text-white hover:bg-slate-800'
@@ -445,7 +445,7 @@ const PaymentVerifyDetail = () => {
               <div className="text-center pt-4">
                 <button
                   onClick={() => navigate('/verify-payment')}
-                  className="w-full py-4 border-2 border-slate-200 rounded-2xl font-bold text-[12px] uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all active:scale-95"
+                  className="w-full py-4 border-2 border-slate-200 rounded-2xl font-bold text-xs uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all active:scale-95"
                 >
                   ← Back to Payment List
                 </button>

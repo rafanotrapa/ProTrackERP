@@ -36,9 +36,9 @@ const KPI = ({ label, value, sub, tone = 'default' }) => {
   };
   return (
     <div className={`rounded-2xl border p-5 shadow-sm flex flex-col gap-1.5 ${tones[tone]}`}>
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] opacity-60">{label}</p>
+      <p className="text-2xs font-black uppercase tracking-[0.18em] opacity-60">{label}</p>
       <p className="text-xl md:text-2xl font-black leading-none tracking-tight">{value}</p>
-      {sub && <p className={`text-[11px] font-medium mt-0.5 ${subTones[tone]}`}>{sub}</p>}
+      {sub && <p className={`text-xs font-medium mt-0.5 ${subTones[tone]}`}>{sub}</p>}
     </div>
   );
 };
@@ -47,10 +47,10 @@ const SectionHead = ({ title, badge }) => (
   <div className="flex items-center justify-between mb-4">
     <div className="flex items-center gap-3">
       <span className="w-1 h-5 bg-slate-900 rounded-full" />
-      <h2 className="text-[13px] font-black uppercase tracking-[0.25em] text-slate-700">{title}</h2>
+      <h2 className="text-sm font-black uppercase tracking-[0.25em] text-slate-700">{title}</h2>
     </div>
     {badge && (
-      <span className="text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-1 rounded-full">
+      <span className="text-2xs font-black uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-1 rounded-full">
         {badge}
       </span>
     )}
@@ -206,7 +206,7 @@ const FinancialReport = () => {
                 style={{ animationDelay: `${i*120}ms` }} />
             ))}
           </div>
-          <p className="text-[11px] font-black uppercase tracking-[0.25em] text-slate-400">
+          <p className="text-xs font-black uppercase tracking-[0.25em] text-slate-400">
             Memuat Data Keuangan
           </p>
         </div>
@@ -231,13 +231,13 @@ const FinancialReport = () => {
           <h1 className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter uppercase leading-none">
             Project Financial <span className="text-indigo-600">Summary</span>
           </h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">
+          <p className="text-2xs font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">
             {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
         <button
           onClick={exportPDF}
-          className="ml-auto flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-indigo-700 text-white rounded-xl font-black text-[11px] uppercase tracking-widest transition-all"
+          className="ml-auto flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-indigo-700 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all"
         >
           ↓ Export PDF
         </button>
@@ -256,7 +256,7 @@ const FinancialReport = () => {
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Ringkasan Pendapatan &amp; Biaya</p>
+                  <p className="text-2xs font-black uppercase tracking-[0.2em] text-slate-400">Ringkasan Pendapatan &amp; Biaya</p>
                   <p className="text-xs font-black uppercase tracking-wide text-white mt-0.5">{labelPeriode}</p>
                 </div>
 
@@ -274,7 +274,7 @@ const FinancialReport = () => {
                       { value: 'all', label: 'Seluruh Periode' },
                       ...bulanTersedia.map((m) => ({ value: m.month, label: monthLabel(m.month) })),
                     ]}
-                    triggerClassName="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-[11px] font-black uppercase tracking-widest text-white flex justify-between items-center cursor-pointer hover:border-indigo-400 transition-all"
+                    triggerClassName="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs font-black uppercase tracking-widest text-white flex justify-between items-center cursor-pointer hover:border-indigo-400 transition-all"
                   />
                 </div>
               </div>
@@ -298,7 +298,7 @@ const FinancialReport = () => {
                   <p className="text-xs font-black text-slate-700">Gross Profit</p>
                   <p className="text-sm font-black text-slate-900">
                     {rp(ringkas.revenue - ringkas.cogs)}
-                    <span className="text-[11px] text-slate-400 ml-2">
+                    <span className="text-xs text-slate-400 ml-2">
                       ({pct(ringkas.revenue - ringkas.cogs, ringkas.revenue)})
                     </span>
                   </p>
@@ -333,7 +333,7 @@ const FinancialReport = () => {
                     <p className={`text-xl font-black ${ringkas.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                       {rp(ringkas.netProfit)}
                     </p>
-                    <p className={`text-[11px] font-black ${ringkas.netProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                    <p className={`text-xs font-black ${ringkas.netProfit >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
                       Margin {pct(ringkas.netProfit, ringkas.revenue)}
                     </p>
                   </div>
@@ -381,7 +381,7 @@ const FinancialReport = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 border-b border-slate-100">
+                  <tr className="bg-slate-50 text-2xs font-black uppercase tracking-[0.15em] text-slate-400 border-b border-slate-100">
                     <th className="px-5 py-3">Project</th>
                     <th className="px-4 py-3 text-right">Revenue</th>
                     <th className="px-4 py-3 text-right">COGS</th>
@@ -415,7 +415,7 @@ const FinancialReport = () => {
                             <p className="font-black text-slate-900 text-xs">{p.projectName || p.projectId}</p>
                             {/* Kode project selalu tampil kapital; sebagian
                                 tersimpan huruf kecil di database. */}
-                            <p className="text-[10px] text-slate-400 font-mono mt-0.5 uppercase">{p.projectId}</p>
+                            <p className="text-2xs text-slate-400 font-mono mt-0.5 uppercase">{p.projectId}</p>
                           </td>
                           <td className="px-4 py-4 text-right font-black text-emerald-600 text-xs whitespace-nowrap">
                             {rp(p.clientRevenue)}
@@ -423,7 +423,7 @@ const FinancialReport = () => {
                           <td className="px-4 py-4 text-right text-rose-500 font-bold text-xs whitespace-nowrap">
                             {rp(shownCOGS)}
                             {isEstimated && (
-                              <span className="ml-1.5 text-[10px] font-black uppercase tracking-wider text-amber-600" title="Tagihan supplier belum masuk — angka dari supplier quotation">
+                              <span className="ml-1.5 text-2xs font-black uppercase tracking-wider text-amber-600" title="Tagihan supplier belum masuk — angka dari supplier quotation">
                                 est.
                               </span>
                             )}
@@ -438,7 +438,7 @@ const FinancialReport = () => {
                             {rp(profit)}
                           </td>
                           <td className="px-4 py-4 text-right">
-                            <span className={`text-[11px] font-black px-2 py-0.5 rounded-full ${
+                            <span className={`text-xs font-black px-2 py-0.5 rounded-full ${
                               profit >= 0
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : 'bg-rose-100 text-rose-700'
@@ -449,13 +449,13 @@ const FinancialReport = () => {
                           <td className="px-4 py-4 text-right text-xs whitespace-nowrap">
                             {p.outstanding > 0
                               ? <span className="font-black text-amber-600">{rp(p.outstanding)}</span>
-                              : <span className="text-emerald-500 font-bold text-[11px]">✓ Lunas</span>
+                              : <span className="text-emerald-500 font-bold text-xs">✓ Lunas</span>
                             }
                           </td>
                           <td className="px-4 py-4 text-center">
                             <button
                               onClick={() => setExpanded(isOpen ? null : p.projectId)}
-                              className="text-[11px] font-black uppercase tracking-wide text-indigo-600 hover:text-indigo-800 transition-all"
+                              className="text-xs font-black uppercase tracking-wide text-indigo-600 hover:text-indigo-800 transition-all"
                             >
                               {isOpen ? '▲ Tutup' : '▼ Detail'}
                             </button>
@@ -468,26 +468,26 @@ const FinancialReport = () => {
                               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
                                 <div className="bg-white rounded-xl border border-slate-100 p-4">
-                                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-3">Revenue Detail</p>
+                                  <p className="text-2xs font-black uppercase tracking-widest text-emerald-600 mb-3">Revenue Detail</p>
                                   <div className="space-y-2">
                                     {[
                                       { l: 'Revenue Bisnis', v: rp(p.clientRevenue), bold: true },
                                       { l: 'Total Ditagihkan', v: rp(p.grandTotalBilled) },
                                     ].map(({ l, v, bold, muted }) => (
                                       <div key={l} className="flex justify-between gap-4">
-                                        <span className={`text-[11px] ${muted ? 'text-slate-400 italic' : 'text-slate-600'}`}>{l}</span>
-                                        <span className={`text-[11px] whitespace-nowrap ${bold ? 'font-black text-slate-900' : muted ? 'text-slate-400' : 'font-bold text-slate-700'}`}>{v}</span>
+                                        <span className={`text-xs ${muted ? 'text-slate-400 italic' : 'text-slate-600'}`}>{l}</span>
+                                        <span className={`text-xs whitespace-nowrap ${bold ? 'font-black text-slate-900' : muted ? 'text-slate-400' : 'font-bold text-slate-700'}`}>{v}</span>
                                       </div>
                                     ))}
                                     <div className="pt-2 border-t border-slate-100 flex justify-between">
-                                      <span className="text-[11px] text-slate-500">Cash Diterima</span>
-                                      <span className="text-[11px] font-black text-emerald-600">{rp(p.cashReceived)}</span>
+                                      <span className="text-xs text-slate-500">Cash Diterima</span>
+                                      <span className="text-xs font-black text-emerald-600">{rp(p.cashReceived)}</span>
                                     </div>
                                   </div>
                                 </div>
 
                                 <div className="bg-white rounded-xl border border-slate-100 p-4">
-                                  <p className="text-[10px] font-black uppercase tracking-widest text-rose-600 mb-3">Expense Detail</p>
+                                  <p className="text-2xs font-black uppercase tracking-widest text-rose-600 mb-3">Expense Detail</p>
                                   <div className="space-y-2">
                                     {[
                                       { l: 'COGS (harga beli vendor)', v: rp(p.supplierCOGS), bold: true },
@@ -496,73 +496,73 @@ const FinancialReport = () => {
                                       { l: 'Total Expense Bisnis', v: rp(p.totalExpense), bold: true },
                                     ].map(({ l, v, bold, muted }) => (
                                       <div key={l} className="flex justify-between gap-4">
-                                        <span className={`text-[11px] ${muted ? 'text-slate-400 italic' : 'text-slate-600'}`}>{l}</span>
-                                        <span className={`text-[11px] whitespace-nowrap ${bold ? 'font-black text-slate-900' : muted ? 'text-slate-400' : 'font-bold text-slate-700'}`}>{v}</span>
+                                        <span className={`text-xs ${muted ? 'text-slate-400 italic' : 'text-slate-600'}`}>{l}</span>
+                                        <span className={`text-xs whitespace-nowrap ${bold ? 'font-black text-slate-900' : muted ? 'text-slate-400' : 'font-bold text-slate-700'}`}>{v}</span>
                                       </div>
                                     ))}
                                     <div className={`pt-2 border-t border-slate-100 flex justify-between rounded-lg px-2 py-1.5 ${profit >= 0 ? 'bg-emerald-50' : 'bg-rose-50'}`}>
-                                      <span className="text-[11px] font-black text-slate-700">Net Profit</span>
-                                      <span className={`text-[11px] font-black ${profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{rp(profit)}</span>
+                                      <span className="text-xs font-black text-slate-700">Net Profit</span>
+                                      <span className={`text-xs font-black ${profit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>{rp(profit)}</span>
                                     </div>
                                   </div>
                                 </div>
 
                                 <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3 max-h-64 overflow-y-auto">
-                                  <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3">
+                                  <p className="text-2xs font-black uppercase tracking-widest text-orange-500 mb-3">
                                     Detail Biaya Lain ({(p.otherExpenseBreakdown || []).length} submission)
                                   </p>
                                   {(p.otherExpenseBreakdown || []).length === 0 ? (
-                                    <p className="text-[11px] text-slate-400 italic">Tidak ada submission biaya lain</p>
+                                    <p className="text-xs text-slate-400 italic">Tidak ada submission biaya lain</p>
                                   ) : (
                                     p.otherExpenseBreakdown.map((sub, idx) => (
                                       <div key={idx} className="pb-2 border-b border-slate-50 last:border-0">
                                         <div className="flex justify-between gap-4 mb-1">
-                                          <p className="text-[10px] font-black text-slate-400 uppercase">{sub.submissionId}</p>
-                                          <span className="text-[11px] font-black text-orange-600">{rp(sub.amount)}</span>
+                                          <p className="text-2xs font-black text-slate-400 uppercase">{sub.submissionId}</p>
+                                          <span className="text-xs font-black text-orange-600">{rp(sub.amount)}</span>
                                         </div>
                                         {(sub.items || []).map((it, i2) => (
                                           <div key={i2} className="flex justify-between gap-4 pl-2">
-                                            <span className="text-[11px] text-slate-600">• {it.name}</span>
-                                            <span className="text-[11px] font-bold text-slate-500">{rp(it.amount)}</span>
+                                            <span className="text-xs text-slate-600">• {it.name}</span>
+                                            <span className="text-xs font-bold text-slate-500">{rp(it.amount)}</span>
                                           </div>
                                         ))}
-                                        <p className="text-[10px] text-slate-400 pl-2 mt-0.5">{sub.submittedBy || '-'}</p>
+                                        <p className="text-2xs text-slate-400 pl-2 mt-0.5">{sub.submittedBy || '-'}</p>
                                       </div>
                                     ))
                                   )}
                                 </div>
                                 <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3">
-                                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-3">
+                                  <p className="text-2xs font-black uppercase tracking-widest text-indigo-500 mb-3">
                                     Estimasi vs Aktual
                                   </p>
                                   <div className="space-y-2">
                                     <div className="flex justify-between gap-4">
-                                      <span className="text-[11px] text-slate-500">Estimasi COGS (SQ)</span>
-                                      <span className="text-[11px] font-bold text-slate-600">{rp(p.estimatedCOGS)}</span>
+                                      <span className="text-xs text-slate-500">Estimasi COGS (SQ)</span>
+                                      <span className="text-xs font-bold text-slate-600">{rp(p.estimatedCOGS)}</span>
                                     </div>
                                     <div className="flex justify-between gap-4">
-                                      <span className="text-[11px] text-slate-500">Aktual COGS (SI Paid)</span>
-                                      <span className="text-[11px] font-black text-rose-600">{rp(p.supplierCOGS)}</span>
+                                      <span className="text-xs text-slate-500">Aktual COGS (SI Paid)</span>
+                                      <span className="text-xs font-black text-rose-600">{rp(p.supplierCOGS)}</span>
                                     </div>
                                     <div className="flex justify-between gap-4 pt-2 border-t border-slate-100">
-                                      <span className="text-[11px] font-bold text-slate-600">Selisih</span>
-                                      <span className={`text-[11px] font-black ${
+                                      <span className="text-xs font-bold text-slate-600">Selisih</span>
+                                      <span className={`text-xs font-black ${
                                         (p.supplierCOGS - p.estimatedCOGS) > 0 ? 'text-rose-600' : 'text-emerald-600'
                                       }`}>
                                         {(p.supplierCOGS - p.estimatedCOGS) > 0 ? '+' : ''}{rp(p.supplierCOGS - p.estimatedCOGS)}
                                       </span>
                                     </div>
-                                    <p className="text-[10px] text-slate-400 italic pt-1">
+                                    <p className="text-2xs text-slate-400 italic pt-1">
                                       Bea cukai & PPN vendor belum terhitung di estimasi — baru diketahui saat Supplier Invoice masuk.
                                     </p>
                                     <div className="pt-2 border-t border-slate-100">
                                       <div className="flex justify-between gap-4">
-                                        <span className="text-[11px] text-slate-500">Est. Net Profit</span>
-                                        <span className="text-[11px] font-bold text-slate-600">{rp(p.estimatedNetProfit)}</span>
+                                        <span className="text-xs text-slate-500">Est. Net Profit</span>
+                                        <span className="text-xs font-bold text-slate-600">{rp(p.estimatedNetProfit)}</span>
                                       </div>
                                       <div className="flex justify-between gap-4">
-                                        <span className="text-[11px] text-slate-500">Est. Margin</span>
-                                        <span className="text-[11px] font-bold text-slate-600">{(p.estimatedMargin ?? 0).toFixed(1)}%</span>
+                                        <span className="text-xs text-slate-500">Est. Margin</span>
+                                        <span className="text-xs font-bold text-slate-600">{(p.estimatedMargin ?? 0).toFixed(1)}%</span>
                                       </div>
                                     </div>
                                   </div>
@@ -578,7 +578,7 @@ const FinancialReport = () => {
 
                 {projects.length > 0 && (
                   <tfoot>
-                    <tr className="bg-slate-900 text-[11px] font-black text-white">
+                    <tr className="bg-slate-900 text-xs font-black text-white">
                       <td className="px-5 py-3">TOTAL ({projects.length} Projects)</td>
                       <td className="px-4 py-3 text-right text-emerald-400">{rp(totalRevenue)}</td>
                       <td className="px-4 py-3 text-right text-rose-400">{rp(totalCOGS)}</td>
@@ -605,7 +605,7 @@ const FinancialReport = () => {
                     dari batangnya. */}
                 <div className="flex flex-col justify-between h-56 shrink-0 py-0.5">
                   {[1, 0.5, 0].map((f) => (
-                    <span key={f} className="text-[10px] font-bold text-slate-400 whitespace-nowrap leading-none">
+                    <span key={f} className="text-2xs font-bold text-slate-400 whitespace-nowrap leading-none">
                       {rp(maxTrend * f)}
                     </span>
                   ))}
@@ -654,7 +654,7 @@ const FinancialReport = () => {
 
                   <div className="flex justify-between gap-1 border-t border-slate-200 pt-2" style={{ minWidth: `${trend.length * 44}px` }}>
                     {trend.map((m, i) => (
-                      <span key={i} className="flex-1 text-[10px] font-black text-slate-400 text-center whitespace-nowrap">
+                      <span key={i} className="flex-1 text-2xs font-black text-slate-400 text-center whitespace-nowrap">
                         {monthLabel(m.month)}
                       </span>
                     ))}
@@ -669,10 +669,10 @@ const FinancialReport = () => {
                 ].map((l) => (
                   <div key={l.label} className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: l.warna }} />
-                    <span className="text-[10px] text-slate-500 font-bold">{l.label}</span>
+                    <span className="text-2xs text-slate-500 font-bold">{l.label}</span>
                   </div>
                 ))}
-                <span className="text-[10px] text-slate-400 ml-auto">
+                <span className="text-2xs text-slate-400 ml-auto">
                   Arahkan kursor ke batang untuk melihat nilai dan net profit bulan tersebut
                 </span>
               </div>
@@ -688,7 +688,7 @@ const FinancialReport = () => {
             />
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-5 py-3 bg-amber-50 border-b border-amber-100 flex justify-between items-center">
-                <p className="text-[11px] font-black text-amber-700 uppercase tracking-wider">
+                <p className="text-xs font-black text-amber-700 uppercase tracking-wider">
                   Total Outstanding
                 </p>
                 <p className="text-sm font-black text-amber-700">
@@ -697,7 +697,7 @@ const FinancialReport = () => {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
+                  <thead className="bg-slate-50 text-2xs font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
                     <tr>
                       <th className="px-5 py-3 text-left">Invoice #</th>
                       <th className="px-4 py-3 text-left">Project</th>
@@ -713,18 +713,18 @@ const FinancialReport = () => {
                         <td className="px-5 py-3 font-mono font-black text-indigo-600 text-xs">{inv.invoiceNumber}</td>
                         <td className="px-4 py-3">
                           <p className="font-bold text-slate-800 text-xs">{inv.projectName}</p>
-                          <p className="text-[10px] text-slate-400">{inv.projectId}</p>
+                          <p className="text-2xs text-slate-400">{inv.projectId}</p>
                         </td>
                         <td className="px-4 py-3 text-slate-600 text-xs">{inv.clientName}</td>
                         <td className="px-4 py-3 text-right font-black text-emerald-600 whitespace-nowrap">
                           {rp(inv.amount)}
                         </td>
-                        <td className="px-4 py-3 text-center text-[12px] text-slate-500">
+                        <td className="px-4 py-3 text-center text-xs text-slate-500">
                           {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('id-ID') : '—'}
                           {inv.isOverdue && <span className="ml-1 text-rose-500 font-black">⚠</span>}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                          <span className={`text-2xs font-black px-2 py-0.5 rounded-full ${
                             inv.isOverdue
                               ? 'bg-rose-100 text-rose-700'
                               : 'bg-amber-100 text-amber-700'

@@ -260,7 +260,7 @@ const AddSupplierQuotation = () => {
         </button>
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">Supplier <span className="text-indigo-600">Quotation</span></h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Procurement • COGS Input</p>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Procurement • COGS Input</p>
         </div>
       </div>
 
@@ -268,33 +268,33 @@ const AddSupplierQuotation = () => {
         <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-12">
 
           <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-            <p className="text-[11px] font-black text-blue-700 uppercase tracking-widest flex items-center gap-2">
+            <p className="text-xs font-black text-blue-700 uppercase tracking-widest flex items-center gap-2">
               <Info size={12}/>
               COGS akan otomatis terdistribusi dengan Additional Fee dan Pajak di sistem Marketing.
             </p>
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Source Identity</h3>
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Source Identity</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
 
               <div className="space-y-1">
-                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">SQ ID</label>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">SQ ID</label>
                 <input type="text" readOnly disabled value="" placeholder="Dibuat otomatis oleh sistem" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-400 italic font-bold outline-none" />
               </div>
 
               <div className="space-y-1 relative">
-                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Linked Project</label>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Linked Project</label>
                 <div onClick={() => setOpenDropdown(openDropdown === 'project' ? null : 'project')} className="w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm">
                   <span className="truncate">{selectedProjObj?.projectName || '-- Select Project --'}</span>
-                  <span className={`text-[10px] transition-transform ${openDropdown === 'project' ? 'rotate-180' : ''}`}>▼</span>
+                  <span className={`text-2xs transition-transform ${openDropdown === 'project' ? 'rotate-180' : ''}`}>▼</span>
                 </div>
                 {openDropdown === 'project' && (
                   <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden">
                     <input type="text" placeholder="Search Project..." className="w-full p-3 text-xs border-b outline-none font-bold" value={searchTerms.project} onChange={(e) => setSearchTerms({...searchTerms, project: e.target.value})} autoFocus />
                     <ul className="max-h-48 overflow-y-auto">
                       {filteredProjects.map(p => (
-                        <li key={p._id} onClick={() => handleProjectSelect(p.projectId)} className="px-4 py-3 text-[12px] font-black text-slate-600 hover:bg-indigo-600 hover:text-white cursor-pointer transition-all uppercase">{p.projectId} - {p.projectName}</li>
+                        <li key={p._id} onClick={() => handleProjectSelect(p.projectId)} className="px-4 py-3 text-xs font-black text-slate-600 hover:bg-indigo-600 hover:text-white cursor-pointer transition-all uppercase">{p.projectId} - {p.projectName}</li>
                       ))}
                     </ul>
                   </div>
@@ -302,7 +302,7 @@ const AddSupplierQuotation = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Currency</label>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Currency</label>
                 <StyledSelect
                   name="currency"
                   value={formData.currency}
@@ -319,7 +319,7 @@ const AddSupplierQuotation = () => {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">
                   {isManualMode ? 'Select Supplier (Multi)' : 'Auto-Mapped Supplier'}
                 </label>
                 {isManualMode ? (
@@ -345,32 +345,32 @@ const AddSupplierQuotation = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Goods & Commercials</h3>
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Goods & Commercials</h3>
 
             <div className="space-y-4">
               {quotationItems.map((item, index) => (
                 <div key={index} className="grid grid-cols-1 md:grid-cols-12 gap-4 p-5 bg-slate-50 border border-slate-200 rounded-2xl items-end relative transition-all hover:border-indigo-300">
                   <div className="md:col-span-3 space-y-1">
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Item Name</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Item Name</label>
                     <input list={`item-list-${index}`} name="itemName" value={item.itemName} onChange={(e) => handleItemChange(index, e)} required placeholder="Ketik nama barang..." className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm" />
                     <datalist id={`item-list-${index}`}>
                       {items.map(i => <option key={i._id} value={i.itemName} />)}
                     </datalist>
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Qty</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Qty</label>
                     <input type="number" name="quantity" value={item.quantity} onChange={(e) => handleItemChange(index, e)} min="1" required className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">UoM</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">UoM</label>
                     <input name="unit" value={item.unit} onChange={(e) => handleItemChange(index, e)} required placeholder="Pcs/Lot" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Harga/Unit ({formData.currency})</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Harga/Unit ({formData.currency})</label>
                     <input type="text" name="cogs" value={formatRupiah(item.cogs)} onChange={(e) => handleItemChange(index, e)} required placeholder="0" className="w-full p-3 bg-white border border-slate-300 rounded-lg text-sm font-black text-indigo-600 outline-none focus:border-indigo-600 shadow-sm"/>
                   </div>
                   <div className="md:col-span-2 space-y-1">
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Total ({formData.currency})</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Total ({formData.currency})</label>
                     <input type="text" readOnly value={formatRupiah((item.quantity || 0) * (item.cogs || 0))} className="w-full p-3 bg-slate-100 border border-slate-200 rounded-lg text-sm font-black text-slate-500 outline-none cursor-not-allowed shadow-inner" />
                   </div>
                   <div className="md:col-span-1 flex justify-center pb-1">
@@ -384,13 +384,13 @@ const AddSupplierQuotation = () => {
               ))}
             </div>
 
-            <button type="button" onClick={addItemRow} className="flex items-center gap-2 text-indigo-600 font-black text-[12px] uppercase tracking-widest hover:text-indigo-800 transition-colors mt-2 ml-1">
+            <button type="button" onClick={addItemRow} className="flex items-center gap-2 text-indigo-600 font-black text-xs uppercase tracking-widest hover:text-indigo-800 transition-colors mt-2 ml-1">
               <Plus size={14} strokeWidth={3} /> Add Another Item
             </button>
 
             <div className="flex flex-col items-end mt-8 space-y-5 bg-white p-6 md:p-8 border border-slate-200 rounded-3xl shadow-sm">
               <div className="flex justify-between items-center w-full md:w-2/3 lg:w-1/2">
-                <span className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic">Subtotal (Item)</span>
+                <span className="text-xs font-black text-slate-400 uppercase tracking-widest italic">Subtotal (Item)</span>
                 <span className="text-sm font-bold text-slate-600">{formData.currency} {formatRupiah(calculateSubTotal())}</span>
               </div>
 
@@ -403,7 +403,7 @@ const AddSupplierQuotation = () => {
                     onChange={(e) => setFormData({ ...formData, isTaxIncluded: e.target.checked, taxAmount: e.target.checked ? formData.taxAmount : '' })}
                     className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-600 cursor-pointer"
                   />
-                  <label htmlFor="ppnCheckbox" className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic cursor-pointer flex items-center gap-1">
+                  <label htmlFor="ppnCheckbox" className="text-xs font-black text-slate-400 uppercase tracking-widest italic cursor-pointer flex items-center gap-1">
                     <Receipt size={12}/> Include Tax
                   </label>
                 </div>
@@ -422,7 +422,7 @@ const AddSupplierQuotation = () => {
 
               <div className="flex flex-col md:flex-row justify-between items-end md:items-center w-full md:w-2/3 lg:w-1/2 gap-3">
                 <div className="flex flex-col w-full md:w-auto">
-                  <span className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic mb-1 flex items-center gap-1">
+                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest italic mb-1 flex items-center gap-1">
                     <Truck size={12}/> Additional Fee <span className="text-slate-300 font-medium normal-case">(Opsional)</span>
                   </span>
                   <input
@@ -430,7 +430,7 @@ const AddSupplierQuotation = () => {
                     value={formData.additionalFeeRemarks}
                     onChange={(e) => setFormData({...formData, additionalFeeRemarks: e.target.value})}
                     placeholder="Keterangan (ex: Ongkir)"
-                    className="p-2.5 bg-white border border-slate-200 rounded-lg text-[12px] font-bold text-slate-600 outline-none focus:border-indigo-600 transition-all"
+                    className="p-2.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 outline-none focus:border-indigo-600 transition-all"
                   />
                 </div>
                 <input
@@ -452,7 +452,7 @@ const AddSupplierQuotation = () => {
 
             {(hasAdditionalFee || hasTax) && calculateSubTotal() > 0 && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mt-4">
-                <p className="text-[11px] font-black text-amber-700 uppercase tracking-widest mb-3 flex items-center gap-2">
+                <p className="text-xs font-black text-amber-700 uppercase tracking-widest mb-3 flex items-center gap-2">
                   <Info size={12}/>
                   Preview COGS Setelah Distribusi (yang akan dilihat Marketing)
                 </p>
@@ -467,7 +467,7 @@ const AddSupplierQuotation = () => {
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] text-slate-500 mt-3 italic">
+                <p className="text-2xs text-slate-500 mt-3 italic">
                   *Additional Fee dan Pajak akan didistribusikan secara proporsional ke setiap item.
                 </p>
               </div>
@@ -476,12 +476,12 @@ const AddSupplierQuotation = () => {
           </div>
 
           <div className="space-y-6">
-            <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 03. Documentation & Terms</h3>
+            <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 03. Documentation & Terms</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
               <div className="space-y-6">
                 <div className="space-y-1">
-                  <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Term of Payment (TOP) <span className="text-red-500">*</span></label>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Term of Payment (TOP) <span className="text-red-500">*</span></label>
                   <div className="flex gap-2">
                     <div className="flex-1">
                       <StyledSelect
@@ -508,14 +508,14 @@ const AddSupplierQuotation = () => {
                   {formData.topOption === 'Termin' && (
                     <div className="mt-3 p-4 border-2 border-amber-200 rounded-2xl bg-amber-50/40 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[12px] font-black text-amber-600 uppercase tracking-widest italic">Skema Termin ({terminRows.length}x)</span>
-                        <span className={`text-[12px] font-black px-2.5 py-1 rounded-full ${terminSum === 100 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                        <span className="text-xs font-black text-amber-600 uppercase tracking-widest italic">Skema Termin ({terminRows.length}x)</span>
+                        <span className={`text-xs font-black px-2.5 py-1 rounded-full ${terminSum === 100 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
                           Total: {terminSum}%
                         </span>
                       </div>
                       {terminRows.map((r, i) => (
                         <div key={i} className="flex items-center gap-2">
-                          <span className="text-[11px] font-black text-slate-500 uppercase w-20 shrink-0">
+                          <span className="text-xs font-black text-slate-500 uppercase w-20 shrink-0">
                             {i === 0 ? 'Termin 1 (DP)' : `Termin ${i + 1}`}
                           </span>
                           <input
@@ -531,26 +531,26 @@ const AddSupplierQuotation = () => {
                         </div>
                       ))}
                       {terminRows.length < 6 && (
-                        <button type="button" onClick={addTerminRow} className="w-full mt-1 py-2 border-2 border-dashed border-amber-300 rounded-xl text-[11px] font-black text-amber-600 uppercase tracking-widest hover:bg-amber-100 transition-all">
+                        <button type="button" onClick={addTerminRow} className="w-full mt-1 py-2 border-2 border-dashed border-amber-300 rounded-xl text-xs font-black text-amber-600 uppercase tracking-widest hover:bg-amber-100 transition-all">
                           + Tambah Termin
                         </button>
                       )}
-                      <p className="text-[10px] font-bold text-slate-400 italic">Total semua termin wajib = 100%. Tersimpan sebagai: <span className="font-black text-slate-500">{composeTermin(terminRows)}</span></p>
+                      <p className="text-2xs font-bold text-slate-400 italic">Total semua termin wajib = 100%. Tersimpan sebagai: <span className="font-black text-slate-500">{composeTermin(terminRows)}</span></p>
                     </div>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Quotation File (PDF/IMG)</label>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Quotation File (PDF/IMG)</label>
                   <div className="relative group">
                     <input type="file" accept="image/*,application/pdf" className="w-full p-4 bg-white border-2 border-dashed border-slate-200 rounded-2xl font-bold text-xs text-slate-500 file:hidden cursor-pointer hover:border-indigo-400 hover:bg-indigo-50/50 transition-all" onChange={handleFileChange} />
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] font-black uppercase text-indigo-500 pointer-events-none group-hover:translate-x-1 transition-all">Upload File →</div>
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black uppercase text-indigo-500 pointer-events-none group-hover:translate-x-1 transition-all">Upload File →</div>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Remarks / Notes</label>
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Remarks / Notes</label>
                 <textarea name="remarks" placeholder="Catatan tambahan untuk management..." className="w-full p-4 bg-white border border-slate-300 rounded-2xl h-full min-h-[120px] outline-none font-medium text-slate-700 focus:border-indigo-600 shadow-sm transition-all" onChange={handleChange} value={formData.remarks} />
               </div>
 
@@ -558,7 +558,7 @@ const AddSupplierQuotation = () => {
           </div>
 
           <div className="flex justify-end pt-10 border-t border-slate-100">
-            <button type="submit" disabled={loading} className={`px-12 py-5 rounded-xl font-black text-white uppercase tracking-widest text-[13px] shadow-2xl transition-all active:scale-95 ${loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200 hover:-translate-y-1'}`}>
+            <button type="submit" disabled={loading} className={`px-12 py-5 rounded-xl font-black text-white uppercase tracking-widest text-sm shadow-2xl transition-all active:scale-95 ${loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-slate-200 hover:-translate-y-1'}`}>
               {loading ? 'SYNCING...' : 'SUBMIT QUOTATION →'}
             </button>
           </div>

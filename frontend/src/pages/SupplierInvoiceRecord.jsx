@@ -83,7 +83,7 @@ const SupplierInvoiceRecord = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mx-auto mb-4" />
-            <p className="text-[12px] font-black uppercase tracking-widest text-slate-400">Loading...</p>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-400">Loading...</p>
           </div>
         </div>
       </div>
@@ -105,7 +105,7 @@ const SupplierInvoiceRecord = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Invoice <span className="text-indigo-600">Log</span>
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
             Procurement Module • Billing History
           </p>
         </div>
@@ -124,7 +124,7 @@ const SupplierInvoiceRecord = () => {
               <button
                 key={key}
                 onClick={() => setStatusFilter(key)}
-                className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
                   statusFilter === key ? cls : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
@@ -154,7 +154,7 @@ const SupplierInvoiceRecord = () => {
           <div className="border border-slate-200 rounded-2xl overflow-hidden">
             <table className="w-full text-left">
               <thead className="bg-slate-50">
-                <tr className="text-[11px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
+                <tr className="text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">Invoice / PO</th>
                   <th className="px-6 py-4">Vendor / Project</th>
                   <th className="px-6 py-4 text-right">Grand Total</th>
@@ -169,18 +169,18 @@ const SupplierInvoiceRecord = () => {
                   return (
                     <tr key={inv._id} className="hover:bg-slate-50/50 transition-all">
                       <td className="px-6 py-5">
-                        <p className="text-[12px] font-black text-indigo-600 uppercase tracking-wider">{inv.invoiceNumber}</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">PO: {inv.poNumber} &bull; {inv.terminName}</p>
+                        <p className="text-xs font-black text-indigo-600 uppercase tracking-wider">{inv.invoiceNumber}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">PO: {inv.poNumber} &bull; {inv.terminName}</p>
                       </td>
                       <td className="px-6 py-5">
                         <p className="font-bold text-slate-800 text-sm">{inv.vendorName}</p>
-                        <p className="text-[11px] text-slate-400">{inv.projectId}</p>
+                        <p className="text-xs text-slate-400">{inv.projectId}</p>
                       </td>
                       <td className="px-6 py-5 text-right">
                         <p className="font-black text-emerald-600">{inv.currency} {formatRupiah(grandTotal)}</p>
                       </td>
                       <td className="px-6 py-5 text-center">
-                        <span className={`px-3 py-1 rounded-full text-[11px] font-black uppercase ${
+                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${
                           currentStatus === 'Paid' ? 'bg-emerald-100 text-emerald-600' :
                           currentStatus === 'Rejected' ? 'bg-rose-100 text-rose-600' :
                           'bg-amber-100 text-amber-600'
@@ -191,14 +191,14 @@ const SupplierInvoiceRecord = () => {
                           <button
                             onClick={() => viewPaymentProof(inv)}
                             title="Lihat & download bukti transfer untuk diteruskan ke vendor"
-                            className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"
+                            className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-black uppercase bg-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"
                           >
                             <Eye size={11} /> Bukti TF
                           </button>
                         )}
                       </td>
                       <td className="px-6 py-5 text-center">
-                        <p className="text-[11px] font-bold text-slate-500">
+                        <p className="text-xs font-bold text-slate-500">
                           {new Date(inv.createdAt).toLocaleDateString('id-ID')}
                         </p>
                       </td>

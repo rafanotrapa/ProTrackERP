@@ -37,13 +37,13 @@ const SupplierQuotationMenu = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Supplier <span className="text-indigo-600">Quotation</span>
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">Procurement Module • Price Agreement</p>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">Procurement Module • Price Agreement</p>
         </div>
       </div>
 
       <main className="flex-1 p-8 md:p-12 lg:p-16 max-w-5xl mx-auto w-full">
         <div className="flex justify-between items-end mb-6 px-2">
-          <h2 className="text-[13px] font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">Quotation Operations</h2>
+          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">Quotation Operations</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -57,9 +57,9 @@ const SupplierQuotationMenu = () => {
                 {React.cloneElement(menu.icon, { size: 20, className: "text-slate-600 group-hover:text-white transition-all" })}
               </div>
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-1">{menu.title}</h3>
-              <p className="text-[11px] font-bold text-slate-400 leading-relaxed mb-3">{menu.desc}</p>
+              <p className="text-xs font-bold text-slate-400 leading-relaxed mb-3">{menu.desc}</p>
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Access</span>
+                <span className="text-2xs font-black text-slate-400 uppercase tracking-widest">Access</span>
                 <ArrowRight size={12} className="text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
               </div>
             </div>

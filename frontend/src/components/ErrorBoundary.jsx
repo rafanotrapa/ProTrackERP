@@ -40,7 +40,7 @@ class ErrorBoundary extends React.Component {
           <h1 className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Halaman Gagal Dimuat
           </h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
             Bagian lain aplikasi tetap bisa dipakai
           </p>
 
@@ -53,13 +53,13 @@ class ErrorBoundary extends React.Component {
           <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
             <button
               onClick={() => window.location.reload()}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-indigo-700 text-white text-[12px] font-black uppercase tracking-widest transition-all"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-widest transition-all"
             >
               <RotateCw size={14} /> Muat Ulang
             </button>
             <button
               onClick={() => { window.location.href = '/dashboard'; }}
-              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[12px] font-black uppercase tracking-widest transition-all"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-widest transition-all"
             >
               <LayoutDashboard size={14} /> Ke Dashboard
             </button>
@@ -68,10 +68,10 @@ class ErrorBoundary extends React.Component {
           {/* Rinciannya disembunyikan supaya layar tetap rapi saat demo, tapi
               tetap bisa dibuka kalau perlu dilaporkan. */}
           <details className="mt-8 text-left">
-            <summary className="cursor-pointer text-[11px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600">
+            <summary className="cursor-pointer text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600">
               Rincian teknis
             </summary>
-            <pre className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl text-[12px] text-slate-600 overflow-x-auto whitespace-pre-wrap break-words">
+            <pre className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 overflow-x-auto whitespace-pre-wrap break-words">
               {String(this.state.error?.stack || this.state.error)}
             </pre>
           </details>

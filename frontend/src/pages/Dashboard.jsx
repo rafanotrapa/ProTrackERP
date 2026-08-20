@@ -213,7 +213,7 @@ const Dashboard = () => {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={18} className="text-indigo-400" />
-                <span className="text-[11px] font-black text-indigo-400 uppercase tracking-[0.3em]">ProTrack ERP</span>
+                <span className="text-xs font-black text-indigo-400 uppercase tracking-[0.3em]">ProTrack ERP</span>
               </div>
               <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter italic leading-tight">
                 {greeting()}, <span className="text-indigo-600">{user.username}</span>
@@ -229,7 +229,7 @@ const Dashboard = () => {
                   <button
                     key={l}
                     onClick={() => switchLang(l)}
-                    className={`px-3 py-1.5 rounded-full text-[11px] font-black uppercase tracking-widest transition-all ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest transition-all ${
                       lang === l ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-slate-600'
                     }`}
                   >
@@ -241,7 +241,7 @@ const Dashboard = () => {
               <div className="flex items-center gap-3 bg-slate-50 rounded-2xl px-5 py-3 border border-slate-100">
                 <CircleDot size={16} className="text-emerald-500" />
                 <div>
-                  <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest">{t.systemStatus}</p>
+                  <p className="text-slate-400 text-2xs font-black uppercase tracking-widest">{t.systemStatus}</p>
                   <p className="text-slate-800 font-black text-xs uppercase">{t.operational}</p>
                 </div>
               </div>
@@ -252,9 +252,9 @@ const Dashboard = () => {
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-5">
             <Layers size={18} className="text-indigo-500" />
-            <h2 className="text-[12px] font-black text-slate-400 uppercase tracking-[0.3em]">{t.quickAccess}</h2>
+            <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">{t.quickAccess}</h2>
             <div className="flex-1 h-px bg-slate-200"></div>
-            <span className="text-[10px] font-black text-slate-400">{userModules.length} {t.modules}</span>
+            <span className="text-2xs font-black text-slate-400">{userModules.length} {t.modules}</span>
           </div>
 
           {userModules.length > 0 ? (
@@ -271,11 +271,11 @@ const Dashboard = () => {
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-1">
                     {mod.title}
                   </h3>
-                  <p className="text-[11px] font-bold text-slate-400 leading-relaxed mb-3">
+                  <p className="text-xs font-bold text-slate-400 leading-relaxed mb-3">
                     {lang === 'en' ? (mod.descEn || mod.desc) : mod.desc}
                   </p>
                   <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.access}</span>
+                    <span className="text-2xs font-black text-slate-400 uppercase tracking-widest">{t.access}</span>
                     <ArrowRight size={12} className="text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
                   </div>
                 </div>
@@ -285,7 +285,7 @@ const Dashboard = () => {
             <div className="bg-white rounded-2xl p-20 text-center border-2 border-dashed border-slate-200">
               <Briefcase size={48} className="mx-auto text-slate-300 mb-4" />
               <p className="text-xl font-black italic text-slate-400 uppercase tracking-tighter">{t.noModules}</p>
-              <p className="text-[11px] text-slate-400 mt-2">{t.contactAdmin}</p>
+              <p className="text-xs text-slate-400 mt-2">{t.contactAdmin}</p>
             </div>
           )}
 
@@ -296,21 +296,21 @@ const Dashboard = () => {
                 <h2 className="text-xl font-black italic text-slate-800 uppercase tracking-tighter">
                   {tabelMilikSendiri ? t.myProjects : t.allProjects}
                 </h2>
-                <span className="text-[11px] font-black text-slate-400">({daftarProject.length})</span>
+                <span className="text-xs font-black text-slate-400">({daftarProject.length})</span>
               </div>
-              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 ml-7">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 ml-7">
                 {tabelMilikSendiri ? t.myProjectsSub : t.allProjectsSub}
               </p>
 
               <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
                 {memuatProject ? (
-                  <p className="p-10 text-center text-[12px] font-black text-slate-400 uppercase tracking-widest">
+                  <p className="p-10 text-center text-xs font-black text-slate-400 uppercase tracking-widest">
                     {t.loadingProjects}
                   </p>
                 ) : daftarProject.length === 0 ? (
                   <div className="p-12 text-center">
                     <Briefcase size={32} className="mx-auto text-slate-200 mb-3" />
-                    <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest">
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
                       {tabelMilikSendiri ? t.noProjectsMine : t.noProjects}
                     </p>
                   </div>
@@ -318,7 +318,7 @@ const Dashboard = () => {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm min-w-150">
                       <thead className="bg-slate-50">
-                        <tr className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+                        <tr className="text-xs font-black text-slate-400 uppercase tracking-widest">
                           <th className="px-6 py-3">{t.colProject}</th>
                           {tabelMilikSendiri && <th className="px-6 py-3">{t.colClient}</th>}
                           <th className="px-6 py-3">{t.colValue}</th>
@@ -335,7 +335,7 @@ const Dashboard = () => {
                           >
                             <td className="px-6 py-3">
                               <p className="font-bold text-slate-800">{p.projectName}</p>
-                              <p className="text-[11px] font-bold text-slate-400">{p.projectId}</p>
+                              <p className="text-xs font-bold text-slate-400">{p.projectId}</p>
                             </td>
                             {tabelMilikSendiri && (
                               <td className="px-6 py-3 text-slate-600">{p.institutionName || '—'}</td>
@@ -347,7 +347,7 @@ const Dashboard = () => {
                               </td>
                             )}
                             <td className="px-6 py-3">
-                              <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                              <span className="text-xs font-black text-slate-500 uppercase tracking-widest">
                                 {p.status || '—'}
                               </span>
                             </td>

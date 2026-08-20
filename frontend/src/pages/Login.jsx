@@ -123,7 +123,7 @@ const Login = () => {
               <h1 className="text-3xl font-black text-slate-900 tracking-tighter mb-2">
                 ProTrack <span className="text-indigo-600">ERP</span>
               </h1>
-              <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em]">
+              <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                 Enterprise Resource Planning
               </p>
               <div className="h-px w-12 bg-gradient-to-r from-transparent via-indigo-300 to-transparent mx-auto mt-3"></div>
@@ -131,7 +131,7 @@ const Login = () => {
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
                   Email
                 </label>
                 <div className="relative">
@@ -151,7 +151,7 @@ const Login = () => {
               </div>
 
               <div>
-                <label className="block text-[12px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
+                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
                   Password
                 </label>
                 <div className="relative">
@@ -182,12 +182,12 @@ const Login = () => {
                     onChange={(e) => setSesiTabIni(e.target.checked)}
                     className="w-3.5 h-3.5 accent-indigo-600 cursor-pointer"
                   />
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                     Sesi khusus tab ini
                   </span>
                 </label>
 
-                <a href="/forgot-password" className="text-[11px] font-bold text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-wider">
+                <a href="/forgot-password" className="text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors uppercase tracking-wider">
                   Forgot Password?
                 </a>
               </div>
@@ -216,12 +216,12 @@ const Login = () => {
             <div className="mt-6 p-3 bg-slate-50 rounded-xl border border-slate-100">
               <div className="flex items-center justify-center gap-2">
                 <ShieldCheck size={12} className="text-emerald-500" />
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Secure Connection</p>
+                <p className="text-2xs font-black text-slate-400 uppercase tracking-[0.2em]">Secure Connection</p>
               </div>
             </div>
 
             <div className="mt-6 text-center">
-              <p className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">
+              <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
                 © 2026 ProTrack ERP
               </p>
             </div>

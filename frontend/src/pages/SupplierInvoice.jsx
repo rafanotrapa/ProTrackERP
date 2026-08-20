@@ -174,7 +174,7 @@ const InvoiceSubmission = () => {
         </button>
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">Invoice <span className="text-indigo-600">Submission</span></h1>
-          <p className="text-[12px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Procurement • Forward Billing to Finance</p>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Procurement • Forward Billing to Finance</p>
         </div>
       </div>
 
@@ -184,14 +184,14 @@ const InvoiceSubmission = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
             <div className="space-y-10">
               <div className="space-y-6">
-                <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Billing Reference</h3>
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 01. Billing Reference</h3>
 
                 <div className="grid grid-cols-1 gap-6">
                   <div className="space-y-1 relative" ref={dropdownRef}>
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Purchase Order Reference</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Purchase Order Reference</label>
                     <div onClick={() => setOpenDropdown(!openDropdown)} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm">
                       <span className="truncate">{formData.poNumber ? `${formData.poNumber} - ${formData.vendorName}` : '-- Select PO Target --'}</span>
-                      <span className={`text-[10px] transition-transform ${openDropdown ? 'rotate-180' : ''}`}>▼</span>
+                      <span className={`text-2xs transition-transform ${openDropdown ? 'rotate-180' : ''}`}>▼</span>
                     </div>
                     {openDropdown && (
                       <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2">
@@ -206,10 +206,10 @@ const InvoiceSubmission = () => {
                               onMouseDown={() => handleSelect(po)}
                               className="px-5 py-4 hover:bg-indigo-600 group cursor-pointer transition-all border-b border-slate-50 last:border-none"
                             >
-                              <p className="text-[12px] font-black text-indigo-600 group-hover:text-white uppercase italic">{po.poNumber}</p>
+                              <p className="text-xs font-black text-indigo-600 group-hover:text-white uppercase italic">{po.poNumber}</p>
                               <p className="text-xs font-black text-slate-800 group-hover:text-white uppercase truncate">{po.vendorId?.vendorName || 'Unknown'} (Proj: {po.projectId})</p>
                             </li>
-                          )) : <li className="px-5 py-6 text-center text-[12px] font-bold text-slate-400 uppercase">No PO Found</li>}
+                          )) : <li className="px-5 py-6 text-center text-xs font-bold text-slate-400 uppercase">No PO Found</li>}
                         </ul>
                       </div>
                     )}
@@ -218,18 +218,18 @@ const InvoiceSubmission = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Vendor (Autofill)</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Vendor (Autofill)</label>
                     <input value={formData.vendorName || ''} readOnly className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-400 outline-none italic cursor-not-allowed" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Currency</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Currency</label>
                     <input value={formData.currency} readOnly className="w-full p-4 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-400 outline-none cursor-not-allowed text-center" />
                   </div>
                 </div>
 
                 {selectedPO && selectedPO.paymentTerms && selectedPO.paymentTerms.length > 0 && (
                   <div className="space-y-1 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                     <label className="text-[12px] font-black text-amber-600 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Pilih Termin Pembayaran</label>
+                     <label className="text-xs font-black text-amber-600 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Pilih Termin Pembayaran</label>
                      <StyledSelect
                         value={formData.terminName}
                         onChange={handleTerminChange}
@@ -245,11 +245,11 @@ const InvoiceSubmission = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none text-nowrap">Supp. Invoice Number</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none text-nowrap">Supp. Invoice Number</label>
                     <input required value={formData.invoiceNumber} placeholder="INV-001/BJK/2026" onChange={(e) => setFormData({...formData, invoiceNumber: e.target.value})} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 transition-all shadow-sm italic" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Base Billing Amount</label>
+                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Base Billing Amount</label>
                     <input
                       type="text"
                       required
@@ -264,7 +264,7 @@ const InvoiceSubmission = () => {
                   <div className="flex flex-col gap-2">
                     <label className="flex items-center gap-2 cursor-pointer w-max">
                       <input type="checkbox" className="w-4 h-4 text-indigo-600 rounded border-slate-300" checked={formData.isTaxEnabled} onChange={e => setFormData({...formData, isTaxEnabled: e.target.checked, taxAmount: e.target.checked ? formData.taxAmount : ''})} />
-                      <span className="text-[12px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Receipt size={12}/> Tagihan Pajak</span>
+                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Receipt size={12}/> Tagihan Pajak</span>
                     </label>
                     <input
                       type="text" disabled={!formData.isTaxEnabled} placeholder="Nominal Pajak"
@@ -275,7 +275,7 @@ const InvoiceSubmission = () => {
                   <div className="flex flex-col gap-2">
                     <label className="flex items-center gap-2 cursor-pointer w-max">
                       <input type="checkbox" className="w-4 h-4 text-indigo-600 rounded border-slate-300" checked={formData.isImportEnabled} onChange={e => setFormData({...formData, isImportEnabled: e.target.checked, importDutyAmount: e.target.checked ? formData.importDutyAmount : ''})} />
-                      <span className="text-[12px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Anchor size={12}/> Bea Masuk / Import</span>
+                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Anchor size={12}/> Bea Masuk / Import</span>
                     </label>
                     <input
                       type="text" disabled={!formData.isImportEnabled} placeholder="Nominal Bea Masuk"
@@ -286,17 +286,17 @@ const InvoiceSubmission = () => {
                 </div>
 
                 <div className="mt-6 flex justify-between items-center bg-indigo-50 border border-indigo-200 p-5 rounded-2xl shadow-sm">
-                   <span className="text-[13px] font-black text-indigo-800 uppercase tracking-[0.2em] italic">Grand Total Billing</span>
+                   <span className="text-sm font-black text-indigo-800 uppercase tracking-[0.2em] italic">Grand Total Billing</span>
                    <span className="text-2xl font-black text-indigo-600">{formData.currency} {formatRupiah(calculateGrandTotal())}</span>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Internal Notes</label>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Internal Notes</label>
                   <textarea value={formData.remarks} placeholder="Catatan untuk Finance: misal tagihan termin 1..." onChange={(e) => setFormData({...formData, remarks: e.target.value})} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl h-20 outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-sm" />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block leading-none">Foto Barang (Opsional)</label>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block leading-none">Foto Barang (Opsional)</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -304,17 +304,17 @@ const InvoiceSubmission = () => {
                       const f = e.target.files[0];
                       if (f) setFormData(prev => ({ ...prev, itemPhoto: f }));
                     }}
-                    className="w-full p-3 bg-white border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-600 file:text-[12px] file:font-black file:uppercase"
+                    className="w-full p-3 bg-white border-2 border-slate-200 rounded-xl outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-xs file:mr-3 file:px-3 file:py-1.5 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-600 file:text-xs file:font-black file:uppercase"
                   />
                   {formData.itemPhoto && (
-                    <p className="text-[11px] font-bold text-indigo-500 uppercase italic ml-1 truncate">📷 {formData.itemPhoto.name}</p>
+                    <p className="text-xs font-bold text-indigo-500 uppercase italic ml-1 truncate">📷 {formData.itemPhoto.name}</p>
                   )}
                 </div>
               </div>
             </div>
 
             <div className="space-y-6">
-              <h3 className="text-[13px] font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Digital Evidence</h3>
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic"><span className="w-8 h-1 bg-indigo-600"></span> 02. Digital Evidence</h3>
               <div className="relative h-full min-h-[300px]">
                 <input type="file" accept="image/*,.pdf" onChange={handleFileChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" />
                 <div className={`h-full border-4 border-dashed rounded-[2.5rem] flex flex-col items-center justify-center transition-all duration-300 ${formData.file ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-100 bg-slate-50 hover:border-indigo-300 group'}`}>
@@ -324,7 +324,7 @@ const InvoiceSubmission = () => {
                         <CheckCircle2 className="text-white" size={40} />
                       </div>
                       <p className="text-sm font-black text-slate-800 uppercase italic truncate max-w-[250px] mx-auto">{formData.file.name}</p>
-                      <p className="text-[12px] font-bold text-indigo-500 uppercase mt-2 underline">Change File</p>
+                      <p className="text-xs font-bold text-indigo-500 uppercase mt-2 underline">Change File</p>
                     </div>
                   ) : (
                     <div className="text-center">
@@ -332,7 +332,7 @@ const InvoiceSubmission = () => {
                         <Upload size={40} />
                       </div>
                       <p className="text-sm font-black text-slate-400 uppercase italic tracking-tighter">Click or Drop Invoice Scan</p>
-                      <p className="text-[11px] font-bold text-slate-300 uppercase mt-2 italic tracking-widest">PDF, JPG, PNG Only</p>
+                      <p className="text-xs font-bold text-slate-300 uppercase mt-2 italic tracking-widest">PDF, JPG, PNG Only</p>
                     </div>
                   )}
                 </div>
@@ -343,12 +343,12 @@ const InvoiceSubmission = () => {
           <div className="flex justify-between items-center pt-10 border-t border-slate-100">
              <div className="flex items-center gap-3 text-amber-500">
                 <AlertCircle size={16} />
-                <p className="text-[11px] font-black uppercase italic tracking-widest">Finance will verify entry against your document.</p>
+                <p className="text-xs font-black uppercase italic tracking-widest">Finance will verify entry against your document.</p>
              </div>
              <button
                 type="submit"
                 disabled={loading}
-                className={`px-16 py-5 rounded-2xl font-black text-white uppercase tracking-[0.3em] text-[13px] shadow-2xl transition-all active:scale-95 italic ${loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-indigo-200'}`}
+                className={`px-16 py-5 rounded-2xl font-black text-white uppercase tracking-[0.3em] text-sm shadow-2xl transition-all active:scale-95 italic ${loading ? 'bg-slate-400' : 'bg-slate-900 hover:bg-indigo-700 shadow-indigo-200'}`}
               >
                 {loading ? 'SYNCING DATA...' : 'FORWARD TO FINANCE →'}
              </button>

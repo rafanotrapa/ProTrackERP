@@ -10,6 +10,11 @@ const paymentSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+
+  // Siapa yang membuat dokumen ini. Tanpa ini, notifikasi arah balik
+  // ('dokumenmu ditolak') tidak bisa dituju ke orangnya dan terpaksa
+  // disiarkan ke seluruh peran. Diisi server dari req.user.id.
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   // Selisih kalau klien membayar melebihi nilai invoice. Disimpan eksplisit supaya
   // kelebihannya tidak menguap dari laporan dan tidak diam-diam menutupi tunggakan
   // project lain saat outstanding dihitung secara agregat.

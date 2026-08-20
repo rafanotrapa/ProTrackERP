@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 import Swal from 'sweetalert2';
 import PasswordChecklist from '../components/PasswordChecklist';
 import { passwordValid } from '../utils/passwordPolicy';
@@ -133,6 +134,8 @@ const Register = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-10 font-sans flex flex-col items-center">
+      <Header />
+
       <div className="w-full max-w-6xl">
 
         <header className="flex justify-between items-end mb-8 px-2">

@@ -1,4 +1,6 @@
 const ExpenseSubmission = require('../models/ExpenseSubmission');
+const { kirimDiamDiam } = require('../utils/notify');
+const { gabung } = require('../utils/notifyTargets');
 
 const parseItems = (rawItems) => {
   let items = rawItems;
@@ -197,9 +199,18 @@ exports.reviewExpense = async (req, res) => {
       msg:     `Submission berhasil di-${status}`,
       data:    updated,
     });
+
+    // submittedBy sudah tersimpan sejak pengajuan, jadi penerimanya pasti —
+    // tidak perlu ditebak dari peran.
+    kirimDiamDiam({
+      penerima: gabung([[updated.submittedBy]], req.user?.id),
+      jenis: updated.status === 'Approved' ? 'expenseApproved' : 'expenseRejected',
+      params: { nomor: updated.submissionId, oleh: req.user?.username },
+      targetTipe: 'expenseLog', actor: req.user?.id,
+    });
   } catch (err) {
     console.error('Error review expense:', err);
-    res.status(500).json({ msg: err.message });
+    if (!res.headersSent) res.status(500).json({ msg: 'Gagal memproses review pengajuan' });
   }
 };
 

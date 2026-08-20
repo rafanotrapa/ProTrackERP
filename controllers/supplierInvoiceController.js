@@ -1,4 +1,6 @@
 const SupplierInvoice = require('../models/SupplierInvoice');
+const { kirimDiamDiam } = require('../utils/notify');
+const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
 
 exports.submitInvoice = async (req, res) => {
   try {
@@ -50,6 +52,11 @@ exports.submitInvoice = async (req, res) => {
     const submission = await newInvoice.save();
 
     res.status(201).json({ success: true, msg: 'Tagihan berhasil di-submit ke Finance', data: submission });
+
+    kirimDiamDiam({ penerima: gabung([await usersByRole('Finance')], req.user?.id),
+      jenis: 'supplierInvoiceSubmitted',
+      params: { nomor: submission.invoiceNumber, oleh: req.user?.username },
+      targetTipe: 'supplierPayment', actor: req.user?.id });
   } catch (error) {
     res.status(500).json({ msg: `Gagal simpan invoice: ${error.message}` });
   }
@@ -146,6 +153,13 @@ exports.confirmPayment = async (req, res) => {
     if (!invoice) return res.status(404).json({ msg: 'Invoice tidak ditemukan' });
 
     res.json({ success: true, msg: 'Payment confirmed successfully', data: invoice });
+
+    // invoice.user adalah Procurement yang mengajukan tagihan ini — penerimanya
+    // sudah tersimpan sejak awal, tidak perlu ditebak dari peran.
+    kirimDiamDiam({ penerima: gabung([invoice.user ? [invoice.user] : await usersByRole('Procurement')], req.user?.id),
+      jenis: 'supplierInvoicePaid',
+      params: { nomor: invoice.invoiceNumber, oleh: req.user?.username },
+      targetTipe: 'supplierInvoiceRecord', actor: req.user?.id });
   } catch (err) {
     console.error('Error confirm payment:', err);
     res.status(500).json({ msg: err.message });

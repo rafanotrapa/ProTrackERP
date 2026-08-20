@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/Header';
 import { formatDistanceToNow } from 'date-fns';
 
 const SystemLogs = () => {
@@ -58,6 +59,8 @@ const SystemLogs = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans flex flex-col text-slate-900 pb-16">
+      <Header />
+
 
       <header className="w-full px-8 py-8 md:px-12 lg:px-16 flex flex-col md:flex-row md:justify-between md:items-center gap-6">
         <div className="flex items-center gap-6">

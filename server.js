@@ -84,6 +84,7 @@ app.use('/api/project-billing', projectBillingRoutes);
 app.use('/api/project-timeline', require('./routes/projectTimelineRoutes'));
 app.use('/api/expense-submission', require('./routes/ExpenseSubmissionRoutes'));
 app.use('/api/inventory', require('./routes/inventoryRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 app.get('/', (req, res) => {
   res.send(`

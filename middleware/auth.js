@@ -88,16 +88,26 @@ const protect = async (req, res, next) => {
 
     req.user = { ...decoded, role: user.role, viewModules: user.viewModules || [] };
 
+    // Notifikasi adalah milik pribadi tiap akun, bukan data bisnis. Menandainya
+    // sudah dibaca memang operasi tulis, tapi yang berubah hanya penanda baca
+    // pada baris milik user itu sendiri — tidak ada data perusahaan yang
+    // tersentuh. Tanpa pengecualian ini, peran lihat-saja punya lonceng yang
+    // angkanya tidak pernah bisa turun.
+    const rutePribadi = req.baseUrl === '/api/notifications';
+
     // Penjagaan baca-saja ditaruh di sini, bukan di tiap rute, supaya tidak ada
     // satu pun endpoint yang bisa terlewat — termasuk rute yang ditambahkan
     // nanti tanpa ingat menyertakan penjagaannya.
-    if (bacaSaja(user.role) && req.method !== 'GET') {
+    if (bacaSaja(user.role) && req.method !== 'GET' && !rutePribadi) {
       return res.status(403).json({
         msg: 'Akun ini hanya memiliki akses lihat. Perubahan data tidak diizinkan.'
       });
     }
 
-    const verb = ACTION_VERB[req.method];
+    // Menandai notifikasi dibaca terjadi tiap kali lonceng diklik. Kalau ikut
+    // dicatat, System Logs akan penuh oleh 'UPDATE @ /api/notifications' dan
+    // jejak audit yang sebenarnya jadi tenggelam.
+    const verb = rutePribadi ? null : ACTION_VERB[req.method];
     if (verb) {
       const moduleName = MODULE_MAP[req.baseUrl] || req.baseUrl || 'System';
       res.on('finish', () => {

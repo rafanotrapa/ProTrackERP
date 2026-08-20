@@ -10,6 +10,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const CreateInvoice = require('../models/CreateInvoice');
+const Notification = require('../models/Notification');
 
 (async () => {
   await mongoose.connect(process.env.MONGO_URI, { dbName: 'protrack_erp' });
@@ -33,6 +34,16 @@ const CreateInvoice = require('../models/CreateInvoice');
   await CreateInvoice.syncIndexes();
   console.log('\nIndeks CreateInvoice sesudah sinkron:');
   (await CreateInvoice.collection.indexes()).forEach(i =>
+    console.log(`  ${i.name}${i.unique ? '  [unik]' : ''}`)
+  );
+
+  // Notifikasi tidak punya indeks unik, jadi tidak perlu deteksi duplikat.
+  // Tapi indeks gabungannya menentukan segalanya: hitungan lonceng dipanggil
+  // tiap menit oleh setiap akun yang sedang membuka aplikasi, dan tanpa indeks
+  // ini query itu memindai seluruh koleksi.
+  await Notification.syncIndexes();
+  console.log('\nIndeks Notification sesudah sinkron:');
+  (await Notification.collection.indexes()).forEach(i =>
     console.log(`  ${i.name}${i.unique ? '  [unik]' : ''}`)
   );
 

@@ -4,6 +4,11 @@ const SupplierQuotationSchema = new mongoose.Schema({
   quotationId: { type: String, required: true, unique: true },
   projectId: { type: String, required: true, trim: true },
   vendorId: { type: String, required: true },
+
+  // Siapa yang membuat dokumen ini. Tanpa ini, notifikasi arah balik
+  // ('dokumenmu ditolak') tidak bisa dituju ke orangnya dan terpaksa
+  // disiarkan ke seluruh peran. Diisi server dari req.user.id.
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   
   items: [{ 
     itemName: { type: String, required: true },

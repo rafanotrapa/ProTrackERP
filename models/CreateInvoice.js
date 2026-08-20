@@ -3,6 +3,11 @@ const mongoose = require('mongoose');
 const CreateInvoiceSchema = new mongoose.Schema({
   invoiceNumber: { type: String, required: true, unique: true },
   projectId: { type: String, required: true },
+
+  // Siapa yang membuat dokumen ini. Tanpa ini, notifikasi arah balik
+  // ('dokumenmu ditolak') tidak bisa dituju ke orangnya dan terpaksa
+  // disiarkan ke seluruh peran. Diisi server dari req.user.id.
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   projectName: { type: String }, 
   clientName: { type: String, required: true },
   amount: { type: Number, required: true },

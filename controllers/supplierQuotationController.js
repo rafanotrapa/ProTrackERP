@@ -2,6 +2,8 @@ const SupplierQuotation = require('../models/SupplierQuotation');
 const Vendor = require('../models/Vendor');
 const { lengkapiNamaProject } = require('../utils/projectNames');
 const { nextDocumentNumber } = require('../utils/documentNumber');
+const { kirimDiamDiam } = require('../utils/notify');
+const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
 
 exports.createQuotation = async (req, res) => {
   try {
@@ -57,11 +59,21 @@ exports.createQuotation = async (req, res) => {
       customTop: topOption === 'Termin' ? customTop : '',
       remarks,
       documentUrl,
-      approvalStatus: 'Pending'
+      approvalStatus: 'Pending',
+      createdBy: req.user?.id
     });
 
     await newQuotation.save();
     res.status(201).json({ success: true, msg: 'Supplier Quotation berhasil disimpan!', data: newQuotation });
+
+    kirimDiamDiam({
+      penerima: gabung([await usersByRole('Management')], req.user?.id),
+      jenis: 'supplierQuotationCreated',
+      params: { nomor: newQuotation.quotationId, oleh: req.user?.username },
+      targetTipe: 'quotationApproval',
+      targetId: newQuotation._id,
+      actor: req.user?.id,
+    });
 
   } catch (err) {
     console.error("Error save quotation:", err);
@@ -145,8 +157,46 @@ exports.approveQuotation = async (req, res) => {
     if (!updatedQuo) return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
 
     res.json({ success: true, msg: `Quotation berhasil di-${status}!`, data: updatedQuo });
+
+    // Sesudah respons terkirim. Notifikasi adalah efek samping — kalau gagal,
+    // approval yang sudah tersimpan tidak boleh ikut terlihat gagal di layar.
+    const params = { nomor: updatedQuo.quotationId, oleh: req.user?.username };
+    if (status === 'Approved') {
+      // Inti alurnya: Marketing pemegang project yang harus mengerjakan
+      // Client Quotation berikutnya.
+      const [marketing, procurement] = await Promise.all([
+        picMarketing(updatedQuo.projectId),
+        usersByRole('Procurement'),
+      ]);
+      kirimDiamDiam({
+        penerima: gabung([marketing], userId),
+        jenis: 'supplierQuotationApproved',
+        params,
+        targetTipe: 'clientQuote',
+        actor: userId,
+      });
+      kirimDiamDiam({
+        penerima: gabung([procurement], userId),
+        jenis: 'supplierQuotationApproved',
+        params,
+        targetTipe: 'poRecord',
+        actor: userId,
+      });
+    } else if (status === 'Rejected') {
+      // Diarahkan ke pembuatnya kalau tercatat; dokumen lama belum punya
+      // createdBy sehingga jatuh ke seluruh Procurement.
+      const pembuat = updatedQuo.createdBy ? [updatedQuo.createdBy] : await usersByRole('Procurement');
+      kirimDiamDiam({
+        penerima: gabung([pembuat], userId),
+        jenis: 'supplierQuotationRejected',
+        params,
+        targetTipe: 'supplierQuotationRecord',
+        actor: userId,
+      });
+    }
   } catch (err) {
-    res.status(500).json({ msg: err.message });
+    console.error('Error approve quotation:', err.message);
+    if (!res.headersSent) res.status(500).json({ msg: 'Gagal memproses persetujuan quotation' });
   }
 };
 

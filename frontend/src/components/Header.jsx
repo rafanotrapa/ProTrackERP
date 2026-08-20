@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import protrackMark from '../assets/protrack-mark.png';
 import { useLang } from '../i18n';
 import { BAHASA } from '../i18n/kamus';
+import NotificationBell from './NotificationBell';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -48,6 +49,10 @@ const Header = () => {
             </button>
           ))}
         </div>
+
+        {/* Sebelum blok identitas, bukan sesudahnya: blok itu ber-hidden sm:block
+            sehingga lenyap di layar sempit, dan lonceng tidak boleh ikut lenyap. */}
+        <NotificationBell />
 
         <div className="hidden pr-6 text-right border-r sm:block border-slate-800">
           <p className="text-sm font-black uppercase leading-none text-white tracking-wide">

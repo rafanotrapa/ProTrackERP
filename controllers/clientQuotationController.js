@@ -1,6 +1,8 @@
 const ClientQuotation  = require('../models/ClientQuotation');
 const SupplierQuotation = require('../models/SupplierQuotation');
 const { resolveTopOption } = require('../utils/paymentTerms');
+const { kirimDiamDiam } = require('../utils/notify');
+const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
 
 const calculateClientPrice = (items = []) =>
   items.reduce((total, item) => total + (item.quantity || 0) * (item.salesPrice || 0), 0);
@@ -127,14 +129,32 @@ exports.approveQuotation = async (req, res) => {
   try {
     const { status, rejectionReason } = req.body;
     const { id }                      = req.params;
-    const updateData = { approvalStatus: status, approvalDate: new Date() };
+    // approvedBy sebelumnya tidak pernah diisi padahal fieldnya sudah ada di
+    // models/ClientQuotation.js — sehingga tidak ada jejak siapa yang menyetujui.
+    const updateData = { approvalStatus: status, approvalDate: new Date(), approvedBy: req.user?.id };
     if (status === 'Rejected' && rejectionReason) updateData.rejectionReason = rejectionReason;
     const updated = await ClientQuotation.findByIdAndUpdate(id, updateData, { new: true });
     if (!updated) return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
     res.json({ success: true, msg: `Quotation berhasil di-${status}!`, data: updated });
+
+    const params = { nomor: updated.quotationId, oleh: req.user?.username };
+    if (status === 'Approved') {
+      // Finance yang menerbitkan invoice termin setelah quotation disetujui.
+      kirimDiamDiam({
+        penerima: gabung([await usersByRole('Finance')], req.user?.id),
+        jenis: 'clientQuotationApproved', params,
+        targetTipe: 'projectBilling', targetId: updated.projectId, actor: req.user?.id,
+      });
+    } else if (status === 'Rejected') {
+      kirimDiamDiam({
+        penerima: gabung([await picMarketing(updated.projectId)], req.user?.id),
+        jenis: 'clientQuotationRejected', params,
+        targetTipe: 'quotationLog', actor: req.user?.id,
+      });
+    }
   } catch (err) {
     console.error('Error approve quotation:', err);
-    res.status(500).json({ msg: err.message });
+    if (!res.headersSent) res.status(500).json({ msg: 'Gagal memproses persetujuan quotation' });
   }
 };
 
@@ -240,9 +260,16 @@ exports.submitQuotation = async (req, res) => {
 
     if (!updated) return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
     res.json({ success: true, msg: 'Quotation submitted for approval!', data: updated });
+
+    kirimDiamDiam({
+      penerima: gabung([await usersByRole('Management')], req.user?.id),
+      jenis: 'clientQuotationSubmitted',
+      params: { nomor: updated.quotationId, oleh: req.user?.username },
+      targetTipe: 'clientQuotationApproval', targetId: updated._id, actor: req.user?.id,
+    });
   } catch (err) {
     console.error('Error submit quotation:', err);
-    res.status(500).json({ msg: err.message });
+    if (!res.headersSent) res.status(500).json({ msg: 'Gagal mengirim quotation untuk persetujuan' });
   }
 };
 

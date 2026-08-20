@@ -3,6 +3,8 @@ const SupplierQuotation = require('../models/SupplierQuotation');
 const Vendor = require('../models/Vendor');
 const { computePOPaymentStatuses, UNPAID } = require('../utils/poPaymentStatus');
 const { lengkapiNamaProject } = require('../utils/projectNames');
+const { kirimDiamDiam } = require('../utils/notify');
+const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
 
 // Field vendor yang dibutuhkan dokumen PO. Sebelumnya di sini tertulis
 // 'vendorContact', yang tidak ada di skema Vendor — nama sebenarnya
@@ -73,6 +75,13 @@ exports.createPO = async (req, res) => {
     await newPO.populate('vendorId', VENDOR_FIELDS);
 
     res.status(201).json({ msg: 'Purchase Order resmi diterbitkan!', data: newPO });
+
+    const [fin, mkt] = await Promise.all([usersByRole('Finance'), picMarketing(newPO.projectId)]);
+    const pPO = { nomor: newPO.poNumber, oleh: req.user?.username };
+    kirimDiamDiam({ penerima: gabung([fin], req.user?.id), jenis: 'poCreated', params: pPO,
+      targetTipe: 'supplierPayment', actor: req.user?.id });
+    kirimDiamDiam({ penerima: gabung([mkt], req.user?.id), jenis: 'poCreated', params: pPO,
+      targetTipe: 'poRecord', actor: req.user?.id });
   } catch (err) {
     console.error("Error create PO:", err.message);
     res.status(500).json({ msg: `Gagal membuat PO: ${err.message}` });
@@ -167,6 +176,16 @@ exports.qcCheckPO = async (req, res) => {
     await po.save();
 
     res.json({ msg: `Status QC berhasil diupdate menjadi: ${status}`, data: po });
+
+    const pQC = { nomor: po.poNumber, oleh: req.user?.username };
+    if (status === 'Passed') {
+      kirimDiamDiam({ penerima: gabung([await usersByRole('Procurement')], req.user?.id),
+        jenis: 'poQcPassed', params: pQC, targetTipe: 'deliveryManagement', actor: req.user?.id });
+    } else if (status === 'Returned') {
+      const [mg, mk] = await Promise.all([usersByRole('Management'), picMarketing(po.projectId)]);
+      kirimDiamDiam({ penerima: gabung([mg, mk], req.user?.id),
+        jenis: 'poQcReturned', params: pQC, targetTipe: 'poRecord', actor: req.user?.id });
+    }
   } catch (err) {
     res.status(500).json({ msg: 'Server error saat QC Check' });
   }

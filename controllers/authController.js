@@ -280,7 +280,7 @@ exports.adminResetPassword = async (req, res) => {
     res.json({ msg: `Password untuk ${user.username} berhasil di-override dan akun dibuka!` });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ msg: "Gagal reset password" });
+    res.status(500).json({ msg: 'Failed to reset password' });
   }
 };
 
@@ -325,7 +325,7 @@ exports.forgotPassword = async (req, res) => {
     // terang. Konsekuensinya alamat email jadi bisa ditebak satu per satu.
     if (!user) {
       return res.status(404).json({
-        msg: 'Email tidak terdaftar di sistem.'
+        msg: 'This email is not registered in the system.'
       });
     }
 
@@ -356,7 +356,7 @@ exports.forgotPassword = async (req, res) => {
       user.resetPasswordExpire = undefined;
       await user.save();
       console.error("❌ Gagal kirim email reset password:", mailErr.message);
-      return res.status(500).json({ msg: 'Gagal mengirim email. Coba lagi nanti.' });
+      return res.status(500).json({ msg: 'Failed to send the email. Please try again later.' });
     }
 
     await Log.create({
@@ -367,12 +367,12 @@ exports.forgotPassword = async (req, res) => {
     });
 
     res.status(200).json({
-      msg: 'Jika email terdaftar, kami akan kirimkan link reset password.'
+      msg: 'If the email is registered, we will send a password reset link.'
     });
 
   } catch (err) {
     console.error("❌ Error forgot password:", err);
-    res.status(500).json({ msg: 'Server error, coba lagi nanti.' });
+    res.status(500).json({ msg: 'Server error, please try again later.' });
   }
 };
 
@@ -393,7 +393,7 @@ exports.resetPassword = async (req, res) => {
 
     if (!user) {
       return res.status(400).json({
-        msg: 'Token tidak valid atau sudah kadaluarsa.'
+        msg: 'The link is invalid or has expired.'
       });
     }
 
@@ -403,7 +403,7 @@ exports.resetPassword = async (req, res) => {
     });
     if (!cekPassword.valid) {
       return res.status(400).json({
-        msg: 'Password belum memenuhi ketentuan keamanan.',
+        msg: 'Password does not meet the security requirements.',
         errors: cekPassword.errors
       });
     }
@@ -430,11 +430,11 @@ exports.resetPassword = async (req, res) => {
     });
 
     res.status(200).json({
-      msg: 'Password berhasil direset! Silakan login dengan password baru Anda.'
+      msg: 'Password reset successfully! Please sign in with your new password.'
     });
 
   } catch (err) {
     console.error("❌ Error reset password:", err);
-    res.status(500).json({ msg: 'Server error, coba lagi nanti.' });
+    res.status(500).json({ msg: 'Server error, please try again later.' });
   }
 };

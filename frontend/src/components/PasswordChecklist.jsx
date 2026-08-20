@@ -1,7 +1,7 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { cekSyarat, PANJANG_MIN } from '../utils/passwordPolicy';
-import { useLang } from '../i18n';
+import { useLang, terjemah } from '../i18n';
 
 /* Kunci terjemahan dipetakan berdasarkan URUTAN yang dikembalikan cekSyarat,
  * bukan berdasarkan teks labelnya.
@@ -30,8 +30,16 @@ const KUNCI = [
  * Sengaja disembunyikan sampai kolomnya disentuh, supaya form tidak langsung
  * terlihat penuh peringatan merah sebelum user sempat mengetik apa pun.
  */
-const PasswordChecklist = ({ password = '', username = '', email = '', tampil = true }) => {
+/**
+ * @param {'id'|'en'} [bahasa] Memaksa bahasa checklist, mengabaikan pilihan
+ *   aktif. Dipakai halaman Reset Password: halaman itu tampil sebelum login
+ *   sehingga Header — satu-satunya tempat pemilih bahasa berada — tidak ikut
+ *   dirender, jadi seluruh alur lupa/reset password sengaja berbahasa Inggris.
+ */
+const PasswordChecklist = ({ password = '', username = '', email = '', tampil = true, bahasa }) => {
   const { t } = useLang();
+  // Kalau bahasa dipaksa lewat prop, pakai penerjemah tanpa context.
+  const teks = bahasa ? (k, p) => terjemah(bahasa, k, p) : t;
   if (!tampil) return null;
 
   const syarat = cekSyarat(password, { username, email });
@@ -50,7 +58,7 @@ const PasswordChecklist = ({ password = '', username = '', email = '', tampil = 
           ) : (
             <X size={13} className="shrink-0" />
           )}
-          <span>{KUNCI[i] ? t(KUNCI[i], { min: PANJANG_MIN }) : s.label}</span>
+          <span>{KUNCI[i] ? teks(KUNCI[i], { min: PANJANG_MIN }) : s.label}</span>
         </li>
       ))}
     </ul>

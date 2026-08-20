@@ -22,6 +22,12 @@ const isi = (teks, params) =>
     ? Object.keys(params).reduce((s, k) => s.replaceAll(`{${k}}`, params[k]), teks)
     : teks;
 
+/* Terjemahan tanpa context, untuk tempat yang bahasanya sengaja dipaksa.
+ * Dipakai alur lupa/reset password: halaman itu tampil sebelum login sehingga
+ * Header — satu-satunya tempat pemilih bahasa berada — tidak ikut dirender. */
+export const terjemah = (bahasa, kunci, params) =>
+  isi(KAMUS[bahasa]?.[kunci] ?? KAMUS[BAWAAN]?.[kunci] ?? kunci, params);
+
 export const LanguageProvider = ({ children }) => {
   const [lang, setLangState] = useState(() => {
     const tersimpan = localStorage.getItem(KUNCI);

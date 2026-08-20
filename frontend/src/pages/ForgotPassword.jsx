@@ -22,8 +22,8 @@ const ForgotPassword = () => {
       const tidakTerdaftar = err.response?.status === 404;
       Swal.fire({
         icon: tidakTerdaftar ? 'warning' : 'error',
-        title: tidakTerdaftar ? 'Email Tidak Terdaftar' : 'Gagal Mengirim',
-        text: err.response?.data?.msg || 'Terjadi kesalahan, coba lagi.',
+        title: tidakTerdaftar ? 'Email Not Registered' : 'Failed to Send',
+        text: err.response?.data?.msg || 'Something went wrong, please try again.',
         confirmButtonColor: '#4f46e5',
       });
     } finally {
@@ -38,16 +38,16 @@ const ForgotPassword = () => {
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Send size={28} className="text-emerald-600" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 mb-2">Cek Email Anda</h2>
+          <h2 className="text-2xl font-black text-slate-800 mb-2">Check Your Email</h2>
           <p className="text-slate-500 text-sm">
-            Kami sudah mengirimkan link reset password ke <strong>{email}</strong>. 
-            Link akan kadaluarsa dalam 10 menit.
+            We have sent a password reset link to <strong>{email}</strong>.
+            The link expires in 10 minutes.
           </p>
           <button
             onClick={() => navigate('/')}
             className="mt-6 text-indigo-600 font-bold text-sm"
           >
-            ← Kembali ke Login
+            ← Back to Login
           </button>
         </div>
       </div>
@@ -63,9 +63,9 @@ const ForgotPassword = () => {
           </button>
           
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-black text-slate-800">Lupa Password?</h1>
+            <h1 className="text-2xl font-black text-slate-800">Forgot Password?</h1>
             <p className="text-slate-500 text-sm mt-2">
-              Masukkan email Anda, kami akan kirimkan link untuk reset password.
+              Enter your email and we will send you a link to reset your password.
             </p>
           </div>
 
@@ -93,7 +93,7 @@ const ForgotPassword = () => {
               disabled={loading}
               className="w-full py-3 bg-slate-900 text-white rounded-xl font-black text-sm hover:bg-indigo-700 transition-all disabled:opacity-50"
             >
-              {loading ? 'Mengirim...' : 'Kirim Link Reset Password'}
+              {loading ? 'Sending...' : 'Send Reset Password Link'}
             </button>
           </form>
         </div>

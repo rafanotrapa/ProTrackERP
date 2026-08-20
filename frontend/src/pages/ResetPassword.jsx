@@ -18,12 +18,12 @@ const ResetPassword = () => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      alert('Password dan konfirmasi password tidak cocok!');
+      alert('Password and confirmation do not match!');
       return;
     }
     
     if (!passwordValid(password)) {
-      alert('Password belum memenuhi semua syarat yang tercantum di bawah kolom password.');
+      alert('Password does not meet all the requirements listed below the password field.');
       return;
     }
 
@@ -36,7 +36,7 @@ const ResetPassword = () => {
       alert(
         Array.isArray(rincian)
           ? `${err.response.data.msg}\n\n- ${rincian.join('\n- ')}`
-          : (err.response?.data?.msg || 'Token tidak valid atau sudah kadaluarsa.')
+          : (err.response?.data?.msg || 'The link is invalid or has expired.')
       );
     } finally {
       setLoading(false);
@@ -50,15 +50,15 @@ const ResetPassword = () => {
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={28} className="text-emerald-600" />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 mb-2">Password Berhasil Direset!</h2>
+          <h2 className="text-2xl font-black text-slate-800 mb-2">Password Reset Successful!</h2>
           <p className="text-slate-500 text-sm">
-            Silakan login dengan password baru Anda.
+            Please sign in with your new password.
           </p>
           <button
             onClick={() => navigate('/')}
             className="mt-6 px-6 py-3 bg-slate-900 text-white rounded-xl font-black text-sm hover:bg-indigo-700"
           >
-            Login Sekarang
+            Sign In Now
           </button>
         </div>
       </div>
@@ -72,20 +72,20 @@ const ResetPassword = () => {
           <div className="text-center mb-8">
             <h1 className="text-2xl font-black text-slate-800">Reset Password</h1>
             <p className="text-slate-500 text-sm mt-2">
-              Masukkan password baru Anda.
+              Enter your new password.
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-black text-slate-400 mb-2">Password Baru</label>
+              <label className="block text-xs font-black text-slate-400 mb-2">New Password</label>
               <div className="relative">
                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   className="w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500"
-                  placeholder="Password baru"
+                  placeholder="New password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -97,18 +97,18 @@ const ResetPassword = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
-              <PasswordChecklist password={password} />
+              <PasswordChecklist password={password} bahasa="en" />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-400 mb-2">Konfirmasi Password</label>
+              <label className="block text-xs font-black text-slate-400 mb-2">Confirm Password</label>
               <div className="relative">
                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500"
-                  placeholder="Masukkan ulang password"
+                  placeholder="Re-enter password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
@@ -120,7 +120,7 @@ const ResetPassword = () => {
               disabled={loading}
               className="w-full py-3 bg-slate-900 text-white rounded-xl font-black text-sm hover:bg-indigo-700 transition-all disabled:opacity-50"
             >
-              {loading ? 'Memproses...' : 'Reset Password'}
+              {loading ? 'Processing...' : 'Reset Password'}
             </button>
           </form>
         </div>

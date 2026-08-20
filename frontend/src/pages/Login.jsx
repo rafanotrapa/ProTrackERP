@@ -179,7 +179,7 @@ const Login = () => {
               </div>
 
               <div className="flex items-center justify-between gap-3">
-                <label className="flex items-center gap-2 cursor-pointer select-none" title="Token disimpan khusus tab ini, jadi tab lain bisa dipakai akun berbeda. Sesi berakhir saat tab ditutup.">
+                <label className="flex items-center gap-2 cursor-pointer select-none" title="The token is stored for this tab only, so another tab can be signed in with a different account. The session ends when the tab is closed.">
                   <input
                     type="checkbox"
                     checked={sesiTabIni}
@@ -187,7 +187,7 @@ const Login = () => {
                     className="w-3.5 h-3.5 accent-indigo-600 cursor-pointer"
                   />
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                    Sesi khusus tab ini
+                    Tab-only session
                   </span>
                 </label>
 

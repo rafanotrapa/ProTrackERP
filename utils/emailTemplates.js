@@ -27,24 +27,24 @@ const buildAttachments = () =>
     : [];
 
 const resetPasswordTemplate = ({ username, resetUrl, expireMinutes = 10 }) => ({
-  subject: '🔐 Reset Password ProTrack Anda',
+  subject: '🔐 Reset your ProTrack password',
   attachments: buildAttachments(),
   text:
-    `Halo ${username},\n\n` +
-    `Kami menerima permintaan untuk mereset password akun ProTrack Anda.\n` +
-    `Buka link berikut untuk melanjutkan:\n\n${resetUrl}\n\n` +
-    `Link ini kadaluarsa dalam ${expireMinutes} menit.\n` +
-    `Kalau Anda tidak merasa meminta reset password, abaikan email ini.`,
+    `Hi ${username},\n\n` +
+    `We received a request to reset the password for your ProTrack account.\n` +
+    `Open the link below to continue:\n\n${resetUrl}\n\n` +
+    `This link expires in ${expireMinutes} minutes.\n` +
+    `If you did not request a password reset, you can safely ignore this email.`,
   html: `
     <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
       <div style="text-align: center; margin-bottom: 24px;">
         ${buildHeader()}
       </div>
 
-      <h3 style="color: #1e293b;">Halo ${username},</h3>
+      <h3 style="color: #1e293b;">Hi ${username},</h3>
       <p style="color: #475569; line-height: 1.6;">
-        Kami menerima permintaan untuk mereset password akun ProTrack Anda.
-        Klik tombol di bawah untuk melanjutkan:
+        We received a request to reset the password for your ProTrack account.
+        Click the button below to continue:
       </p>
 
       <div style="text-align: center; margin: 30px 0;">
@@ -52,13 +52,13 @@ const resetPasswordTemplate = ({ username, resetUrl, expireMinutes = 10 }) => ({
            style="background-color: #3b4aa0; color: white; padding: 12px 24px;
                   text-decoration: none; border-radius: 12px; font-weight: bold;
                   display: inline-block;">
-          🔐 Reset Password Sekarang
+          🔐 Reset my password
         </a>
       </div>
 
       <p style="color: #475569; font-size: 12px; margin-top: 20px;">
-        Link ini akan kadaluarsa dalam <strong>${expireMinutes} menit</strong>.
-        Kalau Anda tidak merasa meminta reset password, abaikan email ini.
+        This link expires in <strong>${expireMinutes} minutes</strong>.
+        If you did not request a password reset, you can safely ignore this email.
       </p>
 
       <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">

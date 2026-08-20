@@ -15,7 +15,15 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
-  }
+  },
+  // Batas waktu eksplisit. Tanpa ini nodemailer memakai bawaannya, yang bisa
+  // menahan koneksi sampai 2 menit dan socket diam sampai 10 menit — di
+  // Passenger itu berarti satu proses Node tertahan selama itu. Sejak email
+  // dipakai untuk notifikasi, jumlah pengiriman jauh lebih banyak daripada
+  // sekadar reset password, jadi kegagalan harus cepat ketahuan.
+  connectionTimeout: 10_000,
+  greetingTimeout: 10_000,
+  socketTimeout: 20_000,
 });
 
 const verifyMailer = async () => {

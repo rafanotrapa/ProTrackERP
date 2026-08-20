@@ -1,4 +1,37 @@
 const Notification = require('../models/Notification');
+const User = require('../models/User');
+const { kalimat } = require('./notifTeks');
+
+// Email notifikasi hanya aktif kalau SMTP benar-benar terkonfigurasi. Tanpa
+// penjaga ini, setiap kejadian akan melempar error koneksi di server yang
+// EMAIL_FROM-nya belum diisi — dan itu membuat log penuh tanpa ada yang rusak.
+const emailAktif = () =>
+  Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS && process.env.EMAIL_FROM);
+
+const RUTE_EMAIL = {
+  clientQuote: () => '/client-quote',
+  quotationApproval: (id) => `/quotation-approval/${id}`,
+  clientQuotationApproval: (id) => `/client-quotation-approval/${id}`,
+  projectBilling: (kode) => `/project-billing/${kode}`,
+  timeline: (kode) => `/timeline/${kode}`,
+  poRecord: () => '/po-record',
+  deliveryManagement: () => '/delivery-management',
+  supplierPayment: () => '/supplier-payment',
+  supplierQuotationRecord: () => '/supplier-quotation-record',
+  supplierInvoiceRecord: () => '/supplier-invoice-record',
+  quotationLog: () => '/quotation-log',
+  invoiceLog: () => '/invoice-log',
+  verifyPayment: () => '/verify-payment',
+  expenseLog: () => '/expense-submission-log',
+  projectLog: () => '/project-log',
+};
+
+const tautanPenuh = (targetTipe, targetId) => {
+  const buat = RUTE_EMAIL[targetTipe];
+  if (!buat) return null;
+  const basis = (process.env.FRONTEND_URL || '').replace(/\/$/, '');
+  return basis ? basis + buat(targetId) : null;
+};
 
 /* Pengirim notifikasi.
  *
@@ -37,7 +70,44 @@ async function kirimNotifikasi({ penerima = [], jenis, params = {}, targetTipe, 
     targetId: targetId ? String(targetId) : undefined,
   }));
 
-  return Notification.insertMany(baris, { ordered: false });
+  const tersimpan = await Notification.insertMany(baris, { ordered: false });
+
+  // Email menyusul setelah baris notifikasi tersimpan, dan sengaja TIDAK
+  // ditunggu. Lonceng in-app adalah kanal utama yang harus selalu berhasil;
+  // email hanya lapis kedua. Kalau SMTP mati atau lambat, notifikasi tetap
+  // muncul di aplikasi dan kegagalannya berhenti di log server.
+  kirimEmail({ penerima, jenis, params, targetTipe, targetId }).catch((err) =>
+    console.error('Gagal mengirim email notifikasi:', jenis, err.message)
+  );
+
+  return tersimpan;
+}
+
+/** Kirim salinan notifikasi lewat email ke masing-masing penerima. */
+async function kirimEmail({ penerima, jenis, params, targetTipe, targetId }) {
+  if (!emailAktif()) return;
+
+  const pesan = kalimat(jenis, params);
+  if (!pesan) return;
+
+  // Dimuat di dalam fungsi supaya berkas ini tetap bisa diuji dan dipakai di
+  // lingkungan tanpa konfigurasi SMTP sama sekali.
+  const { sendEmail } = require('./emailService');
+  const { notifikasiTemplate } = require('./emailTemplates');
+
+  const akun = await User.find({ _id: { $in: penerima } }).select('email username').lean();
+  const tautan = tautanPenuh(targetTipe, targetId);
+
+  for (const u of akun) {
+    if (!u.email) continue;
+    try {
+      const isi = notifikasiTemplate({ username: u.username, pesan, tautan });
+      await sendEmail({ to: u.email, ...isi });
+    } catch (err) {
+      // Satu penerima gagal tidak boleh menghentikan sisanya.
+      console.error(`Email notifikasi ke ${u.email} gagal:`, err.message);
+    }
+  }
 }
 
 /**

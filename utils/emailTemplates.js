@@ -69,4 +69,58 @@ const resetPasswordTemplate = ({ username, resetUrl, expireMinutes = 10 }) => ({
   `
 });
 
-module.exports = { resetPasswordTemplate, LOGO_PATH };
+/**
+ * Template notifikasi alur kerja.
+ *
+ * Memakai ulang buildHeader dan buildAttachments yang sama dengan email reset
+ * password, supaya logonya konsisten dan alasan teknis di komentar atas berkas
+ * ini (CID, bukan base64 atau URL) tetap berlaku.
+ *
+ * @param {object} o
+ * @param {string} o.username penerima
+ * @param {string} o.pesan kalimat dari utils/notifTeks.js
+ * @param {string} [o.tautan] URL menuju dokumen yang perlu dikerjakan
+ */
+const notifikasiTemplate = ({ username, pesan, tautan }) => ({
+  subject: `ProTrack: ${pesan}`,
+  attachments: buildAttachments(),
+  text:
+    `Halo ${username},
+
+${pesan}
+
+` +
+    (tautan ? `Buka di sini: ${tautan}
+
+` : '') +
+    `Email ini dikirim otomatis oleh ProTrack ERP.`,
+  html: `
+    <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 16px;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        ${buildHeader()}
+      </div>
+
+      <h3 style="color: #1e293b;">Halo ${username},</h3>
+      <p style="color: #334155; line-height: 1.6; font-size: 15px;">
+        ${pesan}
+      </p>
+
+      ${tautan ? `
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="${tautan}"
+           style="background-color: #3b4aa0; color: white; padding: 12px 24px;
+                  text-decoration: none; border-radius: 12px; font-weight: bold;
+                  display: inline-block;">
+          Buka di ProTrack
+        </a>
+      </div>` : ''}
+
+      <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+      <p style="color: #94a3b8; font-size: 10px; text-align: center;">
+        Email ini dikirim otomatis oleh ProTrack ERP &middot; &copy; ${new Date().getFullYear()}
+      </p>
+    </div>
+  `
+});
+
+module.exports = { resetPasswordTemplate, notifikasiTemplate, LOGO_PATH };

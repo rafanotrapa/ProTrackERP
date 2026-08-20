@@ -1,4 +1,6 @@
 const CreateInvoice = require('../models/CreateInvoice');
+const { kirimDiamDiam } = require('../utils/notify');
+const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
 const Payment = require('../models/Payment');
 const ClientQuotation = require('../models/ClientQuotation');
 const PurchaseOrder = require('../models/PurchaseOrder');
@@ -283,6 +285,11 @@ exports.generateNextInvoice = async (req, res) => {
     });
 
     await newInvoice.save();
+
+    kirimDiamDiam({ penerima: gabung([await picMarketing(newInvoice.projectId)], req.user?.id),
+      jenis: 'invoiceIssued',
+      params: { nomor: newInvoice.invoiceNumber, tahap: newInvoice.billingPhase, oleh: req.user?.username },
+      targetTipe: 'invoiceLog', actor: req.user?.id });
 
     res.status(201).json({
       success: true,

@@ -63,8 +63,9 @@ exports.createPO = async (req, res) => {
       isTaxIncluded: quote.isTaxIncluded,             
       taxPercentage: quote.taxPercentage,             
       taxAmount: taxAmt,                             
-      totalAmount: grandTotal,                          
-      shippingAddress
+      totalAmount: grandTotal,
+      shippingAddress,
+      createdBy: req.user?.id
     });
 
     await newPO.save();
@@ -207,6 +208,13 @@ exports.updateDelivery = async (req, res) => {
 
     await po.save();
     res.json({ msg: `Status Pengiriman diupdate menjadi: ${status}`, data: po });
+
+    if (status === 'Delivered') {
+      const [mk, fn] = await Promise.all([picMarketing(po.projectId), usersByRole('Finance')]);
+      kirimDiamDiam({ penerima: gabung([mk, fn], req.user?.id), jenis: 'poDelivered',
+        params: { nomor: po.poNumber, oleh: req.user?.username },
+        targetTipe: 'projectBilling', targetId: po.projectId, actor: req.user?.id });
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: 'Server error saat update delivery' });

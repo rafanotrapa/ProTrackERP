@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { kirimDiamDiam } = require('../utils/notify');
+const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
 const Payment = require('../models/Payment');
 const ClientInvoice = require('../models/CreateInvoice');
 const Project = require('../models/Project');
@@ -44,11 +46,17 @@ exports.createPayment = async (req, res) => {
       excessAmount,
       paymentDate,
       remarks,
-      evidencePath: req.file.filename
+      evidencePath: req.file.filename,
+      createdBy: req.user?.id
     });
 
     await newPayment.save();
     res.status(201).json({ msg: "Payment submitted successfully" });
+
+    kirimDiamDiam({ penerima: gabung([await usersByRole('Finance')], req.user?.id),
+      jenis: 'paymentSubmitted',
+      params: { nomor: invoice?.invoiceNumber || '', oleh: req.user?.username },
+      targetTipe: 'verifyPayment', actor: req.user?.id });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -117,6 +125,24 @@ exports.verifyPayment = async (req, res) => {
     }
 
     res.json({ msg: `Payment marked as ${status}` });
+
+    // invoice sudah dimuat di atas untuk menghitung ulang statusnya.
+    if (invoice) {
+      const pPay = { nomor: invoice.invoiceNumber, oleh: req.user?.username };
+      kirimDiamDiam({ penerima: gabung([await picMarketing(invoice.projectId)], req.user?.id),
+        jenis: status === 'Verified' ? 'paymentVerified' : 'paymentRejected', params: pPay,
+        targetTipe: 'timeline', targetId: invoice.projectId, actor: req.user?.id });
+
+      // Project yang tuntas dikabarkan ke Management dan Owner sebagai
+      // penutup alur, bukan sebagai perintah.
+      const projek = await Project.findOne({ projectId: invoice.projectId }).select('status').lean();
+      if (projek?.status === 'Completed') {
+        const [mg, ow] = await Promise.all([usersByRole('Management'), usersByRole('Owner')]);
+        kirimDiamDiam({ penerima: gabung([mg, ow], req.user?.id), jenis: 'projectCompleted',
+          params: { nomor: invoice.projectId, oleh: req.user?.username },
+          targetTipe: 'projectLog', actor: req.user?.id });
+      }
+    }
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

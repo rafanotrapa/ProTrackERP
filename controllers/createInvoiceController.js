@@ -21,7 +21,8 @@ exports.createNewInvoice = async (req, res) => {
 
     const newInvoice = new CreateInvoice({
       ...req.body,
-      status: 'Unpaid'
+      status: 'Unpaid',
+      createdBy: req.user?.id
     });
 
     const savedInvoice = await newInvoice.save();

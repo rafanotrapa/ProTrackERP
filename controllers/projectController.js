@@ -2,6 +2,8 @@ const Project = require('../models/Project');
 const Log = require('../models/Log');
 const User = require('../models/User');
 const { nextDocumentNumber } = require('../utils/documentNumber');
+const { kirimDiamDiam } = require('../utils/notify');
+const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
 
 exports.addProject = async (req, res) => {
   try {
@@ -123,6 +125,11 @@ exports.updateProjectPIC = async (req, res) => {
     });
 
     res.json({ success: true, msg: `PIC dipindahkan ke ${calonPIC.username}.`, data: project });
+
+    // PIC baru diberi tahu bahwa project ini kini tanggung jawabnya.
+    kirimDiamDiam({ penerima: gabung([[calonPIC._id]], req.user?.id), jenis: 'picChanged',
+      params: { nomor: project.projectId, oleh: req.user?.username },
+      targetTipe: 'projectLog', actor: req.user?.id });
   } catch (err) {
     console.error('Error ubah PIC:', err);
     res.status(500).json({ msg: 'Gagal memindahkan PIC project.' });

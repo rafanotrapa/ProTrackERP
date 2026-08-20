@@ -19,13 +19,6 @@ const AddSupplierQuotation = () => {
   const [searchTerms, setSearchTerms] = useState({ project: '' });
   const dropdownRef = useRef(null);
 
-  const generateSQID = () => {
-    const now = new Date();
-    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const random = Math.floor(1000 + Math.random() * 9000);
-    return `SQ-${yearMonth}-${random}`;
-  };
-
   const formatRupiah = (value) => {
     if (!value && value !== 0) return '';
     let numberString = value.toString().replace(/[^0-9]/g, '');
@@ -33,7 +26,7 @@ const AddSupplierQuotation = () => {
   };
 
   const [formData, setFormData] = useState({
-    quotationId: generateSQID(),
+    // Nomor SQ dibuat server dan berurutan; lihat utils/documentNumber.js.
     projectId: '',
     vendorId: '',
     currency: 'IDR',
@@ -287,7 +280,7 @@ const AddSupplierQuotation = () => {
 
               <div className="space-y-1">
                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">SQ ID</label>
-                <input type="text" readOnly value={formData.quotationId} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-indigo-600 font-bold outline-none" />
+                <input type="text" readOnly disabled value="" placeholder="Dibuat otomatis oleh sistem" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-400 italic font-bold outline-none" />
               </div>
 
               <div className="space-y-1 relative">

@@ -1,14 +1,23 @@
 const SupplierQuotation = require('../models/SupplierQuotation');
 const Vendor = require('../models/Vendor');
 const { lengkapiNamaProject } = require('../utils/projectNames');
+const { nextDocumentNumber } = require('../utils/documentNumber');
 
 exports.createQuotation = async (req, res) => {
   try {
-    const { 
-      quotationId, projectId, vendorId, topOption, customTop, remarks, 
-      additionalFee, additionalFeeRemarks, isTaxIncluded, taxAmount, currency 
+    const {
+      projectId, vendorId, topOption, customTop, remarks,
+      additionalFee, additionalFeeRemarks, isTaxIncluded, taxAmount, currency
     } = req.body;
-    
+
+    // Nomor dibuat server dan berurutan. Sebelumnya browser mengaraknya dan tidak
+    // ada pemeriksaan duplikat sama sekali, sehingga tabrakan pada index unik
+    // muncul ke user sebagai pesan Mongo mentah lewat res 500 di bawah.
+    const quotationId = await nextDocumentNumber(
+      'SQ',
+      async (nomor) => Boolean(await SupplierQuotation.exists({ quotationId: nomor }))
+    );
+
     let parsedItems = [];
     let subTotal = 0;
 
@@ -56,7 +65,9 @@ exports.createQuotation = async (req, res) => {
 
   } catch (err) {
     console.error("Error save quotation:", err);
-    res.status(500).json({ msg: err.message });
+    // err.message dari Mongoose membocorkan nama field dan index ke layar user.
+    // Pesannya diseragamkan seperti controller lain.
+    res.status(500).json({ msg: 'Gagal menyimpan Supplier Quotation' });
   }
 };
 

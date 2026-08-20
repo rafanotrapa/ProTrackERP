@@ -2,13 +2,31 @@ const express = require('express');
 const router = express.Router();
 const Vendor = require('../models/Vendor');
 const { protect, authorizeRoles } = require('../middleware/auth');
+const { nextDocumentNumber } = require('../utils/documentNumber');
 
 router.use(protect);
 
 router.post('/', authorizeRoles('Procurement','Admin'), async (req, res) => {
   try {
+    // vendorId dibuat server dan berurutan; kiriman klien diabaikan. Field juga
+    // disebut satu per satu, bukan menyalin req.body mentah — dengan spread,
+    // klien bisa menitipkan approvalStatus atau createdAt sekehendaknya.
+    const vendorId = await nextDocumentNumber(
+      'VND',
+      async (nomor) => Boolean(await Vendor.exists({ vendorId: nomor }))
+    );
+
     const newVendor = new Vendor({
-      ...req.body,
+      vendorId,
+      projectId: req.body.projectId,
+      vendorName: req.body.vendorName,
+      companyType: req.body.companyType,
+      contactPerson: req.body.contactPerson,
+      email: req.body.email,
+      phone: req.body.phone,
+      address: req.body.address,
+      bankAccount: req.body.bankAccount,
+      category: req.body.category,
       approvalStatus: 'Approved',
       approvalDate: new Date()
     });
@@ -19,7 +37,8 @@ router.post('/', authorizeRoles('Procurement','Admin'), async (req, res) => {
       data: savedVendor
     });
   } catch (err) {
-    res.status(500).json({ success: false, msg: err.message });
+    console.error('Error save vendor:', err);
+    res.status(500).json({ success: false, msg: 'Gagal menyimpan vendor' });
   }
 });
 

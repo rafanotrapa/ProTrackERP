@@ -20,15 +20,12 @@ const AddProject = () => {
     return numberString.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
 
-  const generateProjectID = () => {
-    const now = new Date();
-    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const random = Math.floor(1000 + Math.random() * 9000);
-    return `BJK-${yearMonth}-${random}`;
-  };
-
+  // Project ID tidak lagi dibuat di sini. Dulu nomornya diarak Math.random dari
+  // browser lewat initializer useState, sehingga tidak mungkin berurutan dan —
+  // karena nilainya hanya lahir sekali per mount — menekan Submit ulang setelah
+  // tabrakan selalu mengirim ID yang sama, membuat user buntu sampai reload.
+  // Sekarang server yang menomori, dan hasilnya ditampilkan setelah tersimpan.
   const [formData, setFormData] = useState({
-    projectId: generateProjectID(),
     projectName: '',
     institutionName: '',
     clientCompany: '',
@@ -109,18 +106,25 @@ const AddProject = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/project', formData, {
+      const res = await axios.post('http://localhost:5000/api/project', formData, {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
       Swal.fire({
         icon: 'success',
         title: 'SAVED',
-        text: `Project ${formData.projectId} Recorded.`,
+        text: `Project ${res.data?.project?.projectId || ''} Recorded.`,
         confirmButtonColor: '#0f172a'
       });
       navigate('/project-log');
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'ERROR', text: 'Database sync failed.' });
+      // Pesan server ditampilkan apa adanya. Sebelumnya selalu ditelan menjadi
+      // 'Database sync failed.', sehingga sebab sebenarnya tidak pernah sampai
+      // ke user.
+      Swal.fire({
+        icon: 'error',
+        title: 'ERROR',
+        text: err.response?.data?.msg || 'Database sync failed.'
+      });
     } finally { setLoading(false); }
   };
 
@@ -154,7 +158,14 @@ const AddProject = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-1">
                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic">Project ID</label>
-                <input type="text" readOnly value={formData.projectId} className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-indigo-600 font-bold outline-none shadow-sm" />
+                <input
+                  type="text"
+                  readOnly
+                  disabled
+                  value=""
+                  placeholder="Dibuat otomatis oleh sistem"
+                  className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-400 italic font-bold outline-none shadow-sm"
+                />
               </div>
               <div className="md:col-span-2 space-y-1">
                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">

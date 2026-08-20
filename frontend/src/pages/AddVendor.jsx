@@ -34,15 +34,8 @@ const AddVendor = () => {
     fetchData();
   }, []);
 
-  const generateVendorID = () => {
-    const now = new Date();
-    const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const random = Math.floor(1000 + Math.random() * 9000);
-    return `VND-${yearMonth}-${random}`;
-  };
-
+  // Nomor vendor dibuat server dan berurutan; lihat utils/documentNumber.js.
   const [formData, setFormData] = useState({
-    vendorId: generateVendorID(),
     projectId: '',
     vendorName: '',
     companyType: 'PT',
@@ -140,7 +133,7 @@ const AddVendor = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div className="space-y-1">
                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">Vendor ID</label>
-                <input type="text" readOnly value={formData.vendorId} className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-indigo-600 font-bold outline-none shadow-sm" />
+                <input type="text" readOnly disabled value="" placeholder="Dibuat otomatis oleh sistem" className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-400 italic font-bold outline-none shadow-sm" />
               </div>
 
               <div className="space-y-1 md:col-span-2">

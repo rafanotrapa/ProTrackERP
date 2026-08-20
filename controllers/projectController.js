@@ -1,12 +1,12 @@
 const Project = require('../models/Project');
 const Log = require('../models/Log');
 const User = require('../models/User');
+const { nextDocumentNumber } = require('../utils/documentNumber');
 
 exports.addProject = async (req, res) => {
   try {
 
     const {
-      projectId,
       projectName,
       institutionName,
       clientCompany,
@@ -19,12 +19,14 @@ exports.addProject = async (req, res) => {
       quotationMode
     } = req.body;
 
-    // Pemeriksaan ini sebelumnya ada di routes/projectRoutes.js. Ikut pindah ke
-    // sini supaya tidak hilang saat rute disambungkan ke controller.
-    const sudahAda = await Project.findOne({ projectId });
-    if (sudahAda) {
-      return res.status(400).json({ success: false, msg: 'ID BJK sudah terdaftar!' });
-    }
+    // projectId dibuat di server, bukan diterima dari body. Sebelumnya browser
+    // yang mengaraknya lewat Math.random, sehingga nomornya tidak bisa berurutan
+    // dan klien bebas mengirim ID sekehendaknya — tidak ada validasi formatnya
+    // sama sekali. Kalau body memuat projectId, sekarang diabaikan.
+    const projectId = await nextDocumentNumber(
+      'BJK',
+      async (nomor) => Boolean(await Project.exists({ projectId: nomor }))
+    );
 
     // Field disebut satu per satu, bukan menyalin req.body mentah. Dengan begitu
     // status, penanda milestone, dan createdBy hanya bisa ditentukan server —

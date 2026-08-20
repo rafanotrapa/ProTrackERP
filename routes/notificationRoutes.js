@@ -23,4 +23,11 @@ router.get('/unread-count', ctrl.getUnreadCount);
 router.patch('/read-all', ctrl.markAllRead);
 router.patch('/:id/read', ctrl.markRead);
 
+// Web Push. subscribe/unsubscribe adalah operasi tulis, tapi ikut pengecualian
+// rutePribadi di middleware/auth.js — yang berubah hanya langganan perangkat
+// milik akun itu sendiri, bukan data perusahaan.
+router.get('/vapid-key', ctrl.getVapidKey);
+router.post('/push/subscribe', ctrl.subscribePush);
+router.post('/push/unsubscribe', ctrl.unsubscribePush);
+
 module.exports = router;

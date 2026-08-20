@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Bell } from 'lucide-react';
+import { Bell, BellRing } from 'lucide-react';
+import { aktifkanPush, statusIzin } from '../utils/webPushClient';
 import { useLang } from '../i18n';
 
 const API = 'http://localhost:5000';
@@ -57,6 +58,7 @@ const NotificationBell = () => {
   const [buka, setBuka] = useState(false);
   const [jumlah, setJumlah] = useState(0);
   const [daftar, setDaftar] = useState(null);
+  const [izin, setIzin] = useState(() => statusIzin());
   const ref = useRef(null);
 
   const header = useCallback(() => {
@@ -131,6 +133,11 @@ const NotificationBell = () => {
     }
     const url = tujuan(n);
     if (url) navigate(url);
+  };
+
+  const nyalakanPush = async () => {
+    const hasil = await aktifkanPush();
+    setIzin(hasil.ok ? 'granted' : statusIzin());
   };
 
   const tandaiSemua = async () => {
@@ -211,6 +218,30 @@ const NotificationBell = () => {
               </li>
             ))}
           </ul>
+
+          {/* Web Push adalah lapis ketiga: notifikasi tingkat sistem operasi di
+              laptop dan HP. Sengaja diminta lewat tombol, bukan otomatis saat
+              halaman dibuka — permintaan izin yang muncul tiba-tiba hampir
+              selalu ditolak, dan penolakan itu sulit dibatalkan user. */}
+          {izin !== 'granted' && (
+            <button
+              onClick={nyalakanPush}
+              disabled={izin === 'denied' || izin === 'unsupported'}
+              className="w-full px-4 py-3 border-t border-slate-100 text-left text-2xs font-black uppercase tracking-wider text-indigo-600 hover:bg-indigo-50 disabled:text-slate-400 disabled:hover:bg-transparent disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <BellRing size={13} className="shrink-0" />
+              {izin === 'denied'
+                ? t('notifBell.pushDenied')
+                : izin === 'unsupported'
+                ? t('notifBell.pushUnsupported')
+                : t('notifBell.pushOn')}
+            </button>
+          )}
+          {izin === 'granted' && (
+            <p className="px-4 py-3 border-t border-slate-100 text-2xs font-bold text-emerald-600 flex items-center gap-2">
+              <BellRing size={13} className="shrink-0" /> {t('notifBell.pushActive')}
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const { kalimat } = require('./notifTeks');
+const { kirimPush } = require('./webPush');
 
 // Email notifikasi hanya aktif kalau SMTP benar-benar terkonfigurasi. Tanpa
 // penjaga ini, setiap kejadian akan melempar error koneksi di server yang
@@ -79,6 +80,18 @@ async function kirimNotifikasi({ penerima = [], jenis, params = {}, targetTipe, 
   kirimEmail({ penerima, jenis, params, targetTipe, targetId }).catch((err) =>
     console.error('Gagal mengirim email notifikasi:', jenis, err.message)
   );
+
+  // Web Push memakai penerima dan kalimat yang sama persis. Tidak ada logika
+  // penargetan kedua — itu justru inti rancangannya: satu penentuan penerima,
+  // tiga cara mengantar, sehingga ketiganya tidak pernah bisa berselisih.
+  const pesanPush = kalimat(jenis, params);
+  if (pesanPush) {
+    kirimPush(penerima, {
+      judul: 'ProTrack ERP',
+      pesan: pesanPush,
+      tautan: tautanPenuh(targetTipe, targetId),
+    }).catch((err) => console.error('Gagal mengirim push:', jenis, err.message));
+  }
 
   return tersimpan;
 }

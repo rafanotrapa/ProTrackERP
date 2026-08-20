@@ -120,6 +120,10 @@ export const id = {
   'notifBell.empty': 'Belum ada notifikasi',
   'notifBell.markAll': 'Tandai semua dibaca',
   'notifBell.loading': 'Memuat...',
+  'notifBell.pushOn': 'Nyalakan notifikasi perangkat',
+  'notifBell.pushActive': 'Notifikasi perangkat aktif',
+  'notifBell.pushDenied': 'Izin notifikasi diblokir di browser',
+  'notifBell.pushUnsupported': 'Browser ini tidak mendukung notifikasi perangkat',
 
   'notif.supplierQuotationCreated': 'Supplier Quotation {nomor} dari {oleh} perlu Anda setujui',
   'notif.supplierQuotationApproved': 'Supplier Quotation {nomor} disetujui — Client Quotation bisa dikerjakan',
@@ -237,6 +241,10 @@ export const en = {
   'notifBell.empty': 'No notifications yet',
   'notifBell.markAll': 'Mark all as read',
   'notifBell.loading': 'Loading...',
+  'notifBell.pushOn': 'Turn on device notifications',
+  'notifBell.pushActive': 'Device notifications are on',
+  'notifBell.pushDenied': 'Notification permission is blocked in your browser',
+  'notifBell.pushUnsupported': 'This browser does not support device notifications',
 
   'notif.supplierQuotationCreated': 'Supplier Quotation {nomor} from {oleh} needs your approval',
   'notif.supplierQuotationApproved': 'Supplier Quotation {nomor} approved — the Client Quotation can be prepared',

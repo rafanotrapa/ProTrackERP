@@ -3,20 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { FilePlus, LayoutList, ArrowRight } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useLang } from '../i18n';
 
 const SupplierQuotationMenu = () => {
   const navigate = useNavigate();
+  const { lang, t } = useLang();
 
   const menus = [
     {
       title: "Add New Quotation",
+      titleId: "Tambah Quotation Baru",
       desc: "Input detail COGS, Pajak & Ongkir dari Supplier.",
+      descEn: "Input COGS, tax & shipping details from the supplier.",
       icon: <FilePlus />,
       path: "/add-supplier-quotation"
     },
     {
       title: "Quotation Track Record",
+      titleId: "Rekaman Quotation",
       desc: "Histori penawaran dari vendor & status approval.",
+      descEn: "History of vendor quotations & their approval status.",
       icon: <LayoutList />,
       path: "/supplier-quotation-record"
     }
@@ -43,7 +49,7 @@ const SupplierQuotationMenu = () => {
 
       <main className="flex-1 p-8 md:p-12 lg:p-16 max-w-5xl mx-auto w-full">
         <div className="flex justify-between items-end mb-6 px-2">
-          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">Quotation Operations</h2>
+          <h2 className="text-sm font-black text-slate-400 uppercase tracking-[0.4em] italic leading-none">{lang === 'en' ? 'Quotation Operations' : 'Operasi Quotation'}</h2>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -56,10 +62,10 @@ const SupplierQuotationMenu = () => {
               <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center mb-4 group-hover:bg-indigo-600 transition-all duration-300">
                 {React.cloneElement(menu.icon, { size: 20, className: "text-slate-600 group-hover:text-white transition-all" })}
               </div>
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-1">{menu.title}</h3>
-              <p className="text-xs font-bold text-slate-400 leading-relaxed mb-3">{menu.desc}</p>
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-1">{lang === 'en' ? menu.title : (menu.titleId || menu.title)}</h3>
+              <p className="text-xs font-bold text-slate-400 leading-relaxed mb-3">{lang === 'en' ? (menu.descEn || menu.desc) : menu.desc}</p>
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-                <span className="text-2xs font-black text-slate-400 uppercase tracking-widest">Access</span>
+                <span className="text-2xs font-black text-slate-400 uppercase tracking-widest">{t('dashboard.access')}</span>
                 <ArrowRight size={12} className="text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
               </div>
             </div>

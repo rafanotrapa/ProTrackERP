@@ -7,6 +7,7 @@ import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import { LanguageProvider } from './i18n';
 
 import UserManagement from './pages/UserManagement';
 import SystemLogs from './pages/SystemLogs';
@@ -72,6 +73,9 @@ function App() {
   return (
     <Router>
       <div className="App font-sans">
+        {/* LanguageProvider berada DI LUAR ErrorBoundary karena layar error itu
+            sendiri perlu diterjemahkan. */}
+        <LanguageProvider>
         {/* Menahan error render satu halaman supaya tidak membongkar seluruh
             aplikasi jadi layar putih tanpa pesan. */}
         <ErrorBoundary>
@@ -151,6 +155,7 @@ function App() {
 
         </Routes>
         </ErrorBoundary>
+        </LanguageProvider>
       </div>
     </Router>
   );

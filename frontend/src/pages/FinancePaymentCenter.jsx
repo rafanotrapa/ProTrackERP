@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { CreditCard, ListChecks } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useLang } from '../i18n';
 
 const FinancePaymentCenter = () => {
   const navigate = useNavigate();
+  const { lang } = useLang();
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
@@ -39,9 +41,9 @@ const FinancePaymentCenter = () => {
             <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-indigo-600 transition-all">
               <CreditCard size={28} className="text-indigo-600 group-hover:text-white" />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Input Payment</h2>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">{lang === 'en' ? 'Input Payment' : 'Input Pembayaran'}</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-              Catat pembayaran masuk dari client untuk invoice tertentu.
+              {lang === 'en' ? 'Record an incoming client payment for a specific invoice.' : 'Catat pembayaran masuk dari client untuk invoice tertentu.'}
             </p>
             <div className="mt-6 flex items-center gap-2 text-xs font-black text-indigo-600 group-hover:translate-x-2 transition-transform">
               Start Recording <span>→</span>
@@ -58,9 +60,9 @@ const FinancePaymentCenter = () => {
             <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-slate-800 transition-all">
               <ListChecks size={28} className="text-slate-600 group-hover:text-white" />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Verification Log</h2>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">{lang === 'en' ? 'Verification Log' : 'Log Verifikasi'}</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-              Lihat & verifikasi semua pembayaran yang sudah diinput.
+              {lang === 'en' ? 'Review & verify every payment that has been entered.' : 'Lihat & verifikasi semua pembayaran yang sudah diinput.'}
             </p>
             <div className="mt-6 flex items-center gap-2 text-xs font-black text-slate-600 group-hover:translate-x-2 transition-transform">
               View Log <span>→</span>

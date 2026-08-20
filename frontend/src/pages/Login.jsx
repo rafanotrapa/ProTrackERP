@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { Lock, Mail, ArrowRight, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import protrackMark from '../assets/protrack-mark.png';
 import { aktifkanModeTab, matikanModeTab, modeTabAktif } from '../utils/sessionScope';
+import { useLang } from '../i18n';
 import { catatAktivitas } from '../components/ProtectedRoute';
 
 const Login = () => {
@@ -16,6 +17,7 @@ const Login = () => {
   // profil browser tanpa saling menimpa.
   const [sesiTabIni, setSesiTabIni] = useState(modeTabAktif());
   const navigate = useNavigate();
+  const { t } = useLang();
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -47,8 +49,8 @@ const Login = () => {
 
       Swal.fire({
         icon: 'success',
-        title: 'Login Berhasil!',
-        text: `Selamat datang, ${res.data.user.username}`,
+        title: t('login.success'),
+        text: t('login.welcome', { nama: res.data.user.username }),
         timer: 1500,
         showConfirmButton: false,
         background: '#ffffff',
@@ -57,16 +59,18 @@ const Login = () => {
 
       navigate('/dashboard');
     } catch (err) {
-      const errorMsg = err.response?.data?.msg || 'Login Gagal!';
+      // Pesan dari server masih berbahasa Indonesia; menerjemahkannya butuh
+      // kode error di backend, yang masuk tahap i18n berikutnya.
+      const errorMsg = err.response?.data?.msg || t('login.failed');
       const isLocked = err.response?.data?.isLocked;
       const remainingAttempts = err.response?.data?.remainingAttempts;
 
       if (isLocked) {
         Swal.fire({
           icon: 'error',
-          title: 'AKUN DIBLOKIR',
+          title: t('login.locked'),
           html: `<p class="text-slate-700">${errorMsg}</p>
-                 <p class="text-slate-500 text-sm mt-2">Silakan hubungi Administrator untuk membuka blokir akun Anda.</p>`,
+                 <p class="text-slate-500 text-sm mt-2">${t('login.lockedHelp')}</p>`,
           confirmButtonText: 'OK',
           confirmButtonColor: '#4f46e5',
           background: '#ffffff'
@@ -74,19 +78,19 @@ const Login = () => {
       } else if (remainingAttempts !== undefined && remainingAttempts > 0) {
         Swal.fire({
           icon: 'warning',
-          title: 'PASSWORD SALAH!',
+          title: t('login.wrongPassword'),
           html: `<p class="text-slate-700">${errorMsg}</p>
-                 <p class="text-amber-600 text-sm font-bold mt-2">⚠️ Sisa ${remainingAttempts} kesempatan lagi sebelum akun diblokir.</p>`,
-          confirmButtonText: 'Coba Lagi',
+                 <p class="text-amber-600 text-sm font-bold mt-2">${t('login.attemptsLeft', { n: remainingAttempts })}</p>`,
+          confirmButtonText: t('login.retry'),
           confirmButtonColor: '#4f46e5',
           background: '#ffffff'
         });
       } else {
         Swal.fire({
           icon: 'error',
-          title: 'Login Gagal!',
+          title: t('login.failed'),
           text: errorMsg,
-          confirmButtonText: 'Coba Lagi',
+          confirmButtonText: t('login.retry'),
           confirmButtonColor: '#4f46e5',
           background: '#ffffff'
         });

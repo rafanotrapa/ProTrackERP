@@ -3,20 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { ReceiptText, LayoutList, ArrowRight } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useLang } from '../i18n';
 
 const ExpenseSubmissionMenu = () => {
   const navigate = useNavigate();
+  const { lang, t } = useLang();
 
   const menus = [
     {
       title: "Submit Expense",
+      titleId: "Ajukan Biaya",
       desc: "Ajukan biaya di luar quotation supplier (meeting, entertainment, dll) ke Finance.",
+      descEn: "Submit costs outside the supplier quotation (meetings, entertainment, etc.) to Finance.",
       icon: <ReceiptText />,
       path: "/add-expense-submission"
     },
     {
       title: "Expense Log",
+      titleId: "Log Expense",
       desc: "Histori semua pengajuan biaya beserta status verifikasi Finance.",
+      descEn: "History of every expense submission and its Finance verification status.",
       icon: <LayoutList />,
       path: "/expense-submission-log"
     }
@@ -60,10 +66,10 @@ const ExpenseSubmissionMenu = () => {
               <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center mb-4 group-hover:bg-amber-600 transition-all duration-300">
                 {React.cloneElement(menu.icon, { size: 20, className: "text-slate-600 group-hover:text-white transition-all" })}
               </div>
-              <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-1">{menu.title}</h3>
-              <p className="text-xs font-bold text-slate-400 leading-relaxed mb-3">{menu.desc}</p>
+              <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter mb-1">{lang === 'en' ? menu.title : (menu.titleId || menu.title)}</h3>
+              <p className="text-xs font-bold text-slate-400 leading-relaxed mb-3">{lang === 'en' ? (menu.descEn || menu.desc) : menu.desc}</p>
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-50">
-                <span className="text-2xs font-black text-slate-400 uppercase tracking-widest">Access</span>
+                <span className="text-2xs font-black text-slate-400 uppercase tracking-widest">{t('dashboard.access')}</span>
                 <ArrowRight size={12} className="text-slate-300 group-hover:text-amber-600 group-hover:translate-x-1 transition-all" />
               </div>
             </div>

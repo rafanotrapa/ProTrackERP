@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { CreditCard, ListChecks } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useLang } from '../i18n';
 
 const InputPaymentCenter = () => {
   const navigate = useNavigate();
+  const { lang } = useLang();
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
@@ -39,9 +41,9 @@ const InputPaymentCenter = () => {
             <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-indigo-600 transition-all">
               <CreditCard size={28} className="text-indigo-600 group-hover:text-white" />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Input Payment</h2>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">{lang === 'en' ? 'Input Payment' : 'Input Pembayaran'}</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-              Upload bukti transfer client untuk invoice tertentu.
+              {lang === 'en' ? 'Upload the client transfer proof for a specific invoice.' : 'Upload bukti transfer client untuk invoice tertentu.'}
             </p>
             <div className="mt-6 flex items-center gap-2 text-xs font-black text-indigo-600 group-hover:translate-x-2 transition-transform">
               Start Uploading <span>→</span>
@@ -58,9 +60,9 @@ const InputPaymentCenter = () => {
             <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-slate-800 transition-all">
               <ListChecks size={28} className="text-slate-600 group-hover:text-white" />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Payment Log</h2>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">{lang === 'en' ? 'Payment Log' : 'Log Pembayaran'}</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-              Histori semua bukti pembayaran yang sudah diupload.
+              {lang === 'en' ? 'History of every payment proof uploaded.' : 'Histori semua bukti pembayaran yang sudah diupload.'}
             </p>
             <div className="mt-6 flex items-center gap-2 text-xs font-black text-slate-600 group-hover:translate-x-2 transition-transform">
               View History <span>→</span>

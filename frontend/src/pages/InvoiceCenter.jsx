@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { FilePlus, FileText, ArrowLeft } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useLang } from '../i18n';
 
 const InvoiceCenter = () => {
   const navigate = useNavigate();
+  const { lang } = useLang();
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
@@ -39,9 +41,9 @@ const InvoiceCenter = () => {
             <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-indigo-600 transition-all">
               <FilePlus size={28} className="text-indigo-600 group-hover:text-white" />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Create Invoice</h2>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">{lang === 'en' ? 'Create Invoice' : 'Buat Invoice'}</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-              Buat invoice baru untuk client. Otomatis berdasarkan Client Quotation yang sudah approved.
+              {lang === 'en' ? 'Create a new client invoice, generated from an approved Client Quotation.' : 'Buat invoice baru untuk client. Otomatis berdasarkan Client Quotation yang sudah approved.'}
             </p>
             <div className="mt-6 flex items-center gap-2 text-xs font-black text-indigo-600 group-hover:translate-x-2 transition-transform">
               Start Creating <span>→</span>
@@ -58,9 +60,9 @@ const InvoiceCenter = () => {
             <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-slate-800 transition-all">
               <FileText size={28} className="text-slate-600 group-hover:text-white" />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Invoice Log</h2>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">{lang === 'en' ? 'Invoice Log' : 'Log Invoice'}</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-              Lihat history invoice, status pembayaran, dan detail.
+              {lang === 'en' ? 'View invoice history, payment status, and details.' : 'Lihat history invoice, status pembayaran, dan detail.'}
             </p>
             <div className="mt-6 flex items-center gap-2 text-xs font-black text-slate-600 group-hover:translate-x-2 transition-transform">
               View History <span>→</span>

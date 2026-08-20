@@ -1,7 +1,9 @@
 import React from 'react';
 import bataviaMark from '../assets/batavia-mark.png';
+import { useLang } from '../i18n';
 
 const Footer = () => {
+  const { t } = useLang();
   return (
     <footer className="w-full bg-slate-900 text-white relative overflow-hidden mt-auto">
       <div className="h-1 w-full bg-linear-to-r from-indigo-600 via-blue-500 to-indigo-600"></div>
@@ -17,21 +19,21 @@ const Footer = () => {
               </p>
             </div>
             <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.4em] ml-1">
-              Strategic Enterprise Resource Planning
+              {t('footer.tagline')}
             </p>
           </div>
 
           <div className="flex gap-12 text-center border-x border-slate-800 px-12 lg:flex">
             <div>
-              <p className="text-xs text-slate-500 font-black uppercase tracking-widest mb-1">Version</p>
+              <p className="text-xs text-slate-500 font-black uppercase tracking-widest mb-1">{t('footer.version')}</p>
               <p className="text-xs font-black italic text-slate-300 uppercase">v1.0.4 - Stable</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-black uppercase tracking-widest mb-1">Environment</p>
+              <p className="text-xs text-slate-500 font-black uppercase tracking-widest mb-1">{t('footer.environment')}</p>
               <p className="text-xs font-black italic text-emerald-500 uppercase">Production</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500 font-black uppercase tracking-widest mb-1">Server Time</p>
+              <p className="text-xs text-slate-500 font-black uppercase tracking-widest mb-1">{t('footer.serverTime')}</p>
               <p className="text-xs font-black italic text-slate-300 uppercase">{new Date().getFullYear()}</p>
             </div>
           </div>
@@ -39,21 +41,21 @@ const Footer = () => {
           <div className="text-center md:text-right">
             <div className="flex items-center gap-2 justify-center md:justify-end mb-1">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-              <p className="text-xs font-black uppercase tracking-widest text-slate-300">System Encrypted</p>
+              <p className="text-xs font-black uppercase tracking-widest text-slate-300">{t('footer.encrypted')}</p>
             </div>
             <p className="text-xs text-slate-500 font-bold uppercase tracking-[0.2em] italic">
-              Authorized Personnel Only
+              {t('footer.authorized')}
             </p>
           </div>
         </div>
 
         <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-slate-600 font-black uppercase tracking-widest">
-            © 2026 ProTrack ERP • Developed for Capstone Project
+            {t('footer.copyright')}
           </p>
           <div className="flex gap-6">
-            <span className="text-xs text-slate-700 font-black uppercase tracking-widest italic cursor-default hover:text-indigo-400 transition-colors">Privacy Policy</span>
-            <span className="text-xs text-slate-700 font-black uppercase tracking-widest italic cursor-default hover:text-indigo-400 transition-colors">Terms of Service</span>
+            <span className="text-xs text-slate-700 font-black uppercase tracking-widest italic cursor-default hover:text-indigo-400 transition-colors">{t('footer.privacy')}</span>
+            <span className="text-xs text-slate-700 font-black uppercase tracking-widest italic cursor-default hover:text-indigo-400 transition-colors">{t('footer.terms')}</span>
           </div>
         </div>
       </div>

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { FolderPlus, FolderClock } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { useLang } from '../i18n';
 
 const ProjectCenter = () => {
   const navigate = useNavigate();
+  const { lang } = useLang();
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
@@ -22,7 +24,7 @@ const ProjectCenter = () => {
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
             Project <span className="text-indigo-600">Center</span>
           </h1>
-          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">Create & Manage Projects</p>
+          <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">{lang === 'en' ? 'Create & Manage Projects' : 'Buat & Kelola Project'}</p>
         </div>
       </div>
 
@@ -39,9 +41,9 @@ const ProjectCenter = () => {
             <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-indigo-600 transition-all">
               <FolderPlus size={28} className="text-indigo-600 group-hover:text-white" />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Add Project</h2>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">{lang === 'en' ? 'Add Project' : 'Tambah Project'}</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-              Daftarkan project baru dengan data client dan kontrak.
+              {lang === 'en' ? 'Register a new project with its client and contract details.' : 'Daftarkan project baru dengan data client dan kontrak.'}
             </p>
             <div className="mt-6 flex items-center gap-2 text-xs font-black text-indigo-600 group-hover:translate-x-2 transition-transform">
               Start Creating <span>→</span>
@@ -58,9 +60,9 @@ const ProjectCenter = () => {
             <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-slate-800 transition-all">
               <FolderClock size={28} className="text-slate-600 group-hover:text-white" />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Project Log</h2>
+            <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">{lang === 'en' ? 'Project Log' : 'Log Project'}</h2>
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
-              Lihat semua project yang sudah terdaftar di sistem.
+              {lang === 'en' ? 'View every project registered in the system.' : 'Lihat semua project yang sudah terdaftar di sistem.'}
             </p>
             <div className="mt-6 flex items-center gap-2 text-xs font-black text-slate-600 group-hover:translate-x-2 transition-transform">
               View History <span>→</span>

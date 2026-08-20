@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, RotateCw, LayoutDashboard } from 'lucide-react';
+import { LanguageContext } from '../i18n';
 
 /**
  * Jaring pengaman untuk error saat render.
@@ -13,6 +14,8 @@ import { AlertTriangle, RotateCw, LayoutDashboard } from 'lucide-react';
  * componentDidCatch.
  */
 class ErrorBoundary extends React.Component {
+  static contextType = LanguageContext;
+
   constructor(props) {
     super(props);
     this.state = { error: null };
@@ -30,6 +33,11 @@ class ErrorBoundary extends React.Component {
   render() {
     if (!this.state.error) return this.props.children;
 
+    // Class component tidak bisa memakai hook, jadi context dibaca lewat
+    // contextType. Fallback ke teks Indonesia dipertahankan supaya layar ini
+    // tetap terbaca seandainya boundary terpasang di luar provider.
+    const t = this.context?.t || ((k) => k);
+
     return (
       <div className="min-h-screen bg-white font-sans flex items-center justify-center p-6">
         <div className="max-w-lg w-full text-center">
@@ -38,16 +46,14 @@ class ErrorBoundary extends React.Component {
           </div>
 
           <h1 className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
-            Halaman Gagal Dimuat
+            {t('error.title')}
           </h1>
           <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-3">
-            Bagian lain aplikasi tetap bisa dipakai
+            {t('error.subtitle')}
           </p>
 
           <p className="text-sm text-slate-500 mt-6 leading-relaxed">
-            Terjadi kesalahan saat menampilkan halaman ini. Data Anda tidak
-            terpengaruh. Silakan muat ulang, atau kembali ke dashboard dan coba
-            lagi dari sana.
+            {t('error.body')}
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
@@ -55,13 +61,13 @@ class ErrorBoundary extends React.Component {
               onClick={() => window.location.reload()}
               className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-900 hover:bg-indigo-700 text-white text-xs font-black uppercase tracking-widest transition-all"
             >
-              <RotateCw size={14} /> Muat Ulang
+              <RotateCw size={14} /> {t('error.reload')}
             </button>
             <button
               onClick={() => { window.location.href = '/dashboard'; }}
               className="flex items-center gap-2 px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-black uppercase tracking-widest transition-all"
             >
-              <LayoutDashboard size={14} /> Ke Dashboard
+              <LayoutDashboard size={14} /> {t('error.toDashboard')}
             </button>
           </div>
 
@@ -69,7 +75,7 @@ class ErrorBoundary extends React.Component {
               tetap bisa dibuka kalau perlu dilaporkan. */}
           <details className="mt-8 text-left">
             <summary className="cursor-pointer text-xs font-black text-slate-400 uppercase tracking-widest hover:text-slate-600">
-              Rincian teknis
+              {t('error.details')}
             </summary>
             <pre className="mt-3 p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 overflow-x-auto whitespace-pre-wrap break-words">
               {String(this.state.error?.stack || this.state.error)}

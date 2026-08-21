@@ -326,7 +326,12 @@ const ProjectTimeline = () => {
           <div className="px-6 py-4 space-y-0">
             <InfoRow label={t('tl.subtotalClient')} value={fmt(financial.clientPrice)} />
             <InfoRow label={t('tl.shippingFee')} value={fmt(financial.shippingFee)} />
-            <InfoRow label={`${t('tl.tax')} (${financial.taxPercentage}%)`} value={fmt(financial.taxAmount)} />
+            {/* taxPercentage adalah field warisan yang selalu 0: pajak sekarang disimpan
+                sebagai nominal (taxAmount), dan clientQuotationController menulis
+                literal 0 ke taxPercentage di keempat jalur simpannya. Jadi kurungnya
+                selalu terbaca "(0%)" dan tidak pernah membawa informasi. Bentuknya
+                kini sama dengan baris tetangganya. */}
+            <InfoRow label={t('tl.tax')} value={fmt(financial.taxAmount)} />
 
             <div className="flex justify-between items-center py-3 -mx-6 px-6 bg-slate-900 text-white my-1">
               <span className="text-sm font-black uppercase tracking-wider">Grand Total</span>

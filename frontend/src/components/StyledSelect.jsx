@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useLang } from '../i18n';
 
 const BASE_TRIGGER =
   'w-full p-3.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 flex justify-between items-center cursor-pointer hover:border-indigo-600 transition-all shadow-sm';
@@ -8,11 +9,12 @@ const StyledSelect = ({
   value,
   onChange,
   name,
-  placeholder = '-- Select --',
+  placeholder,
   disabled = false,
   searchable,
   triggerClassName,
 }) => {
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const ref = useRef(null);
@@ -26,6 +28,7 @@ const StyledSelect = ({
   }, []);
 
   const showSearch = searchable !== undefined ? searchable : options.length > 6;
+  const teksKosong = placeholder || t('pick.select');
   const selected = options.find((o) => String(o.value) === String(value));
   // Baris kedua (sub) ikut dicari, supaya pengguna bisa mengetik nama project
   // walaupun yang tampil sebagai judul adalah nomor dokumennya.
@@ -45,7 +48,7 @@ const StyledSelect = ({
     return (
       <div className="w-full p-3.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-slate-400 shadow-inner cursor-not-allowed flex items-center">
         <span className="truncate">
-          {selected?.label || placeholder}
+          {selected?.label || teksKosong}
           {selected?.sub && <span className="ml-2 font-semibold text-slate-400">{selected.sub}</span>}
         </span>
       </div>
@@ -59,7 +62,7 @@ const StyledSelect = ({
         className={triggerClassName || BASE_TRIGGER}
       >
         <span className="truncate">
-          {selected?.label || placeholder}
+          {selected?.label || teksKosong}
           {selected?.sub && <span className="ml-2 font-semibold text-slate-500">{selected.sub}</span>}
         </span>
         <span className={`text-2xs ml-2 transition-transform ${open ? 'rotate-180' : ''}`}>▼</span>
@@ -70,7 +73,7 @@ const StyledSelect = ({
           {showSearch && (
             <input
               type="text"
-              placeholder="Search..."
+              placeholder={t('common.search')}
               className="w-full p-3 text-xs border-b outline-none font-bold"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -79,7 +82,7 @@ const StyledSelect = ({
           )}
           <ul className="max-h-48 overflow-y-auto">
             {filtered.length === 0 ? (
-              <li className="px-4 py-3 text-xs font-black text-slate-300 uppercase">No options</li>
+              <li className="px-4 py-3 text-xs font-black text-slate-300 uppercase">{t('empty.noOptions')}</li>
             ) : (
               filtered.map((opt) => (
                 <li

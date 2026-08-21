@@ -214,7 +214,7 @@ const AddSupplierQuotation = () => {
     }
 
     if (formData.topOption === 'Termin' && terminSum !== 100) {
-       return Swal.fire(t('sw.dataIncomplete'), `Total termin harus 100% (sekarang ${terminSum}%)!`, 'warning');
+       return Swal.fire(t('sw.dataIncomplete'), t('top.mustBe100', { n: terminSum }), 'warning');
     }
 
     setLoading(true);
@@ -501,7 +501,7 @@ const AddSupplierQuotation = () => {
                           { value: 'Net 90', label: 'Net 90 Days' },
                           { value: 'Net EOM', label: 'Net End of Month (EOM)' },
                           { value: '2/10 Net 30', label: '2/10 Net 30 (2% Disc/10 Days)' },
-                          { value: 'Termin', label: 'Custom Cicilan / Termin (Manual)' },
+                          { value: 'Termin', label: t('top.customLabel') },
                         ]}
                       />
                     </div>
@@ -510,7 +510,7 @@ const AddSupplierQuotation = () => {
                   {formData.topOption === 'Termin' && (
                     <div className="mt-3 p-4 border-2 border-amber-200 rounded-2xl bg-amber-50/40 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-amber-600 uppercase tracking-widest italic">Skema Termin ({terminRows.length}x)</span>
+                        <span className="text-xs font-black text-amber-600 uppercase tracking-widest italic">{t('top.termScheme')} ({terminRows.length}x)</span>
                         <span className={`text-xs font-black px-2.5 py-1 rounded-full ${terminSum === 100 ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
                           Total: {terminSum}%
                         </span>
@@ -518,7 +518,7 @@ const AddSupplierQuotation = () => {
                       {terminRows.map((r, i) => (
                         <div key={i} className="flex items-center gap-2">
                           <span className="text-xs font-black text-slate-500 uppercase w-20 shrink-0">
-                            {i === 0 ? 'Termin 1 (DP)' : `Termin ${i + 1}`}
+                            {i === 0 ? t('top.termDp') : t('top.termN', { n: i + 1 })}
                           </span>
                           <input
                             type="number" min="0" max="100"
@@ -528,13 +528,13 @@ const AddSupplierQuotation = () => {
                           />
                           <span className="text-xs font-black text-amber-500">%</span>
                           {terminRows.length > 2 && (
-                            <button type="button" onClick={() => removeTerminRow(i)} className="text-rose-400 hover:text-rose-600 font-black text-sm px-1" title="Hapus termin">✕</button>
+                            <button type="button" onClick={() => removeTerminRow(i)} className="text-rose-400 hover:text-rose-600 font-black text-sm px-1" title={t('top.removeTerm')}>✕</button>
                           )}
                         </div>
                       ))}
                       {terminRows.length < 6 && (
                         <button type="button" onClick={addTerminRow} className="w-full mt-1 py-2 border-2 border-dashed border-amber-300 rounded-xl text-xs font-black text-amber-600 uppercase tracking-widest hover:bg-amber-100 transition-all">
-                          + Tambah Termin
+                          + {t('top.addTerm')}
                         </button>
                       )}
                       <p className="text-2xs font-bold text-slate-400 italic">{t('hint.terminTotal')} <span className="font-black text-slate-500">{composeTermin(terminRows)}</span></p>

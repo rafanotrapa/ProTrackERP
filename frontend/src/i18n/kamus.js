@@ -490,6 +490,18 @@ export const id = {
   'label.noTransferProof': 'Tanpa bukti transfer',
   'sw.approveSubmission': 'Setujui Submission?',
   'inv.usedMax': 'Jumlah terpakai (maks {n})',
+
+  // Rekening bank dan PPN di Client Quotation
+  'label.taxableAmount': 'Kena PPN Rp {nominal}',
+  'ph.bankExample': 'Contoh: BCA 123-456-7890 a/n PT. Batavia Jaya Kreasi',
+  'ph.bankNotNeeded': 'Tidak diperlukan (Non-PPN)',
+  'hint.bankRequiredForTax': 'Rekening bank wajib diisi untuk transaksi kena PPN',
+  'hint.bankSaved': 'Rekening bank tersimpan',
+
+  // Komponen dropdown bersama
+  'common.search': 'Cari...',
+  'empty.noOptions': 'Tidak ada pilihan',
+  'pick.select': '-- Pilih --',
 };
 
 export const en = {
@@ -667,7 +679,7 @@ export const en = {
   'form.noteMgmt': 'Additional note for management...',
   'form.noteMgmt2': 'Add a specific note for management...',
   'form.noteFinance': 'Internal note for Finance...',
-  'form.noteFinance2': 'Note for Finance, e.g. Termin 1 billing...',
+  'form.noteFinance2': 'Note for Finance, e.g. Term 1 billing...',
   'form.extraNote': 'Additional Note (Optional)',
   'form.addExpenseItem': 'Add Expense Item',
   'form.submissionTotal': 'Submission Total',
@@ -713,7 +725,7 @@ export const en = {
   'hint.fileRule': 'JPG, PNG, or PDF — max 5MB. One file for all items above.',
   'hint.viewOnly': 'This account can only view; it cannot fill in any form.',
   'hint.enableTax': 'Enable it by entering the tax amount above',
-  'hint.terminTotal': 'All termin must add up to 100%. Saved as:',
+  'hint.terminTotal': 'All terms must add up to 100%. Saved as:',
   'hint.cogsDistributed': 'COGS will be distributed automatically with the additional fee and tax in the Marketing module.',
   'hint.cogsPreview': 'COGS Preview After Distribution (what Marketing will see)',
   'hint.cogsAfterPaid': 'COGS appears once the supplier invoice is paid',
@@ -942,6 +954,18 @@ export const en = {
   'label.noTransferProof': 'Without transfer proof',
   'sw.approveSubmission': 'Approve Submission?',
   'inv.usedMax': 'Quantity used (max {n})',
+
+  // Rekening bank dan PPN di Client Quotation
+  'label.taxableAmount': 'Taxable Rp {nominal}',
+  'ph.bankExample': 'e.g. BCA 123-456-7890 under PT. Batavia Jaya Kreasi',
+  'ph.bankNotNeeded': 'Not required (non-taxable)',
+  'hint.bankRequiredForTax': 'A bank account is required for taxable transactions',
+  'hint.bankSaved': 'Bank account saved',
+
+  // Komponen dropdown bersama
+  'common.search': 'Search...',
+  'empty.noOptions': 'No options',
+  'pick.select': '-- Select --',
 };
 
 export const KAMUS = { id, en };

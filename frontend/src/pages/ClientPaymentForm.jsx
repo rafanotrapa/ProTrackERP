@@ -9,7 +9,9 @@ import {
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { useLang } from '../i18n';
 const ClientPaymentForm = () => {
+  const { t } = useLang();
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
@@ -34,7 +36,7 @@ const ClientPaymentForm = () => {
           setFormData(prev => ({ ...prev, amountPaid: res.data.amount || '' }));
         }
       } catch (err) {
-        Swal.fire('ERROR', 'Data invoice tidak ditemukan!', 'error');
+        Swal.fire('ERROR', t('sw.invoiceNotFound'), 'error');
         navigate('/client-invoice');
       } finally {
         setLoading(false);
@@ -45,7 +47,7 @@ const ClientPaymentForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.file) return Swal.fire('WAIT!', 'Mohon upload bukti transfer!', 'warning');
+    if (!formData.file) return Swal.fire('WAIT!', t('sw.uploadTransferProof'), 'warning');
 
     setBtnLoading(true);
     const token = localStorage.getItem('token');
@@ -60,7 +62,7 @@ const ClientPaymentForm = () => {
     try {
       Swal.fire({ 
         title: 'Verifying...', 
-        text: 'Sedang mengunggah bukti dan memproses data',
+        text: t('msg.uploading'),
         allowOutsideClick: false, 
         didOpen: () => Swal.showLoading() 
       });
@@ -72,7 +74,7 @@ const ClientPaymentForm = () => {
         }
       });
 
-      Swal.fire('SUCCESS!', 'Pembayaran Berhasil Diverifikasi', 'success');
+      Swal.fire('SUCCESS!', t('sw.paymentVerified'), 'success');
       navigate('/client-invoice');
     } catch (err) {
       console.error("Submit Error:", err.response?.data);

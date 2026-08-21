@@ -7,7 +7,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { akunBacaSaja } from '../utils/peran';
 
+import { useLang } from '../i18n';
 const Inventory = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
 
   // Akun lihat-saja tidak ditawari tombol pencatat pemakaian stok.
@@ -35,16 +37,16 @@ const Inventory = () => {
 
   const handleUpdateUsage = async (row) => {
     const { value } = await Swal.fire({
-      title: 'Update Terpakai',
+      title: t('inv.updateUsed'),
       html: `<p style="font-size:13px;color:#475569;margin-bottom:8px;"><strong>${row.itemName}</strong></p>
-             <p style="font-size:11px;color:#94a3b8;">Jumlah awal: <strong>${row.initialQty}</strong> ${row.unit}</p>`,
+             <p style="font-size:11px;color:#94a3b8;">{t('form.initialAmount')} <strong>${row.initialQty}</strong> ${row.unit}</p>`,
       input: 'number',
       inputValue: row.usedQty,
       inputAttributes: { min: 0, max: row.initialQty, step: 1 },
       inputLabel: `Jumlah terpakai (maks ${row.initialQty})`,
       showCancelButton: true,
-      confirmButtonText: 'Simpan',
-      cancelButtonText: 'Batal',
+      confirmButtonText: t('common.save'),
+      cancelButtonText: t('common.cancel'),
       confirmButtonColor: '#4f46e5',
       inputValidator: (val) => {
         const n = Number(val);
@@ -65,7 +67,7 @@ const Inventory = () => {
       fetchInventory();
     } catch (err) {
       console.error('Gagal update usage:', err);
-      Swal.fire('Error', 'Gagal update jumlah terpakai', 'error');
+      Swal.fire('Error', t('sw.usedQtyUpdateFailed'), 'error');
     }
   };
 
@@ -119,7 +121,7 @@ const Inventory = () => {
             Inventory <span className="text-indigo-600">Storage</span>
           </h1>
           <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
-            Stok Barang dari Purchase Order
+            {t('page.inventoryFrom')}
           </p>
         </div>
       </div>
@@ -129,7 +131,7 @@ const Inventory = () => {
           <div className="flex gap-2 flex-wrap">
             {[
               { key: 'all',       label: `All (${counts.all})`,             cls: 'bg-slate-900 text-white' },
-              { key: 'available', label: `Tersedia (${counts.available})`,  cls: 'bg-emerald-600 text-white' },
+              { key: 'available', label: `${t('inv.available')} (${counts.available})`,  cls: 'bg-emerald-600 text-white' },
               { key: 'depleted',  label: `Habis (${counts.depleted})`,      cls: 'bg-rose-600 text-white' },
             ].map(({ key, label, cls }) => (
               <button
@@ -147,7 +149,7 @@ const Inventory = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari nama item / jenis..."
+              placeholder={t('search.item')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"
@@ -170,10 +172,10 @@ const Inventory = () => {
                 <tr className="text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">Item</th>
                   <th className="px-6 py-4">Jenis</th>
-                  <th className="px-6 py-4 text-center">Qty Awal</th>
-                  <th className="px-6 py-4 text-center">Terpakai</th>
-                  <th className="px-6 py-4 text-center">Sisa</th>
-                  <th className="px-6 py-4">Status Stok</th>
+                  <th className="px-6 py-4 text-center">{t('form.qtyInitial')}</th>
+                  <th className="px-6 py-4 text-center">{t('inv.used')}</th>
+                  <th className="px-6 py-4 text-center">{t('common.remaining')}</th>
+                  <th className="px-6 py-4">{t('inv.stockStatus')}</th>
                   <th className="px-6 py-4 text-center">Action</th>
                 </tr>
               </thead>
@@ -209,7 +211,7 @@ const Inventory = () => {
                             onClick={() => handleUpdateUsage(it)}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-2xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all"
                           >
-                            <Pencil size={11} /> Terpakai
+                            <Pencil size={11} /> {t('inv.used')}
                           </button>
                         )}
                       </td>

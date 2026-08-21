@@ -7,6 +7,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
+import { useLang } from '../i18n';
 const formatRupiah = (value) => {
   if (!value && value !== 0) return '';
   const numberString = value.toString().replace(/[^0-9]/g, '');
@@ -23,6 +24,7 @@ const emptyItem = () => ({
 });
 
 const AddExpenseSubmission = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [loading, setLoading]   = useState(false);
   const [projects, setProjects] = useState([]);
@@ -95,7 +97,7 @@ const AddExpenseSubmission = () => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       if (selectedFile.type.startsWith('audio/') || selectedFile.type.startsWith('video/')) {
-        Swal.fire('ERROR', 'Hanya dokumen/gambar yang diperbolehkan!', 'error');
+        Swal.fire('ERROR', t('sw.docImageOnly'), 'error');
         return;
       }
       setFormData((prev) => ({ ...prev, file: selectedFile }));
@@ -125,15 +127,15 @@ const AddExpenseSubmission = () => {
     e.preventDefault();
 
     if (!formData.projectId) {
-      return Swal.fire('PILIH PROJECT', 'Silakan pilih project terlebih dahulu!', 'warning');
+      return Swal.fire(t('sw.pickProjectTitle'), t('sw.pickProjectFirst'), 'warning');
     }
 
     const validItems = items.filter((it) => it.name.trim() && Number(it.amount) > 0);
     if (validItems.length === 0) {
-      return Swal.fire('ITEM TIDAK VALID', 'Minimal satu item dengan nama & nominal wajib diisi!', 'warning');
+      return Swal.fire(t('sw.invalidItem'), t('sw.oneItemRequired'), 'warning');
     }
     if (!formData.file) {
-      return Swal.fire('LAMPIRAN WAJIB', 'Upload bukti / lampiran pendukung dulu!', 'warning');
+      return Swal.fire(t('sw.attachmentRequired'), t('sw.uploadProofFirst'), 'warning');
     }
 
     setLoading(true);
@@ -161,7 +163,7 @@ const AddExpenseSubmission = () => {
       Swal.fire({
         icon:               'success',
         title:              'SUBMITTED',
-        text:               'Pengajuan biaya berhasil dikirim untuk verifikasi Finance.',
+        text: t('msg.expenseSubmitted'),
         confirmButtonColor: '#0f172a',
       });
       navigate('/expense-submission-log');
@@ -190,7 +192,7 @@ const AddExpenseSubmission = () => {
             Submit <span className="text-amber-600">Expense</span>
           </h1>
           <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
-            Biaya Tambahan • Reimburse & Operasional Project
+            {t('page.extraCost')}
           </p>
         </div>
       </div>
@@ -205,7 +207,7 @@ const AddExpenseSubmission = () => {
 
             <div className="space-y-1" ref={dropdownRef}>
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic">
-                Pilih Project <span className="text-red-500">*</span>
+                {t('pick.project')} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <button
@@ -216,7 +218,7 @@ const AddExpenseSubmission = () => {
                   <span className={formData.projectId ? 'text-slate-800' : 'text-slate-400'}>
                     {formData.projectId
                       ? `${formData.projectId} — ${formData.projectName}`
-                      : '-- Cari Project ID / Nama --'}
+                      : t('pick.projectIdName')}
                   </span>
                   <Search size={14} className="text-slate-400" />
                 </button>
@@ -229,12 +231,12 @@ const AddExpenseSubmission = () => {
                         autoFocus
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Cari project..."
+                        placeholder={t('search.project')}
                         className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:border-amber-400"
                       />
                     </div>
                     {filteredProjects.length === 0 ? (
-                      <p className="p-4 text-center text-xs text-slate-400 italic">Tidak ada project ditemukan</p>
+                      <p className="p-4 text-center text-xs text-slate-400 italic">{t('pick.noProject')}</p>
                     ) : (
                       filteredProjects.map((p) => (
                         <div
@@ -252,7 +254,7 @@ const AddExpenseSubmission = () => {
                 )}
               </div>
               <p className="text-xs text-slate-400 ml-1 mt-1 italic">
-                Project boleh dalam status apa saja — aktif maupun sudah selesai.
+                {t('hint.anyStatus')}
               </p>
             </div>
 
@@ -278,7 +280,7 @@ const AddExpenseSubmission = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
-                <span className="w-8 h-1 bg-amber-600" /> 02. Daftar Biaya
+                <span className="w-8 h-1 bg-amber-600" /> {t('sec.expenseList')}
               </h3>
               <span className="text-xs font-black text-slate-400 uppercase">{items.length} item</span>
             </div>
@@ -288,7 +290,7 @@ const AddExpenseSubmission = () => {
                 <div key={item.id} className="grid grid-cols-12 gap-3 p-5 bg-slate-50 rounded-2xl border border-slate-200 items-start">
                   <div className="col-span-12 md:col-span-4 space-y-1">
                     <label className="text-xs font-black text-slate-500 uppercase tracking-widest">
-                      Nama Biaya {index === 0 && <span className="text-red-500">*</span>}
+                      {t('label.expenseName')} {index === 0 && <span className="text-red-500">*</span>}
                     </label>
                     <input
                       type="text"
@@ -299,17 +301,17 @@ const AddExpenseSubmission = () => {
                     />
                   </div>
                   <div className="col-span-12 md:col-span-5 space-y-1">
-                    <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Deskripsi</label>
+                    <label className="text-xs font-black text-slate-500 uppercase tracking-widest">{t('label.description')}</label>
                     <input
                       type="text"
                       value={item.description}
                       onChange={(e) => updateItem(item.id, 'description', e.target.value)}
-                      placeholder="Detail singkat (optional)"
+                      placeholder={t('ph.shortDetail')}
                       className="w-full p-2 bg-white border border-slate-300 rounded-lg text-sm outline-none focus:border-amber-500"
                     />
                   </div>
                   <div className="col-span-9 md:col-span-2 space-y-1">
-                    <label className="text-xs font-black text-amber-600 uppercase tracking-widest">Nominal *</label>
+                    <label className="text-xs font-black text-amber-600 uppercase tracking-widest">{t('label.amountReq')}</label>
                     <div className="relative">
                       <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">Rp</span>
                       <input
@@ -343,13 +345,13 @@ const AddExpenseSubmission = () => {
                 onClick={addItem}
                 className="flex items-center gap-2 text-amber-600 font-black text-xs uppercase tracking-widest hover:text-amber-800 transition-colors"
               >
-                <Plus size={14} /> Tambah Item Biaya
+                <Plus size={14} /> {t('form.addExpenseItem')}
               </button>
             </div>
 
             <div className="flex justify-end pt-4 border-t border-slate-200">
               <div className="text-right w-72">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Total Pengajuan</p>
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('form.submissionTotal')}</p>
                 <p className="text-2xl font-black text-amber-600 tracking-tighter">
                   Rp {formatRupiah(totalAmount)}
                 </p>
@@ -359,12 +361,12 @@ const AddExpenseSubmission = () => {
 
           <div className="space-y-6">
             <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 italic">
-              <span className="w-8 h-1 bg-amber-600" /> 03. Lampiran / Bukti
+              <span className="w-8 h-1 bg-amber-600" /> {t('sec.attachment')}
             </h3>
 
             <div className="space-y-1">
               <label className="text-xs font-black text-amber-500 uppercase tracking-widest ml-1 italic">
-                Upload Bukti (Struk / Invoice / Foto) <span className="text-red-500">*</span>
+                {t('form.uploadProof')} <span className="text-red-500">*</span>
               </label>
               <label
                 htmlFor="expense-file"
@@ -375,7 +377,7 @@ const AddExpenseSubmission = () => {
                   <p className="text-xs font-black text-amber-700">
                     {formData.file ? formData.file.name : 'Klik untuk upload file'}
                   </p>
-                  <p className="text-xs text-amber-500">JPG, PNG, atau PDF — maks 5MB. Satu file untuk semua item di atas.</p>
+                  <p className="text-xs text-amber-500">{t('hint.fileRule')}</p>
                 </div>
               </label>
               <input
@@ -389,14 +391,14 @@ const AddExpenseSubmission = () => {
 
             <div className="space-y-1">
               <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic">
-                Catatan Tambahan (Optional)
+                {t('form.extraNote')}
               </label>
               <textarea
                 name="remarks"
                 rows="2"
                 value={formData.remarks}
                 onChange={handleChange}
-                placeholder="Catatan internal untuk Finance..."
+                placeholder={t('form.noteFinance')}
                 className="w-full p-4 bg-white border border-slate-300 rounded-2xl outline-none font-medium text-slate-700 focus:border-amber-500 shadow-sm transition-all resize-none"
               />
             </div>
@@ -413,14 +415,14 @@ const AddExpenseSubmission = () => {
               }`}
             >
               <ReceiptText size={14} />
-              {loading ? 'MENGIRIM...' : 'Submit Pengajuan →'}
+              {loading ? t('btn.sending') : t('btn.submitExpense')}
             </button>
           </div>
 
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <p className="text-xs font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-              Verification Required: Pengajuan ini akan direview Finance sebelum masuk sebagai beban project.
+              {t('hint.verificationRequired')}
             </p>
           </div>
         </form>

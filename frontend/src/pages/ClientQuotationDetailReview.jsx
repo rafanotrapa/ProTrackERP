@@ -6,7 +6,9 @@ import { CheckCircle, XCircle, ArrowLeft, DollarSign, Package, Clock, User, File
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { useLang } from '../i18n';
 const ClientQuotationDetailReview = () => {
+  const { t } = useLang();
   const { id } = useParams();
   const navigate = useNavigate();
   const [quo, setQuo] = useState(null);
@@ -216,7 +218,7 @@ const ClientQuotationDetailReview = () => {
                         <th className="py-4 px-3 text-xs font-black text-slate-500 uppercase tracking-widest rounded-l-xl">Item</th>
                         <th className="py-4 px-3 text-xs font-black text-slate-500 uppercase tracking-widest text-center">Qty</th>
                         <th className="py-4 px-3 text-xs font-black text-slate-500 uppercase tracking-widest text-center">Unit</th>
-                        <th className="py-4 px-3 text-xs font-black text-slate-500 uppercase tracking-widest text-right">COGS (Modal)</th>
+                        <th className="py-4 px-3 text-xs font-black text-slate-500 uppercase tracking-widest text-right">{t('label.cogsCapital')}</th>
                         <th className="py-4 px-3 text-xs font-black text-slate-500 uppercase tracking-widest text-right">Sales Price</th>
                         <th className="py-4 px-3 text-xs font-black text-slate-500 uppercase tracking-widest text-right rounded-r-xl">Margin</th>
                       </tr>
@@ -299,7 +301,7 @@ const ClientQuotationDetailReview = () => {
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b border-white/10">
-                    <span className="text-xs text-slate-300">Total COGS (Modal)</span>
+                    <span className="text-xs text-slate-300">{t('label.totalCogsCapital')}</span>
                     <span className="font-bold text-white">Rp {totalModal.toLocaleString('id-ID')}</span>
                   </div>
                   <div className="flex justify-between items-center pb-2 border-b border-white/10">

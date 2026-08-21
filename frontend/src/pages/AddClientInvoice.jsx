@@ -11,7 +11,9 @@ import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 import { parsePaymentStages } from '../utils/paymentTerms';
 
+import { useLang } from '../i18n';
 const AddClientInvoice = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [quotations, setQuotations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -86,7 +88,7 @@ const AddClientInvoice = () => {
         setQuotations(availableQuotes);
       } catch (err) {
         console.error("Gagal load data quotations", err);
-        Swal.fire('Warning', 'Gagal memuat data quotation', 'warning');
+        Swal.fire('Warning', t('sw.loadQuotationFailed'), 'warning');
       }
     };
     fetchQuotes();

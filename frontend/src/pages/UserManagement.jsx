@@ -5,7 +5,9 @@ import Header from '../components/Header';
 import Swal from 'sweetalert2';
 import { cekSyarat, RINGKASAN_ATURAN } from '../utils/passwordPolicy';
 
+import { useLang } from '../i18n';
 const UserManagement = () => {
+  const { t } = useLang();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -21,8 +23,8 @@ const UserManagement = () => {
       console.error("Gagal tarik data user");
       Swal.fire({
         icon: 'error',
-        title: 'Gagal Memuat Data',
-        text: 'Tidak dapat mengambil data pengguna.',
+        title: t('msg.loadFailed'),
+        text: t('msg.userFetchFailed'),
         confirmButtonColor: '#4f46e5'
       });
     } finally {
@@ -83,7 +85,7 @@ const UserManagement = () => {
         const rincian = err.response?.data?.errors;
         Swal.fire({
           icon: 'error',
-          title: 'GAGAL!',
+          title: t('msg.failed'),
           text: Array.isArray(rincian) ? undefined : (err.response?.data?.msg || "Gagal reset password"),
           html: Array.isArray(rincian)
             ? `<p class="text-slate-700">${err.response.data.msg}</p>
@@ -130,7 +132,7 @@ const UserManagement = () => {
       } catch (err) {
         Swal.fire({
           icon: 'error',
-          title: 'GAGAL!',
+          title: t('msg.failed'),
           text: err.response?.data?.msg || 'Gagal membuka akun.',
           confirmButtonColor: '#ef4444'
         });
@@ -164,14 +166,14 @@ const UserManagement = () => {
         Swal.fire({
           icon: 'success',
           title: 'AKSES DICABUT!',
-          text: 'Akses karyawan telah dihapus dari sistem.',
+          text: t('msg.accessRevoked'),
           confirmButtonColor: '#4f46e5'
         });
         fetchUsers();
       } catch (err) {
         Swal.fire({
           icon: 'error',
-          title: 'GAGAL!',
+          title: t('msg.failed'),
           text: err.response?.data?.msg || 'Gagal menghapus user.',
           confirmButtonColor: '#ef4444'
         });
@@ -221,7 +223,7 @@ const UserManagement = () => {
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-900 text-white uppercase text-xs font-black tracking-[0.2em] italic">
                 <tr>
-                  <th className="px-8 md:px-10 py-6 whitespace-nowrap">Karyawan / Division</th>
+                  <th className="px-8 md:px-10 py-6 whitespace-nowrap">{t('label.employeeDivision')}</th>
                   <th className="px-8 md:px-10 py-6 whitespace-nowrap">Email Address</th>
                   <th className="px-8 md:px-10 py-6 text-center whitespace-nowrap">Status</th>
                   <th className="px-8 md:px-10 py-6 text-center whitespace-nowrap">Actions Control</th>

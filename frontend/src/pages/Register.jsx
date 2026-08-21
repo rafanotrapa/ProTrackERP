@@ -6,7 +6,9 @@ import Swal from 'sweetalert2';
 import PasswordChecklist from '../components/PasswordChecklist';
 import { passwordValid } from '../utils/passwordPolicy';
 
+import { useLang } from '../i18n';
 const Register = () => {
+  const { t } = useLang();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -31,8 +33,8 @@ const Register = () => {
     { label: 'Management', value: 'Management' },
     { label: 'Company Owner', value: 'Owner' },
     { label: 'Administrator (User & Log)', value: 'Administrator' },
-    { label: 'Super Admin — Lihat Semua Modul', value: 'Super Admin' },
-    { label: 'Viewer — Lihat Modul Tertentu', value: 'Viewer' }
+    { label: t('msg.superAdminAll'), value: 'Super Admin' },
+    { label: t('msg.viewerSome'), value: 'Viewer' }
   ];
 
   const perluPilihModul = formData.role === 'Viewer';
@@ -77,8 +79,8 @@ const Register = () => {
     if (perluPilihModul && formData.viewModules.length === 0) {
       return Swal.fire({
         icon: 'warning',
-        title: 'Modul Belum Dipilih',
-        text: 'Pilih minimal satu modul yang boleh dilihat akun Viewer.',
+        title: t('msg.noModulePicked'),
+        text: t('msg.pickOneModule'),
         confirmButtonColor: '#4f46e5',
       });
     }
@@ -86,8 +88,8 @@ const Register = () => {
     if (!passwordValid(formData.password, { username: formData.username, email: formData.email })) {
       return Swal.fire({
         icon: 'warning',
-        title: 'Password Belum Aman',
-        text: 'Lengkapi dulu semua syarat password yang tercantum di bawah kolom password.',
+        title: t('msg.weakPassword'),
+        text: t('msg.completePasswordRules'),
         confirmButtonColor: '#4f46e5',
       });
     }
@@ -101,7 +103,7 @@ const Register = () => {
 
       Swal.fire({
         title: 'SUCCESS!',
-        text: 'Karyawan Baru Berhasil Terdaftar ke Sistem.',
+        text: t('msg.employeeRegistered'),
         icon: 'success',
         confirmButtonColor: '#4f46e5',
         customClass: {
@@ -219,12 +221,12 @@ const Register = () => {
               {perluPilihModul && (
                 <div className="md:col-span-2 space-y-2">
                   <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">
-                    Modul yang Boleh Dilihat
+                    {t('page.viewableModules')}
                     <span className="ml-2 text-indigo-500">({formData.viewModules.length} dipilih)</span>
                   </label>
                   <div className="rounded-2xl bg-slate-50 border border-slate-100 p-4 grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto">
                     {modulTersedia.length === 0 ? (
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Memuat daftar modul...</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('empty.loadingModules')}</p>
                     ) : modulTersedia.map((m) => (
                       <label key={m} className="flex items-center gap-2 cursor-pointer select-none py-1">
                         <input
@@ -238,7 +240,7 @@ const Register = () => {
                     ))}
                   </div>
                   <p className="text-xs text-slate-400 ml-1">
-                    Akun ini hanya bisa melihat, tidak bisa mengisi form apa pun.
+                    {t('hint.viewOnly')}
                   </p>
                 </div>
               )}

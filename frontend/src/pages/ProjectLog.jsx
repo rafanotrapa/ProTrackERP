@@ -7,6 +7,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { akunBacaSaja } from '../utils/peran';
 
+import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const statusBadge = (status) => {
@@ -20,6 +21,7 @@ const statusBadge = (status) => {
 };
 
 const ProjectLog = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -65,8 +67,8 @@ const ProjectLog = () => {
       inputValue: String(p.amount || 0),
       inputLabel: 'Nominal (IDR)',
       showCancelButton: true,
-      confirmButtonText: 'Simpan',
-      cancelButtonText: 'Batal',
+      confirmButtonText: t('common.save'),
+      cancelButtonText: t('common.cancel'),
       confirmButtonColor: '#4f46e5',
       inputValidator: (val) => {
         const num = Number(String(val).replace(/[^0-9]/g, ''));
@@ -89,7 +91,7 @@ const ProjectLog = () => {
       fetchProjects();
     } catch (err) {
       console.error('Gagal update budget:', err);
-      Swal.fire('Error', 'Gagal update contract value!', 'error');
+      Swal.fire('Error', t('sw.contractUpdateFailed'), 'error');
     }
   };
 
@@ -104,11 +106,11 @@ const ProjectLog = () => {
       kandidat = res.data || [];
     } catch (err) {
       console.error('Gagal ambil kandidat PIC:', err);
-      return Swal.fire('Error', 'Gagal mengambil daftar akun Marketing.', 'error');
+      return Swal.fire('Error', t('sw.marketingListFailed'), 'error');
     }
 
     if (kandidat.length === 0) {
-      return Swal.fire('Belum Ada Kandidat', 'Belum ada akun ber-role Marketing.', 'info');
+      return Swal.fire(t('sw.noCandidate'), t('sw.noMarketingAccount'), 'info');
     }
 
     const pilihan = Object.fromEntries(kandidat.map((u) => [u._id, u.username]));
@@ -123,7 +125,7 @@ const ProjectLog = () => {
       inputPlaceholder: 'Pilih akun Marketing',
       showCancelButton: true,
       confirmButtonText: 'Pindahkan',
-      cancelButtonText: 'Batal',
+      cancelButtonText: t('common.cancel'),
       confirmButtonColor: '#4f46e5',
       inputValidator: (val) => (!val ? 'Pilih dulu PIC tujuannya!' : null),
     });
@@ -197,7 +199,7 @@ const ProjectLog = () => {
             Project <span className="text-indigo-600">Log</span>
           </h1>
           <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
-            Histori Semua Project
+            {t('page.allProjects')}
           </p>
         </div>
       </div>
@@ -227,7 +229,7 @@ const ProjectLog = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari ID, Nama Project, Client..."
+              placeholder={t('search.projectLog')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"
@@ -288,7 +290,7 @@ const ProjectLog = () => {
                         {p.createdBy ? (
                           <p className="font-bold text-slate-700 text-sm">{p.createdBy.username}</p>
                         ) : (
-                          <p className="text-xs font-bold text-slate-300 italic">Belum ada</p>
+                          <p className="text-xs font-bold text-slate-300 italic">{t('common.none')}</p>
                         )}
                         {bolehUbahPIC && (
                           <button

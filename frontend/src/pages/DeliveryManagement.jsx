@@ -10,7 +10,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
 
+import { useLang } from '../i18n';
 const DeliveryManagement = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,12 +42,12 @@ const DeliveryManagement = () => {
       title: 'SET DELIVERY SCHEDULE',
       html: `
         <div class="text-left space-y-4">
-          <div><label class="text-xs font-black uppercase text-slate-400">Tgl Pengiriman</label><input id="swal-date" type="date" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-xs font-black uppercase text-slate-400">Jumlah Barang</label><input id="swal-qty" type="number" min="1" value="${totalQtyPO || ''}" placeholder="Total unit yang dikirim" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.deliveryDate')}</label><input id="swal-date" type="date" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.qty')}</label><input id="swal-qty" type="number" min="1" value="${totalQtyPO || ''}" placeholder={t('form.unitsSent')} class="w-full p-3 border rounded-lg outline-none font-bold"></div>
           <div><label class="text-xs font-black uppercase text-slate-400">Kurir / Ekspedisi</label><input id="swal-courier" placeholder="Misal: Lalamove / Kurir Internal" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-xs font-black uppercase text-slate-400">Nomor Resi (Opsional)</label><input id="swal-resi" placeholder="Bisa diisi nanti" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-xs font-black uppercase text-slate-400">Nama Penandatangan (Pengirim)</label><input id="swal-signer" placeholder="Nama pihak pengirim" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-xs font-black uppercase text-slate-400">Foto Barang</label><input id="swal-photo" type="file" accept="image/*" class="w-full p-3 border rounded-lg outline-none text-xs"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.tracking')}</label><input id="swal-resi" placeholder={t('form.fillLater')} class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.signer')}</label><input id="swal-signer" placeholder={t('form.senderName')} class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.goodsPhoto')}</label><input id="swal-photo" type="file" accept="image/*" class="w-full p-3 border rounded-lg outline-none text-xs"></div>
         </div>
       `,
       focusConfirm: false,
@@ -99,7 +101,7 @@ const DeliveryManagement = () => {
       fetchDeliveries();
       return true;
     } catch (err) {
-      Swal.fire('ERROR', 'Gagal update status logistik', 'error');
+      Swal.fire('ERROR', t('sw.logisticsUpdateFailed'), 'error');
       return false;
     }
   };
@@ -232,7 +234,7 @@ const DeliveryManagement = () => {
       doc.save(`BAST-${po.poNumber || po._id}.pdf`);
     } catch (error) {
       console.error("PDF Error:", error);
-      Swal.fire('Error', 'Gagal generate PDF BAST', 'error');
+      Swal.fire('Error', t('sw.bastPdfFailed'), 'error');
     }
   };
 
@@ -320,7 +322,7 @@ const DeliveryManagement = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari Project, Alamat, Kurir..."
+              placeholder={t('search.delivery')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-cyan-500"

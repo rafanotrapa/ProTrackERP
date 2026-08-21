@@ -6,9 +6,11 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 import { akunBacaSaja } from '../utils/peran';
+import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const QuotationLog = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   // Akun lihat-saja tetap boleh membuka halaman ini, tapi form tujuannya
   // ditolak ProtectedRoute. Tombolnya disembunyikan agar tidak jadi
@@ -129,7 +131,7 @@ const QuotationLog = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari ID, Project, Client..."
+              placeholder={t('search.quotation')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"

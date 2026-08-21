@@ -10,7 +10,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useSecureFileUrl } from '../utils/secureFile';
 
+import { useLang } from '../i18n';
 const PaymentVerifyDetail = () => {
+  const { t } = useLang();
   const { id } = useParams();
   const navigate = useNavigate();
   const [payment, setPayment] = useState(null);
@@ -26,7 +28,7 @@ const PaymentVerifyDetail = () => {
       const token = localStorage.getItem('token');
 
       if (!token) {
-        Swal.fire('ERROR', 'Token tidak ditemukan, silakan login ulang', 'error');
+        Swal.fire('ERROR', t('sw.tokenMissing'), 'error');
         navigate('/');
         return;
       }
@@ -343,7 +345,7 @@ const PaymentVerifyDetail = () => {
                 return (
                   <div className="mt-4 pt-4 border-t border-white/10 space-y-1">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Nilai Tagihan</span>
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('page.billValue')}</span>
                       <span className="text-sm font-black text-slate-200">Rp {billed.toLocaleString()}</span>
                     </div>
                     {diff !== 0 && (

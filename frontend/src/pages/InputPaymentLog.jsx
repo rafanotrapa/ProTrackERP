@@ -6,9 +6,11 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
 
+import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const InputPaymentLog = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -89,7 +91,7 @@ const InputPaymentLog = () => {
             Payment <span className="text-indigo-600">Log</span>
           </h1>
           <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
-            Marketing Module • Histori Bukti Pembayaran
+            {t('page.paymentProofHistory')}
           </p>
         </div>
       </div>
@@ -119,7 +121,7 @@ const InputPaymentLog = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari Invoice #, Client, Project..."
+              placeholder={t('search.payment')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"
@@ -136,7 +138,7 @@ const InputPaymentLog = () => {
               onClick={() => navigate('/input-payment')}
               className="mt-4 text-xs font-black text-indigo-600 underline"
             >
-              Upload bukti pembayaran pertama →
+              {t('empty.uploadFirstProof')}
             </button>
           </div>
         ) : (
@@ -148,7 +150,7 @@ const InputPaymentLog = () => {
                   <th className="px-6 py-4">Client / Project</th>
                   <th className="px-6 py-4 text-right">Amount Paid</th>
                   <th className="px-6 py-4 text-center">Status</th>
-                  <th className="px-6 py-4 text-center">Tanggal Bayar</th>
+                  <th className="px-6 py-4 text-center">{t('page.payDate')}</th>
                   <th className="px-6 py-4 text-center">Evidence</th>
                 </tr>
               </thead>
@@ -180,7 +182,7 @@ const InputPaymentLog = () => {
                           type="button"
                           onClick={() => openSecureFile(p.evidencePath)}
                           className="inline-flex p-2 text-slate-500 hover:text-indigo-600 transition-all"
-                          title="Lihat Bukti Transfer"
+                          title={t('tip.viewTransferProof')}
                         >
                           <Eye size={16} />
                         </button>

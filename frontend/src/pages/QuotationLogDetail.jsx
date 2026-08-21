@@ -16,7 +16,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
+import { useLang } from '../i18n';
 const QuotationLogDetail = () => {
+  const { t } = useLang();
   const { id } = useParams();
   const navigate = useNavigate();
   const [quotation, setQuotation] = useState(null);
@@ -335,7 +337,7 @@ const QuotationLogDetail = () => {
       doc.save(`${quotation.quotationId}${isDraft ? '_DRAFT' : ''}.pdf`);
     } catch (error) {
       console.error('PDF Error:', error);
-      Swal.fire('PDF Error', 'Gagal generate PDF: ' + error.message, 'error');
+      Swal.fire('PDF Error', t('sw.pdfFailed') + error.message, 'error');
     }
   };
 

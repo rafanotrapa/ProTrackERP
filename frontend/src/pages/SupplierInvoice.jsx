@@ -7,7 +7,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
+import { useLang } from '../i18n';
 const InvoiceSubmission = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [availablePOs, setAvailablePOs] = useState([]);
@@ -114,7 +116,7 @@ const InvoiceSubmission = () => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       if (selectedFile.type.startsWith('audio/') || selectedFile.type.startsWith('video/')) {
-        Swal.fire('ERROR', 'Hanya dokumen/gambar yang diperbolehkan!', 'error');
+        Swal.fire('ERROR', t('sw.docImageOnly'), 'error');
         return;
       }
       setFormData({ ...formData, file: selectedFile });
@@ -136,8 +138,8 @@ const InvoiceSubmission = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.file) return Swal.fire('MISSING FILE', 'Upload scan invoice supplier dulu!', 'warning');
-    if (!formData.poId) return Swal.fire('WARNING', 'Pilih referensi Purchase Order!', 'warning');
+    if (!formData.file) return Swal.fire('MISSING FILE', t('sw.uploadInvoiceScan'), 'warning');
+    if (!formData.poId) return Swal.fire('WARNING', t('sw.pickPoReference'), 'warning');
 
     setLoading(true);
     const data = new FormData();
@@ -155,7 +157,7 @@ const InvoiceSubmission = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      Swal.fire({ icon: 'success', title: 'SUBMITTED', text: 'Data tagihan sudah diteruskan ke Finance.', confirmButtonColor: '#0f172a' });
+      Swal.fire({ icon: 'success', title: 'SUBMITTED', text: t('msg.billForwarded'), confirmButtonColor: '#0f172a' });
       navigate('/supplier-invoice-record');
     } catch (err) {
       console.error("FULL ERROR TRACE:", err);
@@ -229,7 +231,7 @@ const InvoiceSubmission = () => {
 
                 {selectedPO && selectedPO.paymentTerms && selectedPO.paymentTerms.length > 0 && (
                   <div className="space-y-1 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                     <label className="text-xs font-black text-amber-600 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Pilih Termin Pembayaran</label>
+                     <label className="text-xs font-black text-amber-600 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">{t('pick.paymentTerm')}</label>
                      <StyledSelect
                         value={formData.terminName}
                         onChange={handleTerminChange}
@@ -267,7 +269,7 @@ const InvoiceSubmission = () => {
                       <span className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Receipt size={12}/> Tagihan Pajak</span>
                     </label>
                     <input
-                      type="text" disabled={!formData.isTaxEnabled} placeholder="Nominal Pajak"
+                      type="text" disabled={!formData.isTaxEnabled} placeholder={t('ph.taxAmount2')}
                       value={formatRupiah(formData.taxAmount)} onChange={e => setFormData({...formData, taxAmount: e.target.value.replace(/[^0-9]/g, '')})}
                       className="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-right shadow-inner"
                     />
@@ -278,7 +280,7 @@ const InvoiceSubmission = () => {
                       <span className="text-xs font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Anchor size={12}/> Bea Masuk / Import</span>
                     </label>
                     <input
-                      type="text" disabled={!formData.isImportEnabled} placeholder="Nominal Bea Masuk"
+                      type="text" disabled={!formData.isImportEnabled} placeholder={t('ph.dutyAmount')}
                       value={formatRupiah(formData.importDutyAmount)} onChange={e => setFormData({...formData, importDutyAmount: e.target.value.replace(/[^0-9]/g, '')})}
                       className="w-full p-4 bg-slate-50 border-2 border-slate-200 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-right shadow-inner"
                     />
@@ -286,17 +288,17 @@ const InvoiceSubmission = () => {
                 </div>
 
                 <div className="mt-6 flex justify-between items-center bg-indigo-50 border border-indigo-200 p-5 rounded-2xl shadow-sm">
-                   <span className="text-sm font-black text-indigo-800 uppercase tracking-[0.2em] italic">Grand Total Billing</span>
+                   <span className="text-sm font-black text-indigo-800 uppercase tracking-[0.2em] italic">{t('page.grandTotalBilling')}</span>
                    <span className="text-2xl font-black text-indigo-600">{formData.currency} {formatRupiah(calculateGrandTotal())}</span>
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">Internal Notes</label>
-                  <textarea value={formData.remarks} placeholder="Catatan untuk Finance: misal tagihan termin 1..." onChange={(e) => setFormData({...formData, remarks: e.target.value})} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl h-20 outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-sm" />
+                  <textarea value={formData.remarks} placeholder={t('form.noteFinance2')} onChange={(e) => setFormData({...formData, remarks: e.target.value})} className="w-full p-4 bg-white border-2 border-slate-200 rounded-xl h-20 outline-none focus:border-indigo-600 shadow-sm transition-all font-medium text-slate-600 text-sm" />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block leading-none">Foto Barang (Opsional)</label>
+                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest italic ml-1 mb-1 block leading-none">{t('form.goodsPhotoOpt')}</label>
                   <input
                     type="file"
                     accept="image/*"

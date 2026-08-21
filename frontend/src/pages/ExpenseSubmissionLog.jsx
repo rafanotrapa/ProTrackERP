@@ -11,10 +11,12 @@ import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
 import { akunBacaSaja } from '../utils/peran';
 
+import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 
 const ExpenseSubmissionLog = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [expenses, setExpenses] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -84,7 +86,7 @@ const ExpenseSubmissionLog = () => {
     } else {
       const result = await Swal.fire({
         title: 'Setujui Submission?',
-        html: `<strong>${exp.items?.length || 0} item</strong> total <strong class="text-emerald-600">Rp ${formatRupiah(exp.amount)}</strong> akan masuk sebagai beban project <strong>${exp.projectId}</strong>.`,
+        html: `<strong>${exp.items?.length || 0} item</strong> {t('common.totalLower')} <strong class="text-emerald-600">Rp ${formatRupiah(exp.amount)}</strong> {t('page.willCountAsCost')} <strong>${exp.projectId}</strong>.`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#16a34a',
@@ -110,12 +112,12 @@ const ExpenseSubmissionLog = () => {
 
   const handleDelete = async (exp) => {
     const result = await Swal.fire({
-      title: 'Hapus Submission?',
+      title: t('msg.deleteSubmission'),
       html: `Submission <strong>${exp.submissionId}</strong> akan dihapus permanen.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#dc2626',
-      confirmButtonText: 'Ya, Hapus',
+      confirmButtonText: t('msg.yesDelete'),
     });
     if (!result.isConfirmed) return;
 
@@ -171,7 +173,7 @@ const ExpenseSubmissionLog = () => {
             Expense <span className="text-amber-600">Log</span>
           </h1>
           <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic">
-            Histori Pengajuan Biaya
+            {t('page.expenseHistory')}
           </p>
         </div>
       </div>
@@ -201,7 +203,7 @@ const ExpenseSubmissionLog = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari ID, Project, Nama Biaya..."
+              placeholder={t('search.expense')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-amber-500"
@@ -222,7 +224,7 @@ const ExpenseSubmissionLog = () => {
                 <tr className="text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-200">
                   <th className="px-6 py-4">Submission</th>
                   <th className="px-6 py-4">Project / Items</th>
-                  <th className="px-6 py-4 text-right">Total</th>
+                  <th className="px-6 py-4 text-right">{t('common.total')}</th>
                   <th className="px-6 py-4 text-center">Status</th>
                   <th className="px-6 py-4 text-center">Submitted</th>
                   <th className="px-6 py-4 text-center">Action</th>

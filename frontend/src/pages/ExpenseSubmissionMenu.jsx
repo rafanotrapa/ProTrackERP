@@ -44,7 +44,7 @@ const ExpenseSubmissionMenu = () => {
             Expense <span className="text-amber-600">Submission</span>
           </h1>
           <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mt-1 italic leading-none">
-            Biaya Tambahan • Reimburse & Operasional Project
+            {t('page.extraCost')}
           </p>
         </div>
       </div>
@@ -79,7 +79,7 @@ const ExpenseSubmissionMenu = () => {
         <div className="mt-8 bg-amber-50 border border-amber-200 rounded-2xl p-4">
           <p className="text-xs font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
             <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-            Setiap pengajuan akan masuk sebagai beban tambahan project setelah disetujui Finance.
+            {t('hint.expenseBecomesCost')}
           </p>
         </div>
       </main>

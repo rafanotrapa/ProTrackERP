@@ -6,7 +6,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
+import { useLang } from '../i18n';
 const FinanceInputPayment = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   // Project asal dikirim lewat router state saat datang dari tombol "Record Payment",
   // supaya Finance tidak harus memilih ulang project yang barusan dibuka.
@@ -134,12 +136,12 @@ const FinanceInputPayment = () => {
     if (excess > 0) {
       const confirm = await Swal.fire({
         icon: 'warning',
-        title: 'Pembayaran Melebihi Tagihan',
+        title: t('msg.overpayment'),
         html: `Tagihan invoice <b>${formatRupiah(invoiceAmount)}</b>, dibayar <b>${formatRupiah(Number(formData.amountPaid))}</b>.<br/>`
             + `Kelebihan <b>${formatRupiah(excess)}</b> akan dicatat sebagai lebih bayar.`,
         showCancelButton: true,
         confirmButtonText: 'Ya, lanjutkan',
-        cancelButtonText: 'Perbaiki nominal',
+        cancelButtonText: t('msg.fixAmount'),
         confirmButtonColor: '#0f172a',
       });
       if (!confirm.isConfirmed) return;

@@ -7,9 +7,11 @@ import Footer from '../components/Footer';
 import { unduhDokumenPO } from '../utils/poDocument';
 
 import { akunBacaSaja } from '../utils/peran';
+import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const PORecord = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   // Akun lihat-saja tetap boleh membuka halaman ini, tapi form tujuannya
   // ditolak ProtectedRoute. Tombolnya disembunyikan agar tidak jadi
@@ -121,7 +123,7 @@ const PORecord = () => {
             <div className="relative flex-1 md:w-72">
               <input
                 type="text"
-                placeholder="Cari PO Number, Vendor, Project..."
+                placeholder={t('search.po')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-sky-500"
@@ -154,7 +156,7 @@ const PORecord = () => {
                   <th className="px-6 py-4 text-center">Payment Status</th>
                   <th className="px-6 py-4 text-right">Grand Total</th>
                   <th className="px-6 py-4 text-center">Issued</th>
-                  <th className="px-6 py-4 text-center">Dokumen</th>
+                  <th className="px-6 py-4 text-center">{t('common.document')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -191,7 +193,7 @@ const PORecord = () => {
                     <td className="px-6 py-5 text-center">
                       <button
                         onClick={() => unduhDokumenPO(po)}
-                        title="Unduh dokumen PO"
+                        title={t('tip.downloadPo')}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-2xs font-black uppercase tracking-widest hover:bg-sky-700 transition-all active:scale-90"
                       >
                         <Download size={11} /> PDF

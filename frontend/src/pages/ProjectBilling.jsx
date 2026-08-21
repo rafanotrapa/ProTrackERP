@@ -5,9 +5,11 @@ import { DollarSign, CheckCircle, Clock, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const ProjectBilling = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -104,7 +106,7 @@ const ProjectBilling = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari Project ID, Nama, Client..."
+              placeholder={t('search.projectId')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"

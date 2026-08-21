@@ -6,7 +6,9 @@ import { Building2, CheckCircle, Clock, Eye, Search } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { useLang } from '../i18n';
 const SupplierPayment = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -33,9 +35,9 @@ const SupplierPayment = () => {
 
   const handleConfirmPayment = async (id, invoiceNumber, vendorName) => {
     const step1 = await Swal.fire({
-      title: 'Upload Bukti Transfer',
+      title: t('form.uploadTransferProof'),
       html: `
-        <p style="font-size:13px; color:#475569; margin-bottom:14px;">Bukti transfer untuk <strong>${invoiceNumber}</strong> (${vendorName}) akan tampil di record Procurement untuk diteruskan ke vendor.</p>
+        <p style="font-size:13px; color:#475569; margin-bottom:14px;">{t('page.transferProofFor')} <strong>${invoiceNumber}</strong> (${vendorName}) akan tampil di record Procurement untuk diteruskan ke vendor.</p>
         <input id="swal-proof" type="file" accept="image/*,.pdf" style="width:100%; font-size:13px; padding:12px; border:2px dashed #cbd5e1; border-radius:12px; background:#f8fafc;" />
         <p style="font-size:10px; color:#94a3b8; margin-top:8px; text-align:left;">Opsional — boleh dikosongkan.</p>
       `,
@@ -177,7 +179,7 @@ const SupplierPayment = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari Invoice #, Vendor, Project..."
+              placeholder={t('search.supplierPayment')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"

@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import { formatDistanceToNow } from 'date-fns';
 
+import { useLang } from '../i18n';
 const SystemLogs = () => {
+  const { t } = useLang();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
@@ -81,7 +83,7 @@ const SystemLogs = () => {
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 w-full md:w-auto">
           <input
             type="text"
-            placeholder="Cari user / aksi / modul..."
+            placeholder={t('search.log')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full md:w-64 px-5 py-4 bg-white border border-slate-200 rounded-2xl text-sm font-bold outline-none focus:border-red-300 shadow-sm"

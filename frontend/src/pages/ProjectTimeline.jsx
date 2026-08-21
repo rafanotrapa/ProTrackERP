@@ -11,6 +11,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
 
+import { useLang } from '../i18n';
 const API = 'http://localhost:5000';
 
 const fmt = (v) => 'Rp ' + (Number(v) || 0).toLocaleString('id-ID');
@@ -73,6 +74,7 @@ const InfoRow = ({ label, value, valueClass = 'text-slate-800', border = true })
 );
 
 const ProjectTimeline = () => {
+  const { t } = useLang();
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -263,7 +265,7 @@ const ProjectTimeline = () => {
         >
           {paymentStages.length === 0 ? (
             <div className="px-6 py-10 text-center">
-              <p className="text-xs font-black text-slate-300 uppercase">Belum ada stages — approve client quotation terlebih dahulu</p>
+              <p className="text-xs font-black text-slate-300 uppercase">{t('empty.stages')}</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -295,7 +297,7 @@ const ProjectTimeline = () => {
                       </p>
                     )}
                     {!stage.invoice && (
-                      <p className="text-xs text-slate-400 mt-0.5">Invoice belum diterbitkan</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{t('empty.invoiceNotIssued')}</p>
                     )}
                   </div>
 
@@ -338,7 +340,7 @@ const ProjectTimeline = () => {
           {clientInvoices.length === 0 ? (
             <div className="px-6 py-10 text-center">
               <FileText size={28} className="text-slate-200 mx-auto mb-2" />
-              <p className="text-xs font-black text-slate-300 uppercase">Belum ada invoice diterbitkan</p>
+              <p className="text-xs font-black text-slate-300 uppercase">{t('empty.invoice')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -373,7 +375,7 @@ const ProjectTimeline = () => {
           {purchaseOrders.length === 0 ? (
             <div className="px-6 py-10 text-center">
               <Package size={28} className="text-slate-200 mx-auto mb-2" />
-              <p className="text-xs font-black text-slate-300 uppercase">Belum ada PO dibuat</p>
+              <p className="text-xs font-black text-slate-300 uppercase">{t('empty.po')}</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -450,7 +452,7 @@ const ProjectTimeline = () => {
                       <StatusPill status={po.deliveryStatus} />
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">Tanggal Kirim</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">{t('page.sentDate')}</p>
                       <p className="text-sm font-black text-slate-700">{fmtDate(po.deliveryDate)}</p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
@@ -479,22 +481,22 @@ const ProjectTimeline = () => {
         >
           <div className="px-6 py-4 grid grid-cols-3 gap-3 border-b border-slate-100">
             <div className="bg-red-50 rounded-xl p-3">
-              <p className="text-2xs font-black text-red-400 uppercase tracking-wider mb-1">Total Terbayar</p>
+              <p className="text-2xs font-black text-red-400 uppercase tracking-wider mb-1">{t('page.totalPaidId')}</p>
               <p className="font-black text-red-700">{fmt(cashOut.totalPaid)}</p>
             </div>
             <div className="bg-amber-50 rounded-xl p-3">
-              <p className="text-2xs font-black text-amber-500 uppercase tracking-wider mb-1">Menunggu Bayar</p>
+              <p className="text-2xs font-black text-amber-500 uppercase tracking-wider mb-1">{t('page.awaitingPayment')}</p>
               <p className="font-black text-amber-700">{fmt(cashOut.totalPending)}</p>
             </div>
             <div className="bg-slate-50 rounded-xl p-3">
-              <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-1">Total Tagihan</p>
+              <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-1">{t('page.totalBilled')}</p>
               <p className="font-black text-slate-800">{fmt(cashOut.total)}</p>
             </div>
           </div>
 
           {supplierInvoices.length === 0 ? (
             <div className="px-6 py-8 text-center">
-              <p className="text-xs font-black text-slate-300 uppercase">Belum ada tagihan supplier</p>
+              <p className="text-xs font-black text-slate-300 uppercase">{t('empty.supplierBill')}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -529,11 +531,11 @@ const ProjectTimeline = () => {
         >
           <div className="px-6 py-4 grid grid-cols-2 gap-3 border-b border-slate-100">
             <div className="bg-orange-50 rounded-xl p-3">
-              <p className="text-2xs font-black text-orange-500 uppercase tracking-wider mb-1">Disetujui (mengurangi profit)</p>
+              <p className="text-2xs font-black text-orange-500 uppercase tracking-wider mb-1">{t('page.approvedReducesProfit')}</p>
               <p className="font-black text-orange-700">{fmt(expenses.totalApproved)}</p>
             </div>
             <div className="bg-amber-50 rounded-xl p-3">
-              <p className="text-2xs font-black text-amber-500 uppercase tracking-wider mb-1">Menunggu Verifikasi Finance</p>
+              <p className="text-2xs font-black text-amber-500 uppercase tracking-wider mb-1">{t('page.awaitingFinance')}</p>
               <p className="font-black text-amber-700">{fmt(expenses.totalPending)}</p>
             </div>
           </div>
@@ -541,7 +543,7 @@ const ProjectTimeline = () => {
           {expenses.items.length === 0 ? (
             <div className="px-6 py-10 text-center">
               <Wallet size={28} className="text-slate-200 mx-auto mb-2" />
-              <p className="text-xs font-black text-slate-300 uppercase">Belum ada pengajuan biaya untuk project ini</p>
+              <p className="text-xs font-black text-slate-300 uppercase">{t('empty.expense')}</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -575,7 +577,7 @@ const ProjectTimeline = () => {
                       ))}
                     </div>
                     <p className="text-xs text-slate-400 mt-2">
-                      Diajukan oleh <span className="font-bold text-slate-500">{e.submittedByName}</span> &bull; {fmtDate(e.createdAt)}
+                      {t('page.submittedBy')} <span className="font-bold text-slate-500">{e.submittedByName}</span> &bull; {fmtDate(e.createdAt)}
                     </p>
                     {e.status === 'Rejected' && e.rejectionReason && (
                       <p className="text-xs text-rose-500 mt-1 bg-rose-50 rounded-lg px-2 py-1 inline-block">
@@ -617,11 +619,11 @@ const ProjectTimeline = () => {
                 <p className="text-xl font-black text-indigo-800">{fmt(profitMargin.salesPrice)}</p>
               </div>
               <div className="bg-red-50 rounded-xl p-4">
-                <p className="text-2xs font-black text-red-400 uppercase tracking-wider mb-1">Total COGS (Supplier)</p>
+                <p className="text-2xs font-black text-red-400 uppercase tracking-wider mb-1">{t('page.totalCogs')}</p>
                 <p className="text-xl font-black text-red-800">{fmt(profitMargin.cogs)}</p>
               </div>
               <div className="bg-orange-50 rounded-xl p-4">
-                <p className="text-2xs font-black text-orange-400 uppercase tracking-wider mb-1">Biaya Lain (Reimburse)</p>
+                <p className="text-2xs font-black text-orange-400 uppercase tracking-wider mb-1">{t('page.otherCost')}</p>
                 <p className="text-xl font-black text-orange-800">{fmt(profitMargin.otherExpense)}</p>
               </div>
               <div className={`${profitMargin.netProfit >= 0 ? 'bg-emerald-50' : 'bg-red-50'} rounded-xl p-4`}>
@@ -636,7 +638,7 @@ const ProjectTimeline = () => {
 
             <div className="bg-slate-50 rounded-xl p-4 mb-5 space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500">Gross Profit (sebelum biaya lain)</span>
+                <span className="text-xs font-bold text-slate-500">{t('page.grossProfit')}</span>
                 <span className={`text-sm font-black ${profitMargin.grossProfit >= 0 ? 'text-slate-700' : 'text-red-600'}`}>
                   {fmt(profitMargin.grossProfit)}
                 </span>
@@ -675,7 +677,7 @@ const ProjectTimeline = () => {
               </div>
               {profitMargin.cogs === 0 && (
                 <p className="text-xs text-slate-400 mt-2 text-center italic">
-                  COGS akan muncul setelah supplier invoice dibayar (Paid)
+                  {t('hint.cogsAfterPaid')}
                 </p>
               )}
             </div>
@@ -702,7 +704,7 @@ const ProjectTimeline = () => {
                   </div>
                 </div>
                 <p className="text-2xs text-indigo-400 italic mt-2">
-                  Bea cukai & PPN vendor baru terhitung di Aktual — belum diketahui saat quotation dibuat.
+                  {t('hint.dutyActual')}
                 </p>
               </div>
             )}

@@ -5,9 +5,11 @@ import { Search, ArrowUpDown, ChevronRight, FolderOpen } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { useLang } from '../i18n';
 const API = 'http://localhost:5000';
 
 const ProjectList = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -179,7 +181,7 @@ const ProjectList = () => {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Cari Project ID, Nama, Client..."
+              placeholder={t('search.projectId')}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all placeholder:text-slate-300"
@@ -190,8 +192,8 @@ const ProjectList = () => {
         {filtered.length === 0 ? (
           <div className="py-32 text-center bg-white rounded-2xl border border-slate-100">
             <FolderOpen size={36} className="text-slate-200 mx-auto mb-3" />
-            <p className="text-slate-400 font-black text-base uppercase tracking-tighter italic">Tidak ada project</p>
-            <p className="text-xs text-slate-400 mt-1">Coba ubah filter atau kata kunci pencarian</p>
+            <p className="text-slate-400 font-black text-base uppercase tracking-tighter italic">{t('empty.project')}</p>
+            <p className="text-xs text-slate-400 mt-1">{t('empty.tryFilter')}</p>
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
@@ -275,7 +277,7 @@ const ProjectList = () => {
                 {filtered.length} dari {projects.length} project
               </p>
               <p className="text-xs text-slate-300 font-black uppercase italic">
-                Klik baris untuk lihat timeline
+                {t('page.clickRow')}
               </p>
             </div>
           </div>

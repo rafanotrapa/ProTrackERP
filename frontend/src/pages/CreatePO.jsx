@@ -8,7 +8,9 @@ import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 import { unduhDokumenPO } from '../utils/poDocument';
 
+import { useLang } from '../i18n';
 const CreatePO = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [quotations, setQuotations] = useState([]);
@@ -55,7 +57,7 @@ const CreatePO = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.quotationId) return Swal.fire('Warning', 'Pilih Quotation dasar terlebih dahulu!', 'warning');
+    if (!formData.quotationId) return Swal.fire('Warning', t('sw.pickBaseQuotation'), 'warning');
 
     setLoading(true);
     try {
@@ -119,7 +121,7 @@ const CreatePO = () => {
                   name="quotationId"
                   value={formData.quotationId}
                   onChange={handleQuoteChange}
-                  placeholder="-- Pilih Quotation Dasar (Deal) --"
+                  placeholder={t('pick.baseQuotation')}
                   options={quotations.map((q) => ({
                     value: q._id,
                     label: q.quotationId,
@@ -132,7 +134,7 @@ const CreatePO = () => {
 
               <div className="space-y-1">
                 <label className="mb-1.5 ml-1 text-xs font-black italic leading-none tracking-widest uppercase text-slate-400">Shipping Address / Delivery Target</label>
-                <textarea name="shippingAddress" value={formData.shippingAddress} onChange={(e)=>setFormData({...formData, shippingAddress: e.target.value})} required placeholder="Alamat gudang / site proyek..." className="w-full h-32 p-4 font-medium outline-none transition-all bg-slate-50 border-slate-300 rounded-xl text-slate-700 focus:border-blue-600 focus:bg-white" />
+                <textarea name="shippingAddress" value={formData.shippingAddress} onChange={(e)=>setFormData({...formData, shippingAddress: e.target.value})} required placeholder={t('ph.warehouseAddress')} className="w-full h-32 p-4 font-medium outline-none transition-all bg-slate-50 border-slate-300 rounded-xl text-slate-700 focus:border-blue-600 focus:bg-white" />
               </div>
             </div>
 
@@ -173,7 +175,7 @@ const CreatePO = () => {
 
                     <div className="mt-6 pt-4 border-t border-slate-700 space-y-2">
                        <div className="flex justify-between items-center text-slate-400">
-                          <p className="text-xs font-black uppercase tracking-widest">Subtotal Barang</p>
+                          <p className="text-xs font-black uppercase tracking-widest">{t('page.itemSubtotal')}</p>
                           <p className="text-xs font-bold">{formatRupiah(selectedQuote.items?.reduce((sum, item) => sum + (item.cogs * item.quantity), 0))}</p>
                        </div>
 
@@ -209,7 +211,7 @@ const CreatePO = () => {
                  <div className="flex-1 flex flex-col items-center justify-center text-slate-500 text-center">
                     <ShoppingCart size={48} className="mb-4 opacity-20" />
                     <p className="text-sm font-black uppercase tracking-widest italic">No Quotation Selected</p>
-                    <p className="text-xs mt-2 max-w-50 mx-auto">Silakan pilih Quotation Dasar di sebelah kiri untuk melihat daftar barang yang akan di-order.</p>
+                    <p className="text-xs mt-2 max-w-50 mx-auto">{t('hint.pickBaseQuotation')}</p>
                  </div>
                )}
             </div>

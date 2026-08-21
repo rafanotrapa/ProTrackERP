@@ -10,6 +10,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
+import { useLang } from '../i18n';
 const formatRupiah = (value) => {
   if (!value && value !== 0) return '';
   const numberString = value.toString().replace(/[^0-9]/g, '');
@@ -20,6 +21,7 @@ const formatRupiah = (value) => {
 const stripNonNumeric = (str) => str.toString().replace(/[^0-9]/g, '');
 
 const AddClientQuotation = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
 
   const [projects, setProjects]           = useState([]);
@@ -403,12 +405,12 @@ const AddClientQuotation = () => {
 
   const handleSaveDraft = async () => {
     if (!formData.projectId) {
-      Swal.fire({ icon: 'warning', title: 'Pilih Project', text: 'Silakan pilih project terlebih dahulu!' });
+      Swal.fire({ icon: 'warning', title: t('pick.project'), text: t('msg.pickProjectFirst') });
       return;
     }
     const itemsToSave = quotationMode === 'auto' ? formData.items : manualItems;
     if (itemsToSave.length === 0) {
-      Swal.fire({ icon: 'warning', title: 'No Items', text: 'Tidak ada items untuk disimpan!' });
+      Swal.fire({ icon: 'warning', title: 'No Items', text: t('msg.noItems') });
       return;
     }
 
@@ -439,7 +441,7 @@ const AddClientQuotation = () => {
       Swal.fire({
         icon:               'success',
         title:              'DRAFT SAVED',
-        text:               'Draft quotation berhasil disimpan. Bisa dilanjutkan nanti.',
+        text: t('msg.draftSaved'),
         confirmButtonColor: '#0f172a',
       });
     } catch (err) {
@@ -456,8 +458,8 @@ const AddClientQuotation = () => {
     if (!formData.projectId || currentItems.length === 0) {
       Swal.fire({
         icon:               'warning',
-        title:              'BELUM ADA DATA',
-        text:               'Pilih project dan tambahkan items terlebih dahulu.',
+        title: t('msg.noData'),
+        text: t('msg.pickProjectAndItems'),
         confirmButtonColor: '#0f172a',
       });
       return;
@@ -629,7 +631,7 @@ const AddClientQuotation = () => {
 
     } catch (error) {
       console.error('PDF Error:', error);
-      Swal.fire('PDF Error', 'Gagal generate PDF: ' + error.message, 'error');
+      Swal.fire('PDF Error', t('sw.pdfFailed') + error.message, 'error');
     }
   };
 
@@ -640,7 +642,7 @@ const AddClientQuotation = () => {
       const missingBank = isPPN && !formData.bankAccount.trim();
       Swal.fire({
         icon:               'warning',
-        title:              'DATA BELUM LENGKAP',
+        title: t('msg.incomplete'),
         html:
           'Lengkapi semua field yang diperlukan:<br/>' +
           '- Semua item harus memiliki Sales Price &gt; 0<br/>' +
@@ -677,14 +679,14 @@ const AddClientQuotation = () => {
         title:              '<span style="font-family:sans-serif;font-weight:900;font-size:18px;color:#0f172a;text-transform:uppercase;letter-spacing:0.05em;">Quotation Submitted!</span>',
         html: `
           <div style="font-family:sans-serif;font-size:13px;color:#64748b;margin-bottom:4px;">
-            Client Quotation telah dikirim untuk persetujuan Management.
+            {t('msg.cqSubmitted')}
           </div>
           <div style="margin-top:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 16px;text-align:left;">
             <div style="font-size:10px;font-weight:900;color:#94a3b8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Quotation ID</div>
             <div style="font-size:13px;font-weight:700;color:#4f46e5;">${formData.quotationId}</div>
           </div>
           <div style="margin-top:8px;font-size:10px;color:#94a3b8;">
-            Download PDF sekarang untuk dikirim ke client, atau kembali ke dashboard.
+            {t('msg.downloadNow')}
           </div>
         `,
         showDenyButton:     true,
@@ -747,7 +749,7 @@ const AddClientQuotation = () => {
             <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4">
               <p className="text-xs font-black text-purple-700 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-2 h-2 bg-purple-500 rounded-full" />
-                Manual Mode: Input items, COGS, dan Sales Price secara manual
+                {t('hint.manualMode')}
               </p>
             </div>
           )}
@@ -774,7 +776,7 @@ const AddClientQuotation = () => {
                   name="projectId"
                   value={formData.projectId}
                   onChange={handleProjectChange}
-                  placeholder="-- Cari Project ID --"
+                  placeholder={t('pick.projectId')}
                   options={projects.map((p) => ({ value: p.projectId, label: `${p.projectId} - ${p.projectName}` }))}
                 />
               </div>
@@ -805,7 +807,7 @@ const AddClientQuotation = () => {
               formData.items.length === 0 ? (
                 <div className="p-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
                   <p className="font-black text-slate-400 text-sm italic uppercase tracking-wider">No items available</p>
-                  <p className="text-xs text-slate-400 mt-2">Pilih project dengan supplier quotation yang sudah di-approve</p>
+                  <p className="text-xs text-slate-400 mt-2">{t('hint.pickApprovedSq')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -820,7 +822,7 @@ const AddClientQuotation = () => {
                         <p className="font-bold text-slate-800">{item.quantity} {item.unit}</p>
                       </div>
                       <div className="col-span-3 space-y-1">
-                        <label className="text-xs font-black text-slate-500 uppercase tracking-widest">COGS (Modal)</label>
+                        <label className="text-xs font-black text-slate-500 uppercase tracking-widest">{t('label.cogsCapital')}</label>
                         <p className="font-bold text-slate-400 text-sm">Rp {Number(item.cogs || 0).toLocaleString('id-ID')}</p>
                       </div>
                       <div className="col-span-3 space-y-1">
@@ -1010,7 +1012,7 @@ const AddClientQuotation = () => {
                       name="topOption"
                       value={formData.topOption}
                       onChange={handleChange}
-                      placeholder="-- Pilih TOP --"
+                      placeholder={t('pick.top')}
                       searchable={false}
                       options={[
                         { value: 'COD', label: 'Cash on Delivery (COD)' },
@@ -1057,7 +1059,7 @@ const AddClientQuotation = () => {
                         + Tambah Termin
                       </button>
                     )}
-                    <p className="text-2xs font-bold text-slate-400 italic">Total semua termin wajib = 100%. Tersimpan sebagai: <span className="font-black text-slate-500">{composeTermin(terminRows)}</span></p>
+                    <p className="text-2xs font-bold text-slate-400 italic">{t('hint.terminTotal')} <span className="font-black text-slate-500">{composeTermin(terminRows)}</span></p>
                   </div>
                 )}
               </div>
@@ -1067,11 +1069,11 @@ const AddClientQuotation = () => {
               <label className={`text-xs font-black uppercase tracking-widest ml-1 italic flex items-center gap-2 ${
                 isPPN ? 'text-orange-500' : 'text-slate-300'
               }`}>
-                Rekening Bank (Wajib jika kena PPN)
+                {t('label.bankAccount')}
                 {isPPN && <span className="text-red-500">*</span>}
                 {!isPPN && (
                   <span className="text-2xs bg-slate-100 text-slate-400 rounded-full px-2 py-0.5 font-bold normal-case tracking-normal">
-                    Aktifkan dengan mengisi nominal Tax di atas
+                    {t('hint.enableTax')}
                   </span>
                 )}
               </label>
@@ -1118,7 +1120,7 @@ const AddClientQuotation = () => {
                 name="remarks"
                 rows="3"
                 className="w-full p-4 bg-white border border-slate-300 rounded-2xl outline-none font-medium text-slate-700 focus:border-indigo-600 shadow-sm transition-all resize-none"
-                placeholder="Tambahkan catatan khusus untuk management..."
+                placeholder={t('form.noteMgmt2')}
                 onChange={handleChange}
                 value={formData.remarks}
               />

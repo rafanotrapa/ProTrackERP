@@ -11,7 +11,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useSecureFileUrl, openSecureFile } from '../utils/secureFile';
 
+import { useLang } from '../i18n';
 const SupplierPaymentDetail = () => {
+  const { t } = useLang();
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
@@ -46,9 +48,9 @@ const SupplierPaymentDetail = () => {
 
   const handleConfirmPayment = async () => {
     const step1 = await Swal.fire({
-      title: 'Upload Bukti Transfer',
+      title: t('form.uploadTransferProof'),
       html: `
-        <p style="font-size:13px; color:#475569; margin-bottom:14px;">Bukti transfer untuk <strong>${invoice?.invoiceNumber}</strong> akan tampil di record Procurement untuk diteruskan ke vendor.</p>
+        <p style="font-size:13px; color:#475569; margin-bottom:14px;">{t('page.transferProofFor')} <strong>${invoice?.invoiceNumber}</strong> {t('page.willAppearProcurement')}</p>
         <input id="swal-proof" type="file" accept="image/*,.pdf" style="width:100%; font-size:13px; padding:12px; border:2px dashed #cbd5e1; border-radius:12px; background:#f8fafc;" />
         <p style="font-size:10px; color:#94a3b8; margin-top:8px; text-align:left;">Opsional — boleh dikosongkan.</p>
       `,
@@ -379,7 +381,7 @@ const SupplierPaymentDetail = () => {
                         className="w-full h-40 bg-slate-100 rounded-xl border border-slate-200 flex-col items-center justify-center text-slate-400"
                       >
                         <FileText size={32} className="mb-2" />
-                        <p className="text-xs font-black uppercase tracking-widest">Gagal memuat file</p>
+                        <p className="text-xs font-black uppercase tracking-widest">{t('page.fileLoadFailed')}</p>
                         <p className="text-2xs mt-1">{invoice.file}</p>
                       </div>
                       <button
@@ -425,7 +427,7 @@ const SupplierPaymentDetail = () => {
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
                 <div className="p-5 border-b border-slate-100 bg-slate-50">
                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-2">
-                    <FileText size={14} /> Foto Barang
+                    <FileText size={14} /> {t('form.goodsPhoto')}
                   </h3>
                 </div>
                 <div className="p-5">
@@ -450,7 +452,7 @@ const SupplierPaymentDetail = () => {
               <div className="bg-white rounded-2xl border border-emerald-200 overflow-hidden">
                 <div className="p-5 border-b border-emerald-100 bg-emerald-50">
                   <h3 className="text-sm font-black text-emerald-800 uppercase tracking-[0.3em] flex items-center gap-2">
-                    <FileText size={14} /> Bukti Transfer
+                    <FileText size={14} /> {t('form.transferProof')}
                   </h3>
                 </div>
                 <div className="p-5">

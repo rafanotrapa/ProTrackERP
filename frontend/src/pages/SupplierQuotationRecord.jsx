@@ -6,9 +6,11 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 import { akunBacaSaja } from '../utils/peran';
+import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const SupplierQuotationRecord = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   // Akun lihat-saja tetap boleh membuka halaman ini, tapi form tujuannya
   // ditolak ProtectedRoute. Tombolnya disembunyikan agar tidak jadi
@@ -126,7 +128,7 @@ const SupplierQuotationRecord = () => {
             <div className="relative flex-1 md:w-72">
               <input
                 type="text"
-                placeholder="Cari SQ ID, Vendor, Project..."
+                placeholder={t('search.sq')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"
@@ -199,10 +201,10 @@ const SupplierQuotationRecord = () => {
                       <td className="px-6 py-5 text-center">
                         <button
                           onClick={() => navigate(`/quotation-approval/${quo._id}`)}
-                          title="Lihat rincian quotation"
+                          title={t('tip.viewQuotationDetail')}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-2xs font-black uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-90"
                         >
-                          <Eye size={11} /> Lihat
+                          <Eye size={11} /> {t('common.view')}
                         </button>
                       </td>
                     </tr>

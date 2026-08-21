@@ -7,7 +7,9 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
 
+import { useLang } from '../i18n';
 const QuotationDetailReview = () => {
+  const { t } = useLang();
   const { id } = useParams();
   const navigate = useNavigate();
   const [quo, setQuo] = useState(null);
@@ -23,7 +25,7 @@ const QuotationDetailReview = () => {
       setQuo(res.data);
     } catch (err) {
       console.error('Gagal load supplier quotation:', err);
-      Swal.fire('Error', 'Quotation tidak ditemukan', 'error');
+      Swal.fire('Error', t('sw.quotationNotFound'), 'error');
       navigate('/quotation-approval');
     } finally {
       setLoading(false);
@@ -70,7 +72,7 @@ const QuotationDetailReview = () => {
       rejectionReason = text;
     } else {
       const result = await Swal.fire({
-        title: 'Setujui Quotation Ini?',
+        title: t('msg.approveThisQuotation'),
         html: `Modal dari vendor <strong>${quo.vendorName || quo.vendorId}</strong> sebesar <strong class="text-emerald-600">Rp ${formatRupiah(grandTotal)}</strong> akan disetujui dan bisa dipakai sebagai dasar Client Quotation.`,
         icon: 'question',
         showCancelButton: true,
@@ -230,7 +232,7 @@ const QuotationDetailReview = () => {
                   </tbody>
                   <tfoot>
                     <tr className="bg-slate-50 border-t border-slate-200">
-                      <td colSpan="4" className="px-5 py-3 text-right font-black text-xs uppercase text-slate-500">Subtotal Barang</td>
+                      <td colSpan="4" className="px-5 py-3 text-right font-black text-xs uppercase text-slate-500">{t('page.itemSubtotal')}</td>
                       <td className="px-5 py-3 text-right font-black text-slate-800">Rp {formatRupiah(subtotalCOGS)}</td>
                     </tr>
                   </tfoot>
@@ -244,7 +246,7 @@ const QuotationDetailReview = () => {
                 onClick={() => openSecureFile(quo.documentUrl)}
                 className="flex items-center justify-center gap-2 w-full py-3 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-black uppercase tracking-widest text-slate-600 transition-all"
               >
-                <FileText size={14} /> Lihat Dokumen Pendukung
+                <FileText size={14} /> {t('page.viewSupporting')}
               </button>
             )}
           </div>
@@ -256,7 +258,7 @@ const QuotationDetailReview = () => {
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between py-2 border-b border-white/10">
-                  <span className="text-xs font-bold text-slate-300">Subtotal Barang</span>
+                  <span className="text-xs font-bold text-slate-300">{t('page.itemSubtotal')}</span>
                   <span className="font-black text-white">Rp {formatRupiah(subtotalCOGS)}</span>
                 </div>
                 {additionalFee > 0 && (
@@ -274,14 +276,14 @@ const QuotationDetailReview = () => {
                   </div>
                 )}
                 <div className="flex justify-between py-3 mt-2 bg-indigo-500/20 -mx-3 px-3 rounded-xl">
-                  <span className="text-sm font-black text-indigo-300 uppercase tracking-wider">TOTAL MODAL</span>
+                  <span className="text-sm font-black text-indigo-300 uppercase tracking-wider">{t('page.totalCapital')}</span>
                   <span className="text-xl font-black text-indigo-300">Rp {formatRupiah(grandTotal)}</span>
                 </div>
               </div>
 
               {quo.approvalStatus === 'Rejected' && quo.rejectionReason && (
                 <div className="mt-4 pt-3 border-t border-white/10">
-                  <p className="text-2xs text-rose-400 uppercase font-black tracking-widest">Alasan Ditolak</p>
+                  <p className="text-2xs text-rose-400 uppercase font-black tracking-widest">{t('page.rejectReason')}</p>
                   <p className="text-xs text-rose-300 mt-1">{quo.rejectionReason}</p>
                 </div>
               )}
@@ -305,7 +307,7 @@ const QuotationDetailReview = () => {
                   <XCircle size={14} /> Reject Quotation
                 </button>
                 <p className="text-2xs text-slate-400 text-center pt-1">
-                  Approval akan membuka quotation ini untuk dipakai sebagai dasar Client Quotation.
+                  {t('hint.approvalOpensDot')}
                 </p>
               </div>
             )}

@@ -9,6 +9,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
+import { useLang } from '../i18n';
 const rp  = (v) => `Rp ${(Number(v) || 0).toLocaleString('id-ID')}`;
 const pct = (n, d) => d > 0 ? ((n / d) * 100).toFixed(1) + '%' : '—';
 const monthLabel = (k) => {
@@ -58,6 +59,7 @@ const SectionHead = ({ title, badge }) => (
 );
 
 const FinancialReport = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
 
   const [loading,    setLoading]    = useState(true);
@@ -246,7 +248,7 @@ const FinancialReport = () => {
       <main className="flex-1 px-6 md:px-10 py-8 space-y-10 w-full">
 
         <section>
-          <SectionHead title="Ringkasan Pendapatan & Biaya" />
+          <SectionHead title={t('sec.revenueCost')} />
 
           {/* Dulu tiga kolom, dengan Pass-Through dan Status Penerimaan di kolom
               ketiga. Keduanya dicabut atas permintaan pembimbing, jadi ringkasan
@@ -256,7 +258,7 @@ const FinancialReport = () => {
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-2xs font-black uppercase tracking-[0.2em] text-slate-400">Ringkasan Pendapatan &amp; Biaya</p>
+                  <p className="text-2xs font-black uppercase tracking-[0.2em] text-slate-400">{t('page.revenueCostAmp')}</p>
                   <p className="text-xs font-black uppercase tracking-wide text-white mt-0.5">{labelPeriode}</p>
                 </div>
 
@@ -313,13 +315,13 @@ const FinancialReport = () => {
 
                 <div className="flex justify-between items-center py-3">
                   <div>
-                    <p className="text-xs font-black text-slate-800">Biaya Lain (Reimburse / Meeting / dll)</p>
+                    <p className="text-xs font-black text-slate-800">{t('page.otherCostLong')}</p>
                   </div>
                   <p className="text-sm font-black text-orange-600">({rp(ringkas.otherExpense)})</p>
                 </div>
 
                 <div className="flex justify-between items-center py-3">
-                  <p className="text-xs font-black text-slate-700">Total Expense</p>
+                  <p className="text-xs font-black text-slate-700">{t('page.totalExpense')}</p>
                   <p className="text-sm font-black text-rose-600">({rp(ringkas.expense)})</p>
                 </div>
 
@@ -362,7 +364,7 @@ const FinancialReport = () => {
             <KPI
               label="Outstanding"
               value={rp(totalOutstanding)}
-              sub={`${((receivables?.invoices?.length) || 0)} invoice belum dibayar`}
+              sub={`${((receivables?.invoices?.length) || 0)} ${t('fin.unpaidInvoices')}`}
               tone={totalOutstanding > 0 ? 'amber' : 'green'}
             />
             <KPI
@@ -375,7 +377,7 @@ const FinancialReport = () => {
         </section>
 
         <section>
-          <SectionHead title="Rincian Margin per Project" badge={`${projects.length} projects`} />
+          <SectionHead title={t('sec.marginDetail')} badge={`${projects.length} projects`} />
 
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
@@ -386,7 +388,7 @@ const FinancialReport = () => {
                     <th className="px-4 py-3 text-right">Revenue</th>
                     <th className="px-4 py-3 text-right">COGS</th>
                     <th className="px-4 py-3 text-right">Bea Masuk</th>
-                    <th className="px-4 py-3 text-right">Biaya Lain</th>
+                    <th className="px-4 py-3 text-right">{t('page.otherCostShort')}</th>
                     <th className="px-4 py-3 text-right">Net Profit</th>
                     <th className="px-4 py-3 text-right">Margin</th>
                     <th className="px-4 py-3 text-right">Outstanding</th>
@@ -397,7 +399,7 @@ const FinancialReport = () => {
                   {projects.length === 0 ? (
                     <tr>
                       <td colSpan={9} className="px-5 py-12 text-center text-slate-400 italic text-sm">
-                        Belum ada data project
+                        {t('empty.projectData')}
                       </td>
                     </tr>
                   ) : projects.map(p => {
@@ -480,7 +482,7 @@ const FinancialReport = () => {
                                       </div>
                                     ))}
                                     <div className="pt-2 border-t border-slate-100 flex justify-between">
-                                      <span className="text-xs text-slate-500">Cash Diterima</span>
+                                      <span className="text-xs text-slate-500">{t('page.cashReceived')}</span>
                                       <span className="text-xs font-black text-emerald-600">{rp(p.cashReceived)}</span>
                                     </div>
                                   </div>
@@ -512,7 +514,7 @@ const FinancialReport = () => {
                                     Detail Biaya Lain ({(p.otherExpenseBreakdown || []).length} submission)
                                   </p>
                                   {(p.otherExpenseBreakdown || []).length === 0 ? (
-                                    <p className="text-xs text-slate-400 italic">Tidak ada submission biaya lain</p>
+                                    <p className="text-xs text-slate-400 italic">{t('empty.otherExpense')}</p>
                                   ) : (
                                     p.otherExpenseBreakdown.map((sub, idx) => (
                                       <div key={idx} className="pb-2 border-b border-slate-50 last:border-0">
@@ -673,7 +675,7 @@ const FinancialReport = () => {
                   </div>
                 ))}
                 <span className="text-2xs text-slate-400 ml-auto">
-                  Arahkan kursor ke batang untuk melihat nilai dan net profit bulan tersebut
+                  {t('hint.hoverBar')}
                 </span>
               </div>
             </div>
@@ -689,7 +691,7 @@ const FinancialReport = () => {
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
               <div className="px-5 py-3 bg-amber-50 border-b border-amber-100 flex justify-between items-center">
                 <p className="text-xs font-black text-amber-700 uppercase tracking-wider">
-                  Total Outstanding
+                  {t('page.totalOutstanding')}
                 </p>
                 <p className="text-sm font-black text-amber-700">
                   {rp(receivables.totalOutstanding || 0)}

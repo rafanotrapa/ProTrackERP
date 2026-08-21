@@ -7,6 +7,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { fetchFileObjectUrl } from '../utils/secureFile';
 
+import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const viewPaymentProof = async (inv) => {
@@ -35,6 +36,7 @@ const viewPaymentProof = async (inv) => {
 };
 
 const SupplierInvoiceRecord = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -136,7 +138,7 @@ const SupplierInvoiceRecord = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari Invoice, Vendor, PO..."
+              placeholder={t('search.supplierInvoice')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"
@@ -159,7 +161,7 @@ const SupplierInvoiceRecord = () => {
                   <th className="px-6 py-4">Vendor / Project</th>
                   <th className="px-6 py-4 text-right">Grand Total</th>
                   <th className="px-6 py-4 text-center">Status</th>
-                  <th className="px-6 py-4 text-center">Tanggal</th>
+                  <th className="px-6 py-4 text-center">{t('common.date')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -190,10 +192,10 @@ const SupplierInvoiceRecord = () => {
                         {currentStatus === 'Paid' && inv.paymentProof && (
                           <button
                             onClick={() => viewPaymentProof(inv)}
-                            title="Lihat & download bukti transfer untuk diteruskan ke vendor"
+                            title={t('tip.viewDownloadProof')}
                             className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-black uppercase bg-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"
                           >
-                            <Eye size={11} /> Bukti TF
+                            <Eye size={11} /> {t('page.tfProof')}
                           </button>
                         )}
                       </td>

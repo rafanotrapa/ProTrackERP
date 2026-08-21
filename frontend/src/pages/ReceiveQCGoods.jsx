@@ -6,7 +6,9 @@ import { CheckCircle, XCircle, Package, Search } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { useLang } from '../i18n';
 const ReceiveQCGoods = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +49,7 @@ const ReceiveQCGoods = () => {
     } else {
       const result = await Swal.fire({
         title: 'QC PASSED?',
-        text: 'Barang sudah sesuai dan lengkap? Status ini akan membuka akses pembuatan Invoice.',
+        text: t('msg.qcConfirmShort'),
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#22c55e',
@@ -145,7 +147,7 @@ const ReceiveQCGoods = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari PO Number, Vendor, Project..."
+              placeholder={t('search.po')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-amber-500"

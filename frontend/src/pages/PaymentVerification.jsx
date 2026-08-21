@@ -5,9 +5,11 @@ import { CreditCard, CheckCircle, Clock, XCircle, Eye, Search } from 'lucide-rea
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
+import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const PaymentVerification = () => {
+  const { t } = useLang();
   const navigate = useNavigate();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading]   = useState(true);
@@ -119,7 +121,7 @@ const PaymentVerification = () => {
           <div className="relative w-full md:w-72">
             <input
               type="text"
-              placeholder="Cari Invoice #, Client, Project..."
+              placeholder={t('search.payment')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium outline-none focus:border-indigo-500"
@@ -142,7 +144,7 @@ const PaymentVerification = () => {
                   <th className="px-6 py-4">Client / Project</th>
                   <th className="px-6 py-4 text-right">Amount Paid</th>
                   <th className="px-6 py-4 text-center">Status</th>
-                  <th className="px-6 py-4 text-center">Tanggal Bayar</th>
+                  <th className="px-6 py-4 text-center">{t('page.payDate')}</th>
                   <th className="px-6 py-4 text-center">Action</th>
                 </tr>
               </thead>

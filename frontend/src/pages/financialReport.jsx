@@ -10,12 +10,16 @@ import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
 import { useLang } from '../i18n';
+// Dipakai helper di luar komponen yang tidak bisa memakai hook. Diperbarui
+// komponen setiap kali bahasa berganti.
+const LOCALE = { now: 'id-ID' };
+
 const rp  = (v) => `Rp ${(Number(v) || 0).toLocaleString('id-ID')}`;
 const pct = (n, d) => d > 0 ? ((n / d) * 100).toFixed(1) + '%' : '—';
 const monthLabel = (k) => {
   if (!k) return '—';
   const [y, m] = k.split('-');
-  return new Date(+y, +m - 1).toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
+  return new Date(+y, +m - 1).toLocaleDateString(LOCALE.now, { month: 'short', year: '2-digit' });
 };
 
 const KPI = ({ label, value, sub, tone = 'default' }) => {
@@ -59,7 +63,8 @@ const SectionHead = ({ title, badge }) => (
 );
 
 const FinancialReport = () => {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  LOCALE.now = lang === 'id' ? 'id-ID' : 'en-GB';
   const navigate = useNavigate();
 
   const [loading,    setLoading]    = useState(true);
@@ -139,7 +144,7 @@ const FinancialReport = () => {
         netProfit:    totalNetProfit,
       };
 
-  const labelPeriode = periode === 'all' ? 'Seluruh Periode' : monthLabel(periode);
+  const labelPeriode = periode === 'all' ? t('fr.allPeriods') : monthLabel(periode);
 
   const exportPDF = () => {
     const doc = new jsPDF();
@@ -154,22 +159,22 @@ const FinancialReport = () => {
     // kumulatif, bukan angka bulanan, jadi menyandingkannya dengan angka satu
     // bulan akan menyesatkan.
     const barisRingkas = [
-      ['Revenue Bisnis', rp(ringkas.revenue)],
+      [t('fr.businessRevenue'), rp(ringkas.revenue)],
       ['COGS', rp(ringkas.cogs)],
       ['Bea Masuk / Import Duty', rp(ringkas.duty)],
-      ['Biaya Lain (Reimburse/Meeting/dll)', rp(ringkas.otherExpense)],
+      [t('fr.otherCostsLong'), rp(ringkas.otherExpense)],
       ['Total Expense', rp(ringkas.expense)],
       ['Net Profit', rp(ringkas.netProfit)],
       ['Net Margin', pct(ringkas.netProfit, ringkas.revenue)],
     ];
     if (periode === 'all') {
-      barisRingkas.splice(1, 0, ['Total Ditagihkan ke Client', rp(totalBilled)]);
-      barisRingkas.push(['Cash Diterima', rp(totalCashIn)], ['Outstanding', rp(totalOutstanding)]);
+      barisRingkas.splice(1, 0, [t('fr.totalBilledClient'), rp(totalBilled)]);
+      barisRingkas.push([t('fr.cashReceived'), rp(totalCashIn)], ['Outstanding', rp(totalOutstanding)]);
     }
 
     autoTable(doc, {
       startY: 36,
-      head: [['Item', 'Nominal']],
+      head: [['Item', t('fr.amount')]],
       body: barisRingkas,
       theme: 'plain',
       headStyles: { fillColor: [15,23,42], textColor: 255, fontSize: 8 },
@@ -179,7 +184,7 @@ const FinancialReport = () => {
 
     autoTable(doc, {
       startY: doc.lastAutoTable.finalY + 10,
-      head: [['Project', 'Revenue', 'COGS', 'Bea Masuk', 'Biaya Lain', 'Net Profit', 'Margin']],
+      head: [['Project', 'Revenue', 'COGS', 'Bea Masuk', t('fr.otherCosts'), 'Net Profit', 'Margin']],
       body: projects.map(p => [
         p.projectName || p.projectId,
         rp(p.clientRevenue),
@@ -209,7 +214,7 @@ const FinancialReport = () => {
             ))}
           </div>
           <p className="text-xs font-black uppercase tracking-[0.25em] text-slate-400">
-            Memuat Data Keuangan
+            {t('load.financialData')}
           </p>
         </div>
       </div>
@@ -234,7 +239,7 @@ const FinancialReport = () => {
             Project Financial <span className="text-indigo-600">Summary</span>
           </h1>
           <p className="text-2xs font-black text-slate-400 uppercase tracking-[0.2em] mt-0.5">
-            {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+            {new Date().toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
         <button
@@ -273,7 +278,7 @@ const FinancialReport = () => {
                     onChange={(e) => setPeriode(e.target.value)}
                     searchable={false}
                     options={[
-                      { value: 'all', label: 'Seluruh Periode' },
+                      { value: 'all', label: t('fr.allPeriods') },
                       ...bulanTersedia.map((m) => ({ value: m.month, label: monthLabel(m.month) })),
                     ]}
                     triggerClassName="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-xs font-black uppercase tracking-widest text-white flex justify-between items-center cursor-pointer hover:border-indigo-400 transition-all"
@@ -284,7 +289,7 @@ const FinancialReport = () => {
               <div className="px-6 py-5 space-y-0 divide-y divide-slate-50">
                 <div className="flex justify-between items-center py-3">
                   <div>
-                    <p className="text-xs font-black text-slate-800">Revenue Bisnis</p>
+                    <p className="text-xs font-black text-slate-800">{t('fr.businessRevenue')}</p>
                   </div>
                   <p className="text-sm font-black text-emerald-600">{rp(ringkas.revenue)}</p>
                 </div>
@@ -347,7 +352,7 @@ const FinancialReport = () => {
         </section>
 
         <section>
-          <SectionHead title="Indikator Kinerja" />
+          <SectionHead title={t('fr.kpi')} />
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <KPI
               label="Net Profit"
@@ -368,7 +373,7 @@ const FinancialReport = () => {
               tone={totalOutstanding > 0 ? 'amber' : 'green'}
             />
             <KPI
-              label="Projects Aktif"
+              label={t('fr.activeProjects')}
               value={projects.length}
               sub={`${projects.filter(p => p.netProfit > 0).length} profitable`}
               tone="dark"
@@ -425,7 +430,7 @@ const FinancialReport = () => {
                           <td className="px-4 py-4 text-right text-rose-500 font-bold text-xs whitespace-nowrap">
                             {rp(shownCOGS)}
                             {isEstimated && (
-                              <span className="ml-1.5 text-2xs font-black uppercase tracking-wider text-amber-600" title="Tagihan supplier belum masuk — angka dari supplier quotation">
+                              <span className="ml-1.5 text-2xs font-black uppercase tracking-wider text-amber-600" title={t('fr.noSupplierBill')}>
                                 est.
                               </span>
                             )}
@@ -451,7 +456,7 @@ const FinancialReport = () => {
                           <td className="px-4 py-4 text-right text-xs whitespace-nowrap">
                             {p.outstanding > 0
                               ? <span className="font-black text-amber-600">{rp(p.outstanding)}</span>
-                              : <span className="text-emerald-500 font-bold text-xs">✓ Lunas</span>
+                              : <span className="text-emerald-500 font-bold text-xs">{t('fr.settled')}</span>
                             }
                           </td>
                           <td className="px-4 py-4 text-center">
@@ -473,8 +478,8 @@ const FinancialReport = () => {
                                   <p className="text-2xs font-black uppercase tracking-widest text-emerald-600 mb-3">Revenue Detail</p>
                                   <div className="space-y-2">
                                     {[
-                                      { l: 'Revenue Bisnis', v: rp(p.clientRevenue), bold: true },
-                                      { l: 'Total Ditagihkan', v: rp(p.grandTotalBilled) },
+                                      { l: t('fr.businessRevenue'), v: rp(p.clientRevenue), bold: true },
+                                      { l: t('fr.totalBilled'), v: rp(p.grandTotalBilled) },
                                     ].map(({ l, v, bold, muted }) => (
                                       <div key={l} className="flex justify-between gap-4">
                                         <span className={`text-xs ${muted ? 'text-slate-400 italic' : 'text-slate-600'}`}>{l}</span>
@@ -492,10 +497,10 @@ const FinancialReport = () => {
                                   <p className="text-2xs font-black uppercase tracking-widest text-rose-600 mb-3">Expense Detail</p>
                                   <div className="space-y-2">
                                     {[
-                                      { l: 'COGS (harga beli vendor)', v: rp(p.supplierCOGS), bold: true },
+                                      { l: t('fr.cogsVendor'), v: rp(p.supplierCOGS), bold: true },
                                       { l: 'Bea Masuk / Import Duty', v: rp(p.supplierImportDuty) },
-                                      { l: 'Biaya Lain (Reimburse/Meeting/dll)', v: rp(p.otherExpenseTotal) },
-                                      { l: 'Total Expense Bisnis', v: rp(p.totalExpense), bold: true },
+                                      { l: t('fr.otherCostsLong'), v: rp(p.otherExpenseTotal) },
+                                      { l: t('fr.totalExpenseBiz'), v: rp(p.totalExpense), bold: true },
                                     ].map(({ l, v, bold, muted }) => (
                                       <div key={l} className="flex justify-between gap-4">
                                         <span className={`text-xs ${muted ? 'text-slate-400 italic' : 'text-slate-600'}`}>{l}</span>
@@ -535,19 +540,19 @@ const FinancialReport = () => {
                                 </div>
                                 <div className="bg-white rounded-xl border border-slate-100 p-4 space-y-3">
                                   <p className="text-2xs font-black uppercase tracking-widest text-indigo-500 mb-3">
-                                    Estimasi vs Aktual
+                                    {t('fr.estVsAct')}
                                   </p>
                                   <div className="space-y-2">
                                     <div className="flex justify-between gap-4">
-                                      <span className="text-xs text-slate-500">Estimasi COGS (SQ)</span>
+                                      <span className="text-xs text-slate-500">{t('fr.estCogsSq')}</span>
                                       <span className="text-xs font-bold text-slate-600">{rp(p.estimatedCOGS)}</span>
                                     </div>
                                     <div className="flex justify-between gap-4">
-                                      <span className="text-xs text-slate-500">Aktual COGS (SI Paid)</span>
+                                      <span className="text-xs text-slate-500">{t('fr.actCogsSi')}</span>
                                       <span className="text-xs font-black text-rose-600">{rp(p.supplierCOGS)}</span>
                                     </div>
                                     <div className="flex justify-between gap-4 pt-2 border-t border-slate-100">
-                                      <span className="text-xs font-bold text-slate-600">Selisih</span>
+                                      <span className="text-xs font-bold text-slate-600">{t('tl.variance')}</span>
                                       <span className={`text-xs font-black ${
                                         (p.supplierCOGS - p.estimatedCOGS) > 0 ? 'text-rose-600' : 'text-emerald-600'
                                       }`}>
@@ -600,7 +605,7 @@ const FinancialReport = () => {
 
         {trend.length > 0 && (
           <section>
-            <SectionHead title="Tren Bulanan" badge="12 bulan terakhir" />
+            <SectionHead title={t('fr.monthlyTrend')} badge={t('fr.last12')} />
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
               <div className="flex gap-3">
                 {/* Sumbu nilai. Hanya tiga tingkat supaya tidak merebut perhatian
@@ -685,7 +690,7 @@ const FinancialReport = () => {
         {receivables && receivables.invoices && receivables.invoices.length > 0 && (
           <section>
             <SectionHead
-              title="Piutang Belum Dibayar"
+              title={t('fr.unpaidReceivable')}
               badge={`${receivables.invoices.length} invoice`}
             />
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -704,8 +709,8 @@ const FinancialReport = () => {
                       <th className="px-5 py-3 text-left">Invoice #</th>
                       <th className="px-4 py-3 text-left">Project</th>
                       <th className="px-4 py-3 text-left">Client</th>
-                      <th className="px-4 py-3 text-right">Nominal</th>
-                      <th className="px-4 py-3 text-center">Jatuh Tempo</th>
+                      <th className="px-4 py-3 text-right">{t('fr.amount')}</th>
+                      <th className="px-4 py-3 text-center">{t('tl.dueDate')}</th>
                       <th className="px-4 py-3 text-center">Status</th>
                     </tr>
                   </thead>
@@ -722,7 +727,7 @@ const FinancialReport = () => {
                           {rp(inv.amount)}
                         </td>
                         <td className="px-4 py-3 text-center text-xs text-slate-500">
-                          {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString('id-ID') : '—'}
+                          {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB') : '—'}
                           {inv.isOverdue && <span className="ml-1 text-rose-500 font-black">⚠</span>}
                         </td>
                         <td className="px-4 py-3 text-center">

@@ -15,7 +15,9 @@ import { useLang } from '../i18n';
 const API = 'http://localhost:5000';
 
 const fmt = (v) => 'Rp ' + (Number(v) || 0).toLocaleString('id-ID');
-const fmtDate = (d) => d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+// Locale tanggal mengikuti bahasa aktif; dioper dari komponen karena helper
+// ini berada di luar badan komponen sehingga tidak bisa memakai hook.
+const fmtDate = (d, lang = 'id') => d ? new Date(d).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
 
 
 const StatusPill = ({ status, size = 'sm' }) => {
@@ -74,7 +76,7 @@ const InfoRow = ({ label, value, valueClass = 'text-slate-800', border = true })
 );
 
 const ProjectTimeline = () => {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [data, setData] = useState(null);
@@ -128,7 +130,7 @@ const ProjectTimeline = () => {
           <p className="font-black text-slate-700 text-xl uppercase tracking-tight">Project Not Found</p>
           <p className="text-xs text-slate-400 mt-1">{projectId}</p>
           <button onClick={() => navigate('/timeline')} className="mt-5 px-5 py-2 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase hover:bg-indigo-700 transition-all">
-            ← Kembali ke List
+            {t('tl.backToList')}
           </button>
         </div>
       </div>
@@ -165,7 +167,7 @@ const ProjectTimeline = () => {
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg font-black text-slate-900 uppercase tracking-tight">{project.projectId}</h1>
               <span className={`px-2.5 py-0.5 rounded-full text-2xs font-black uppercase ${isComplete ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                {isComplete ? '✓ SELESAI' : '● BERJALAN'}
+                {isComplete ? t('tl.done') : t('tl.running')}
               </span>
             </div>
             <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Project Timeline</p>
@@ -205,6 +207,9 @@ const ProjectTimeline = () => {
               { label: 'Terms of Payment', value: financial.topOption, bg: 'bg-amber-50', text: 'text-amber-700' }
             ].map((item, i) => (
               <div key={i} className={`${item.bg} rounded-xl p-3`}>
+                {/* Label kartu ini sudah berupa istilah lindung yang sama di
+                    kedua bahasa (Project ID, Client, Grand Total, Terms of
+                    Payment), jadi sengaja tidak dipetakan. */}
                 <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-0.5">{item.label}</p>
                 <p className={`text-sm font-black ${item.text} line-clamp-1`}>{item.value}</p>
               </div>
@@ -229,7 +234,7 @@ const ProjectTimeline = () => {
 
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Progress Project</h3>
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">{t('tl.progress')}</h3>
             <span className={`text-2xl font-black ${pct >= 100 ? 'text-emerald-600' : pct >= 50 ? 'text-indigo-600' : 'text-amber-600'}`}>{pct}%</span>
           </div>
           <div className="w-full h-4 bg-slate-100 rounded-full overflow-hidden mb-2">
@@ -241,8 +246,8 @@ const ProjectTimeline = () => {
               ini pasangan angka terpenting di halaman dan sebelumnya justru yang
               paling pudar. */}
           <div className="flex justify-between text-xs font-black text-slate-500">
-            <span><span className="text-slate-700">{fmt(financial.totalPaid)}</span> terbayar ({progress.paymentPercent ?? pct}% payment)</span>
-            <span><span className="text-slate-700">{fmt(financial.grandTotal)}</span> total kontrak</span>
+            <span><span className="text-slate-700">{fmt(financial.totalPaid)}</span> {t('tl.paidLabel')} ({progress.paymentPercent ?? pct}% payment)</span>
+            <span><span className="text-slate-700">{fmt(financial.grandTotal)}</span> {t('tl.totalContract')}</span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mt-5 pt-5 border-t border-slate-100">
@@ -252,7 +257,7 @@ const ProjectTimeline = () => {
                   ? <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
                   : <Clock size={14} className={`shrink-0 ${m.percent > 0 ? 'text-amber-400' : 'text-slate-300'}`} />}
                 <span className={`text-xs font-black uppercase ${m.done ? 'text-emerald-700' : m.percent > 0 ? 'text-amber-600' : 'text-slate-400'}`}>
-                  {m.label}{!m.done && m.percent > 0 ? ` ${m.percent}%` : ''}
+                  {t(`stage.${m.label}`)}{!m.done && m.percent > 0 ? ` ${m.percent}%` : ''}
                 </span>
               </div>
             ))}
@@ -293,7 +298,7 @@ const ProjectTimeline = () => {
                     </div>
                     {stage.invoice && (
                       <p className="text-xs text-indigo-500 font-bold mt-0.5">
-                        {stage.invoice.invoiceNumber} &bull; Due {fmtDate(stage.invoice.dueDate)}
+                        {stage.invoice.invoiceNumber} &bull; Due {fmtDate(stage.invoice.dueDate, lang)}
                       </p>
                     )}
                     {!stage.invoice && (
@@ -314,26 +319,26 @@ const ProjectTimeline = () => {
           )}
         </Section>
 
-        <Section icon={<DollarSign size={14} />} title="Ringkasan Keuangan" id="financial"
+        <Section icon={<DollarSign size={14} />} title={t('tl.financialSummary')} id="financial"
           open={open.financial} onToggle={toggle}
         >
           <div className="px-6 py-4 space-y-0">
-            <InfoRow label="Subtotal (Harga Client)" value={fmt(financial.clientPrice)} />
-            <InfoRow label="Ongkos Kirim" value={fmt(financial.shippingFee)} />
-            <InfoRow label={`Pajak (${financial.taxPercentage}%)`} value={fmt(financial.taxAmount)} />
+            <InfoRow label={t('tl.subtotalClient')} value={fmt(financial.clientPrice)} />
+            <InfoRow label={t('tl.shippingFee')} value={fmt(financial.shippingFee)} />
+            <InfoRow label={`${t('tl.tax')} (${financial.taxPercentage}%)`} value={fmt(financial.taxAmount)} />
 
             <div className="flex justify-between items-center py-3 -mx-6 px-6 bg-slate-900 text-white my-1">
               <span className="text-sm font-black uppercase tracking-wider">Grand Total</span>
               <span className="font-black text-base">{fmt(financial.grandTotal)}</span>
             </div>
 
-            <InfoRow label="Total Diterima (Paid)" value={fmt(financial.totalPaid)} valueClass="text-emerald-600" />
-            <InfoRow label="Belum Terbayar" value={fmt(financial.totalUnpaid)} valueClass="text-amber-600" />
-            <InfoRow label="Sisa Tagihan" value={fmt(financial.remaining)} valueClass={financial.remaining > 0 ? 'text-red-600' : 'text-emerald-600'} border={false} />
+            <InfoRow label={t('tl.totalReceived')} value={fmt(financial.totalPaid)} valueClass="text-emerald-600" />
+            <InfoRow label={t('tl.unpaid')} value={fmt(financial.totalUnpaid)} valueClass="text-amber-600" />
+            <InfoRow label={t('tl.outstanding')} value={fmt(financial.remaining)} valueClass={financial.remaining > 0 ? 'text-red-600' : 'text-emerald-600'} border={false} />
           </div>
         </Section>
 
-        <Section icon={<FileText size={14} />} title="Invoice Client" id="clientInvoices"
+        <Section icon={<FileText size={14} />} title={t('tl.invoiceClient')} id="clientInvoices"
           badge={clientInvoices.length > 0 ? `${clientInvoices.length} invoice` : null}
           open={open.clientInvoices} onToggle={toggle}
         >
@@ -347,7 +352,7 @@ const ProjectTimeline = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
-                    {['No Invoice', 'Phase', 'Jumlah', 'Jatuh Tempo', 'Status'].map((h, i) => (
+                    {['No Invoice', 'Phase', t('tl.amount'), t('tl.dueDate'), 'Status'].map((h, i) => (
                       <th key={i} className="px-5 py-2.5 text-left text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -358,7 +363,7 @@ const ProjectTimeline = () => {
                       <td className="px-5 py-3"><span className="font-black text-indigo-600 text-sm">{inv.invoiceNumber}</span></td>
                       <td className="px-5 py-3"><span className="text-sm text-slate-600 font-medium">{inv.billingPhase}</span></td>
                       <td className="px-5 py-3"><span className="font-black text-slate-800">{fmt(inv.amount)}</span></td>
-                      <td className="px-5 py-3"><span className="text-sm text-slate-500">{fmtDate(inv.dueDate)}</span></td>
+                      <td className="px-5 py-3"><span className="text-sm text-slate-500">{fmtDate(inv.dueDate, lang)}</span></td>
                       <td className="px-5 py-3"><StatusPill status={inv.status} /></td>
                     </tr>
                   ))}
@@ -389,7 +394,7 @@ const ProjectTimeline = () => {
                     </div>
                     <div className="text-right">
                       <p className="font-black text-slate-800">{fmt(po.totalAmount)}</p>
-                      <p className="text-2xs text-slate-400 mt-0.5">{fmtDate(po.createdAt)}</p>
+                      <p className="text-2xs text-slate-400 mt-0.5">{fmtDate(po.createdAt, lang)}</p>
                     </div>
                   </div>
 
@@ -439,7 +444,7 @@ const ProjectTimeline = () => {
         </Section>
 
         {purchaseOrders.length > 0 && (
-          <Section icon={<Truck size={14} />} title="Logistics & Pengiriman" id="logistics"
+          <Section icon={<Truck size={14} />} title={t('tl.logistics')} id="logistics"
             open={open.logistics} onToggle={toggle}
           >
             <div className="divide-y divide-slate-100">
@@ -453,14 +458,14 @@ const ProjectTimeline = () => {
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
                       <p className="text-2xs font-black text-slate-400 uppercase mb-1">{t('page.sentDate')}</p>
-                      <p className="text-sm font-black text-slate-700">{fmtDate(po.deliveryDate)}</p>
+                      <p className="text-sm font-black text-slate-700">{fmtDate(po.deliveryDate, lang)}</p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">Kurir</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">{t('tl.courier')}</p>
                       <p className="text-sm font-black text-slate-700">{po.courierName}</p>
                     </div>
                     <div className="bg-slate-50 rounded-xl p-3">
-                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">Resi / Tracking</p>
+                      <p className="text-2xs font-black text-slate-400 uppercase mb-1">{t('tl.tracking')}</p>
                       <p className="text-sm font-black text-slate-700">{po.trackingNumber}</p>
                     </div>
                   </div>
@@ -475,8 +480,8 @@ const ProjectTimeline = () => {
           </Section>
         )}
 
-        <Section icon={<Banknote size={14} />} title="Tagihan Supplier (Duit Keluar)" id="cashOut"
-          badge={supplierInvoices.length > 0 ? `${supplierInvoices.length} tagihan` : null}
+        <Section icon={<Banknote size={14} />} title={t('tl.supplierBills')} id="cashOut"
+          badge={supplierInvoices.length > 0 ? `${supplierInvoices.length} ${t('tl.cBill')}` : null}
           open={open.cashOut} onToggle={toggle}
         >
           <div className="px-6 py-4 grid grid-cols-3 gap-3 border-b border-slate-100">
@@ -503,7 +508,7 @@ const ProjectTimeline = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-50 border-b border-slate-100">
-                    {['No Invoice', 'Vendor', 'Termin', 'Jumlah', 'Status', 'Tgl Bayar'].map((h, i) => (
+                    {['No Invoice', 'Vendor', 'Termin', t('tl.amount'), 'Status', t('tl.payDate')].map((h, i) => (
                       <th key={i} className="px-5 py-2.5 text-left text-xs font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">{h}</th>
                     ))}
                   </tr>
@@ -516,7 +521,7 @@ const ProjectTimeline = () => {
                       <td className="px-5 py-3"><span className="text-sm text-slate-500">{si.terminName}</span></td>
                       <td className="px-5 py-3"><span className="font-black text-slate-800">{fmt(si.amount)}</span></td>
                       <td className="px-5 py-3"><StatusPill status={si.status} /></td>
-                      <td className="px-5 py-3"><span className="text-sm text-slate-500">{fmtDate(si.paymentDate)}</span></td>
+                      <td className="px-5 py-3"><span className="text-sm text-slate-500">{fmtDate(si.paymentDate, lang)}</span></td>
                     </tr>
                   ))}
                 </tbody>
@@ -525,8 +530,8 @@ const ProjectTimeline = () => {
           )}
         </Section>
 
-        <Section icon={<Wallet size={14} />} title="Reimburse & Biaya Lain" id="expenses"
-          badge={expenses.count > 0 ? `${expenses.count} pengajuan` : null}
+        <Section icon={<Wallet size={14} />} title={t('tl.reimburseOther')} id="expenses"
+          badge={expenses.count > 0 ? `${expenses.count} ${t('tl.cSubmission')}` : null}
           open={open.expenses} onToggle={toggle}
         >
           <div className="px-6 py-4 grid grid-cols-2 gap-3 border-b border-slate-100">
@@ -577,7 +582,7 @@ const ProjectTimeline = () => {
                       ))}
                     </div>
                     <p className="text-xs text-slate-400 mt-2">
-                      {t('page.submittedBy')} <span className="font-bold text-slate-500">{e.submittedByName}</span> &bull; {fmtDate(e.createdAt)}
+                      {t('page.submittedBy')} <span className="font-bold text-slate-500">{e.submittedByName}</span> &bull; {fmtDate(e.createdAt, lang)}
                     </p>
                     {e.status === 'Rejected' && e.rejectionReason && (
                       <p className="text-xs text-rose-500 mt-1 bg-rose-50 rounded-lg px-2 py-1 inline-block">
@@ -590,7 +595,7 @@ const ProjectTimeline = () => {
                         onClick={() => openSecureFile(e.file)}
                         className="text-xs text-indigo-500 font-bold mt-1 inline-block hover:underline"
                       >
-                        📎 Lihat Lampiran
+                        {t('tl.viewAttachment')}
                       </button>
                     )}
                   </div>
@@ -645,7 +650,7 @@ const ProjectTimeline = () => {
               </div>
               {profitMargin.otherExpense > 0 && (
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-orange-500">− Biaya Lain (Reimburse Approved)</span>
+                  <span className="text-xs font-bold text-orange-500">{t('tl.otherCostApproved')}</span>
                   <span className="text-sm font-black text-orange-600">({fmt(profitMargin.otherExpense)})</span>
                 </div>
               )}
@@ -685,19 +690,19 @@ const ProjectTimeline = () => {
             {profitMargin.estimatedCOGS !== undefined && (
               <div className="bg-indigo-50 rounded-xl p-4 mt-4">
                 <p className="text-xs font-black text-indigo-500 uppercase tracking-wider mb-3">
-                  Estimasi (Supplier Quotation) vs Aktual (Supplier Invoice Paid)
+                  {t('tl.estVsAct')}
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="bg-white rounded-lg p-3">
-                    <p className="text-2xs font-black text-slate-400 uppercase">Estimasi COGS</p>
+                    <p className="text-2xs font-black text-slate-400 uppercase">{t('tl.estCogs')}</p>
                     <p className="text-sm font-black text-slate-700">{fmt(profitMargin.estimatedCOGS)}</p>
                   </div>
                   <div className="bg-white rounded-lg p-3">
-                    <p className="text-2xs font-black text-slate-400 uppercase">Aktual COGS</p>
+                    <p className="text-2xs font-black text-slate-400 uppercase">{t('tl.actCogs')}</p>
                     <p className="text-sm font-black text-red-600">{fmt(profitMargin.cogs)}</p>
                   </div>
                   <div className="bg-white rounded-lg p-3">
-                    <p className="text-2xs font-black text-slate-400 uppercase">Selisih</p>
+                    <p className="text-2xs font-black text-slate-400 uppercase">{t('tl.variance')}</p>
                     <p className={`text-sm font-black ${(profitMargin.cogs - profitMargin.estimatedCOGS) > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
                       {(profitMargin.cogs - profitMargin.estimatedCOGS) > 0 ? '+' : ''}{fmt(profitMargin.cogs - profitMargin.estimatedCOGS)}
                     </p>
@@ -728,10 +733,10 @@ const ProjectTimeline = () => {
               isComplete ? 'text-emerald-600' : pct >= 75 ? 'text-indigo-600' : pct >= 40 ? 'text-amber-600' : 'text-slate-500'
             }`}>
               {isComplete
-                ? 'Project selesai. Semua tahapan pembayaran telah terlunasi.'
-                : pct >= 75 ? 'Mendekati selesai — tahap akhir pembayaran sedang berjalan.'
-                : pct >= 40 ? 'Project on track. Terus pantau milestone pembayaran.'
-                : 'Project tahap awal. Milestone utama masih menunggu.'}
+                ? t('tl.healthDone')
+                : pct >= 75 ? t('tl.healthNear')
+                : pct >= 40 ? t('tl.healthTrack')
+                : t('tl.healthEarly')}
             </p>
           </div>
         </div>

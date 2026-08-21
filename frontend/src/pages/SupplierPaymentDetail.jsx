@@ -51,32 +51,32 @@ const SupplierPaymentDetail = () => {
     const step1 = await Swal.fire({
       title: t('form.uploadTransferProof'),
       html: `
-        <p style="font-size:13px; color:#475569; margin-bottom:14px;">{t('page.transferProofFor')} <strong>${invoice?.invoiceNumber}</strong> {t('page.willAppearProcurement')}</p>
+        <p style="font-size:13px; color:#475569; margin-bottom:14px;">${t('page.transferProofFor')} <strong>${invoice?.invoiceNumber}</strong> ${t('page.willAppearProcurement')}</p>
         <input id="swal-proof" type="file" accept="image/*,.pdf" style="width:100%; font-size:13px; padding:12px; border:2px dashed #cbd5e1; border-radius:12px; background:#f8fafc;" />
-        <p style="font-size:10px; color:#94a3b8; margin-top:8px; text-align:left;">Opsional — boleh dikosongkan.</p>
+        <p style="font-size:10px; color:#94a3b8; margin-top:8px; text-align:left;">${t('hint.optionalMayBlank')}</p>
       `,
       showCancelButton: true,
       confirmButtonColor: '#0f172a',
       cancelButtonColor: '#94a3b8',
-      confirmButtonText: 'Done',
-      cancelButtonText: 'Cancel',
+      confirmButtonText: t('btn.done'),
+      cancelButtonText: t('btn.cancel'),
       preConfirm: () => document.getElementById('swal-proof')?.files[0] || null
     });
     if (!step1.isConfirmed) return;
     const proofFile = step1.value;
 
     const step2 = await Swal.fire({
-      title: 'Confirm Payment?',
+      title: t('sw.confirmPaymentTitle'),
       html: `
         <p class="text-sm">You are about to mark <strong>${invoice?.invoiceNumber}</strong> as <strong class="text-emerald-600">PAID</strong>.</p>
-        <p style="font-size:11px; color:#64748b; margin-top:10px;">${proofFile ? `📎 Bukti transfer: <strong>${proofFile.name}</strong>` : 'Tanpa bukti transfer'}</p>
+        <p style="font-size:11px; color:#64748b; margin-top:10px;">${proofFile ? `📎 ${t('label.transferProof')}: <strong>${proofFile.name}</strong>` : t('label.noTransferProof')}</p>
       `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#1e293b',
-      confirmButtonText: 'Yes, Confirm Payment',
-      cancelButtonText: 'Cancel'
+      confirmButtonText: t('btn.yesConfirmPayment'),
+      cancelButtonText: t('btn.cancel')
     });
 
     if (step2.isConfirmed) {

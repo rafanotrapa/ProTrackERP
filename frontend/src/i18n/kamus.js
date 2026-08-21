@@ -267,7 +267,6 @@ export const id = {
   'msg.noData': 'BELUM ADA DATA',
   'msg.incomplete': 'DATA BELUM LENGKAP',
   'msg.cqSubmitted': 'Client Quotation telah dikirim untuk persetujuan Management.',
-  'msg.downloadNow': 'Download PDF sekarang untuk dikirim ke client, atau kembali ke dashboard.',
   'msg.noVendorLinked': 'Project ini belum memiliki Supplier yang terdaftar.',
   'msg.expenseSubmitted': 'Pengajuan biaya berhasil dikirim untuk verifikasi Finance.',
   'msg.billForwarded': 'Data tagihan sudah diteruskan ke Finance.',
@@ -435,7 +434,7 @@ export const id = {
   'stage.Client Payment': 'Client Payment',
 
   'up.clickToUpload': 'Klik untuk upload file',
-  'cq.approvalRequired': 'Approval Required: Quotation akan direview Management sebelum bisa digunakan untuk Client Invoice. PDF dapat didownload kapan saja sebagai draft preview.',
+  'cq.approvalRequired': 'Approval Required: Quotation akan direview Management sebelum bisa digunakan untuk Client Invoice. PDF-nya tersedia di Quotation Log setelah disetujui.',
   'dm.viewPhoto': '📷 Lihat Foto',
   'reg.title': 'Tambah Karyawan Baru',
   'reg.subtitle': 'Sumber Daya Manusia • Protokol Kontrol Akses',
@@ -466,6 +465,31 @@ export const id = {
 
   // Label Term of Payment
   'label.top': 'Term of Payment',
+
+  // Popup submit Client Quotation
+  'sw.cqSubmittedTitle': 'Quotation Terkirim!',
+  'btn.done': 'Selesai',
+
+  // Popup Client Invoice
+  'sw.invoiceCreated': 'Invoice Dibuat!',
+  'label.amount': 'Nominal',
+
+  // Jadwal pengiriman
+  'sw.setDeliverySchedule': 'ATUR JADWAL PENGIRIMAN',
+  'btn.saveSchedule': 'SIMPAN JADWAL',
+  'sw.deliveryRequired': 'Tanggal, Jumlah Barang, dan Kurir wajib diisi!',
+  'form.courier': 'Kurir / Ekspedisi',
+  'ph.courierExample': 'Misal: Lalamove / Kurir Internal',
+
+  // Konfirmasi pembayaran supplier dan sisa dialog
+  'hint.optionalMayBlank': 'Opsional — boleh dikosongkan.',
+  'btn.cancel': 'Batal',
+  'sw.confirmPaymentTitle': 'Konfirmasi Pembayaran?',
+  'btn.yesConfirmPayment': 'Ya, Konfirmasi Pembayaran',
+  'label.transferProof': 'Bukti transfer',
+  'label.noTransferProof': 'Tanpa bukti transfer',
+  'sw.approveSubmission': 'Setujui Submission?',
+  'inv.usedMax': 'Jumlah terpakai (maks {n})',
 };
 
 export const en = {
@@ -705,7 +729,6 @@ export const en = {
   'msg.noData': 'NO DATA YET',
   'msg.incomplete': 'INCOMPLETE DATA',
   'msg.cqSubmitted': 'The Client Quotation has been sent for Management approval.',
-  'msg.downloadNow': 'Download the PDF now to send to the client, or go back to the dashboard.',
   'msg.noVendorLinked': 'This project has no registered supplier yet.',
   'msg.expenseSubmitted': 'The expense submission was sent for Finance verification.',
   'msg.billForwarded': 'The bill has been forwarded to Finance.',
@@ -865,7 +888,7 @@ export const en = {
   'stage.Delivered': 'Delivered',
   'stage.Client Payment': 'Client Payment',
   'up.clickToUpload': 'Click to upload a file',
-  'cq.approvalRequired': 'Approval Required: Management will review this quotation before it can be used for a Client Invoice. The PDF can be downloaded at any time as a draft preview.',
+  'cq.approvalRequired': 'Approval Required: Management will review this quotation before it can be used for a Client Invoice. The PDF becomes available in the Quotation Log once approved.',
   'dm.viewPhoto': '📷 View Photo',
   'reg.title': 'Add New Employee',
   'reg.subtitle': 'Human Resources • Access Control Protocol',
@@ -894,6 +917,31 @@ export const en = {
 
   // Label Term of Payment
   'label.top': 'Term of Payment',
+
+  // Popup submit Client Quotation
+  'sw.cqSubmittedTitle': 'Quotation Submitted!',
+  'btn.done': 'Done',
+
+  // Popup Client Invoice
+  'sw.invoiceCreated': 'Invoice Created!',
+  'label.amount': 'Amount',
+
+  // Jadwal pengiriman
+  'sw.setDeliverySchedule': 'SET DELIVERY SCHEDULE',
+  'btn.saveSchedule': 'SAVE SCHEDULE',
+  'sw.deliveryRequired': 'Date, quantity, and courier are required.',
+  'form.courier': 'Courier / Expedition',
+  'ph.courierExample': 'e.g. Lalamove / Internal Courier',
+
+  // Konfirmasi pembayaran supplier dan sisa dialog
+  'hint.optionalMayBlank': 'Optional — may be left blank.',
+  'btn.cancel': 'Cancel',
+  'sw.confirmPaymentTitle': 'Confirm Payment?',
+  'btn.yesConfirmPayment': 'Yes, Confirm Payment',
+  'label.transferProof': 'Transfer proof',
+  'label.noTransferProof': 'Without transfer proof',
+  'sw.approveSubmission': 'Approve Submission?',
+  'inv.usedMax': 'Quantity used (max {n})',
 };
 
 export const KAMUS = { id, en };

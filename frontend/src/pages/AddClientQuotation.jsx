@@ -2,10 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { mintaPenandatangan } from '../utils/pdfDocument';
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import autoTable from 'jspdf-autotable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
@@ -46,12 +42,6 @@ const AddClientQuotation = () => {
     if (found.length === 1) return [found[0], 100 - found[0]];
     return found;
   };
-
-  // Untuk dicetak di PDF: klien perlu tahu jadwal cicilannya, bukan cuma kata "Termin".
-  const describeTermin = (rows) =>
-    rows.length === 2
-      ? `DP ${rows[0] || 0}% + Pelunasan ${rows[1] || 0}%`
-      : rows.map((r, i) => `Termin ${i + 1}: ${r || 0}%`).join(' + ');
 
   const terminSum = terminRows.reduce((a, r) => a + (Number(r) || 0), 0);
   const applyTermin = (rows) => {
@@ -452,189 +442,6 @@ const AddClientQuotation = () => {
     }
   };
 
-  const generatePDF = async (forceFinal = false) => {
-    const currentItems = quotationMode === 'auto' ? formData.items : manualItems;
-
-    if (!formData.projectId || currentItems.length === 0) {
-      Swal.fire({
-        icon:               'warning',
-        title: t('msg.noData'),
-        text: t('msg.pickProjectAndItems'),
-        confirmButtonColor: '#0f172a',
-      });
-      return;
-    }
-
-    const signer = await mintaPenandatangan();
-    if (signer === null) return;
-
-    try {
-      const doc      = new jsPDF();
-      const isDraft  = !forceFinal && formData.approvalStatus !== 'Approved';
-      const taxVal   = Number(taxAmount) || 0;
-      const grandPDF = subtotal + (Number(shippingFee) || 0) + taxVal;
-
-      try {
-        doc.addImage('/header-batavia.png', 'PNG', 0, 0, 210, 40);
-      } catch {
-        doc.setFillColor(15, 23, 42);
-        doc.rect(0, 0, 210, 20, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('PT. BATAVIA JAYA KREASI', 105, 13, { align: 'center' });
-        doc.setTextColor(0, 0, 0);
-      }
-
-      if (isDraft) {
-        doc.saveGraphicsState();
-        doc.setGState(new doc.GState({ opacity: 0.07 }));
-        doc.setFontSize(70);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(200, 0, 0);
-        doc.text('DRAFT', 105, 160, { align: 'center', angle: 45 });
-        doc.restoreGraphicsState();
-        doc.setTextColor(0, 0, 0);
-      }
-
-      doc.setFontSize(26);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(15, 23, 42);
-      doc.text('QUOTATION', 14, 55);
-
-      if (isDraft) {
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'italic');
-        doc.setTextColor(180, 0, 0);
-        doc.text('[ DRAFT — Belum disetujui Management ]', 14, 62);
-        doc.setTextColor(0, 0, 0);
-      }
-
-      const infoY = isDraft ? 70 : 65;
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text('To :', 14, infoY);
-      doc.setFont('helvetica', 'bold');
-      doc.text((formData.clientName || '').toUpperCase(), 14, infoY + 6);
-
-      doc.setFont('helvetica', 'normal');
-      doc.text('Date',        120, infoY);
-      doc.text(`: ${new Date().toLocaleDateString('en-GB')}`, 150, infoY);
-      doc.text('QUOTATION #', 120, infoY + 6);
-      doc.text(`: ${formData.quotationId}`, 150, infoY + 6);
-      doc.text('Project ID',  120, infoY + 12);
-      doc.text(`: ${formData.projectId || '-'}`, 150, infoY + 12);
-
-      if (!forceFinal) {
-        doc.text('Status', 120, infoY + 18);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(isDraft ? 180 : 0, isDraft ? 0 : 128, 0);
-        doc.text(`: ${formData.approvalStatus || 'Draft'}`, 150, infoY + 18);
-        doc.setTextColor(0, 0, 0);
-      }
-
-      const tableStartY = forceFinal ? infoY + 22 : infoY + 28;
-      const tableRows = currentItems.map((item) => [
-        item.quantity || 0,
-        (item.itemName || '').toUpperCase(),
-        (item.unit || '').toUpperCase(),
-        `Rp ${Number(item.salesPrice || 0).toLocaleString('id-ID')}`,
-        `Rp ${((Number(item.quantity) || 0) * (Number(item.salesPrice) || 0)).toLocaleString('id-ID')}`,
-      ]);
-
-      autoTable(doc, {
-        startY:     tableStartY,
-        head:       [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Line Total (IDR)']],
-        body:       tableRows,
-        theme:      'plain',
-        margin:     { left: 7.5 },
-        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-        styles:     { fontSize: 9, cellPadding: 4 },
-        columnStyles: {
-          0: { halign: 'center', cellWidth: 15 },
-          1: { halign: 'left',   cellWidth: 70 },
-          2: { halign: 'center', cellWidth: 20 },
-          3: { halign: 'right',  cellWidth: 45 },
-          4: { halign: 'right',  cellWidth: 45 },
-        },
-        didDrawCell: (data) => {
-          if (data.section === 'body') {
-            doc.setDrawColor(230);
-            doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
-          }
-        },
-      });
-
-      const finalY   = doc.lastAutoTable.finalY + 15;
-      let   currentY = finalY;
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      doc.text('Subtotal', 130, currentY);
-      doc.text(`Rp ${subtotal.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
-
-      if (Number(shippingFee) > 0) {
-        currentY += 7;
-        doc.text('Shipping Fee', 130, currentY);
-        doc.text(`Rp ${Number(shippingFee).toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
-      }
-
-      if (taxVal > 0) {
-        currentY += 7;
-        doc.text('Tax / PPN', 130, currentY);
-        doc.text(`Rp ${taxVal.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
-      }
-
-      currentY += 10;
-      doc.setFontSize(12);
-      doc.setTextColor(15, 23, 42);
-      doc.text('GRAND TOTAL', 130, currentY);
-      doc.text(`Rp ${grandPDF.toLocaleString('id-ID')}`, 196, currentY, { align: 'right' });
-
-      doc.setTextColor(0);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text('TERM OF PAYMENT :', 14, currentY + 20);
-      doc.setFont('helvetica', 'normal');
-      doc.text(
-        formData.topOption === 'Termin' ? describeTermin(terminRows) : (formData.topOption || 'COD'),
-        14, currentY + 27
-      );
-
-      if (isPPN && formData.bankAccount) {
-        doc.setFont('helvetica', 'bold');
-        doc.text('REKENING BANK :', 14, currentY + 37);
-        doc.setFont('helvetica', 'normal');
-        doc.text(formData.bankAccount, 14, currentY + 44);
-      }
-
-      const remarkOffsetY = (isPPN && formData.bankAccount) ? 54 : 37;
-      if (formData.remarks) {
-        doc.setFont('helvetica', 'bold');
-        doc.text('REMARKS :', 14, currentY + remarkOffsetY);
-        doc.setFont('helvetica', 'normal');
-        const splitRemarks = doc.splitTextToSize(formData.remarks, 180);
-        doc.text(splitRemarks, 14, currentY + remarkOffsetY + 7);
-      }
-
-      const stampY = currentY + (formData.remarks ? remarkOffsetY + 20 : remarkOffsetY + 10);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0);
-      doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
-      doc.text(signer ? `( ${signer} )` : "(________________)", 167, stampY + 45, { align: 'center' });
-
-      const suffix = forceFinal ? '' : (isDraft ? '_DRAFT' : '');
-      doc.save(`${formData.quotationId}${suffix}.pdf`);
-
-    } catch (error) {
-      console.error('PDF Error:', error);
-      Swal.fire('PDF Error', t('sw.pdfFailed') + error.message, 'error');
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -675,41 +482,37 @@ const AddClientQuotation = () => {
         );
       }
 
+      /* Tanpa tombol Download PDF.
+       *
+       * Di titik ini quotation baru berstatus Pending — belum diverifikasi
+       * Management. Menawarkan unduhan PDF di sini membuat dokumen yang belum
+       * disetujui bisa beredar seolah-olah final. PDF-nya tetap bisa diambil
+       * dari Quotation Log setelah disetujui.
+       *
+       * Teks di dalam html: dulu ditulis {t('...')} — bentuk JSX yang tidak
+       * pernah dievaluasi di dalam template literal, sehingga kurung kurawalnya
+       * tampil mentah di layar. Di sini bentuk yang benar adalah ${t('...')}. */
       await Swal.fire({
-        title:              '<span style="font-family:sans-serif;font-weight:900;font-size:18px;color:#0f172a;text-transform:uppercase;letter-spacing:0.05em;">Quotation Submitted!</span>',
+        icon: 'success',
+        title:              '<span style="font-family:sans-serif;font-weight:900;font-size:18px;color:#0f172a;text-transform:uppercase;letter-spacing:0.05em;">' + t('sw.cqSubmittedTitle') + '</span>',
         html: `
           <div style="font-family:sans-serif;font-size:13px;color:#64748b;margin-bottom:4px;">
-            {t('msg.cqSubmitted')}
+            ${t('msg.cqSubmitted')}
           </div>
           <div style="margin-top:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:12px 16px;text-align:left;">
             <div style="font-size:10px;font-weight:900;color:#94a3b8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Quotation ID</div>
             <div style="font-size:13px;font-weight:700;color:#4f46e5;">${formData.quotationId}</div>
           </div>
-          <div style="margin-top:8px;font-size:10px;color:#94a3b8;">
-            {t('msg.downloadNow')}
-          </div>
         `,
-        showDenyButton:     true,
-        showConfirmButton:  true,
-        confirmButtonText:  '📄 Download PDF',
-        denyButtonText:     '✓ Done',
+        confirmButtonText:  t('btn.done'),
         confirmButtonColor: '#0f172a',
-        denyButtonColor:    '#64748b',
-        reverseButtons:     false,
         customClass: {
           popup:          'rounded-2xl',
           confirmButton:  'rounded-xl font-black text-xs uppercase tracking-widest',
-          denyButton:     'rounded-xl font-black text-xs uppercase tracking-widest',
         },
         allowOutsideClick: false,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          generatePDF(true);
-          navigate('/dashboard');
-        } else {
-          navigate('/dashboard');
-        }
       });
+      navigate('/dashboard');
 
     } catch (err) {
       console.error(err);
@@ -1139,22 +942,6 @@ const AddClientQuotation = () => {
               }`}
             >
               💾 Save Draft
-            </button>
-
-            <button
-              type="button"
-              onClick={() => generatePDF(false)}
-              disabled={!formData.projectId || !hasItems}
-              className={`px-6 py-4 rounded-xl font-black text-white uppercase tracking-widest text-xs transition-all active:scale-95 flex items-center gap-2 ${
-                !formData.projectId || !hasItems
-                  ? 'bg-slate-300 cursor-not-allowed'
-                  : formData.approvalStatus === 'Approved'
-                    ? 'bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100'
-                    : 'bg-slate-600 hover:bg-slate-700 shadow-lg shadow-slate-100'
-              }`}
-              title={formData.approvalStatus !== 'Approved' ? 'Download PDF (Draft preview)' : 'Download PDF Final'}
-            >
-              📄 Download PDF
             </button>
 
             <button

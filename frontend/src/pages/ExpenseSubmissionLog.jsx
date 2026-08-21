@@ -85,8 +85,8 @@ const ExpenseSubmissionLog = () => {
       rejectionReason = value;
     } else {
       const result = await Swal.fire({
-        title: 'Setujui Submission?',
-        html: `<strong>${exp.items?.length || 0} item</strong> {t('common.totalLower')} <strong class="text-emerald-600">Rp ${formatRupiah(exp.amount)}</strong> {t('page.willCountAsCost')} <strong>${exp.projectId}</strong>.`,
+        title: t('sw.approveSubmission'),
+        html: `<strong>${exp.items?.length || 0} item</strong> ${t('common.totalLower')} <strong class="text-emerald-600">Rp ${formatRupiah(exp.amount)}</strong> ${t('page.willCountAsCost')} <strong>${exp.projectId}</strong>.`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#16a34a',

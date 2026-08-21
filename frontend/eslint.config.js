@@ -41,6 +41,25 @@ export default defineConfig([
           selector: 'TemplateElement[value.raw=/text-\\[\\d+px\\]/]',
           message: 'Jangan pakai ukuran huruf piksel arbitrer. Pakai text-2xs / text-xs / text-sm, atau tambahkan token baru di @theme pada src/index.css.',
         },
+
+        // Panggilan t() ditulis sebagai {t('...')} di dalam string HTML SweetAlert
+        // dan tidak pernah dievaluasi, sehingga kurung kurawalnya tampil MENTAH di
+        // layar pengguna. Bentuk itu hanya berlaku di JSX; di dalam template
+        // literal yang benar adalah ${t('...')}, dan kalau posisinya sebagai nilai
+        // atribut HTML hasilnya harus dikutip: placeholder="${t('...')}".
+        //
+        // Sudah pernah terjadi diam-diam di 6 berkas sekaligus dan baru ketahuan
+        // dari screenshot produksi. TemplateElement dipakai karena di situlah
+        // kasusnya hidup; quasi sebuah `${t(...)}` yang benar tidak pernah memuat
+        // '{t(' sehingga penulisan yang betul tidak ikut tertangkap.
+        {
+          selector: 'TemplateElement[value.raw=/\\{t\\(/]',
+          message: "Di dalam template literal, t() harus ditulis dengan awalan dolar: ${ t('kunci') }. Bentuk JSX { t('kunci') } tidak dievaluasi di sini dan akan tampil mentah di layar.",
+        },
+        {
+          selector: 'Literal[value=/\\{t\\(/]',
+          message: "String ini memuat pemanggilan t() berkurung kurawal yang tidak akan pernah diterjemahkan. Pakai t('kunci') sebagai ekspresi, atau beri awalan dolar kalau ini template literal.",
+        },
       ],
     },
   },

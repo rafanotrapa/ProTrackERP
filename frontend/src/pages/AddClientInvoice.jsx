@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { mintaPenandatangan } from '../utils/pdfDocument';
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import autoTable from 'jspdf-autotable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
@@ -165,131 +161,6 @@ const AddClientInvoice = () => {
     }
   };
 
-  const generatePDF = async (data) => {
-    const signer = await mintaPenandatangan();
-    if (signer === null) return;
-    try {
-      const doc = new jsPDF();
-
-      doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40, 'hdr', 'FAST');
-      doc.setFontSize(26);
-      doc.setFont('helvetica', 'bold');
-      doc.text("INVOICE", 105, 55, { align: 'center' });
-
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'normal');
-      doc.text("To :", 14, 65);
-      doc.setFont(undefined, 'bold');
-      doc.text((data.clientName || '').toUpperCase(), 14, 71);
-
-      doc.setFont(undefined, 'normal');
-      doc.text("Date", 120, 65);
-      doc.text(`: ${new Date().toLocaleDateString('en-GB')}`, 150, 65);
-      doc.text("INVOICE #", 120, 71);
-      doc.text(`: ${data.invoiceNumber}`, 150, 71);
-      doc.text("Due Date", 120, 77);
-      doc.text(`: ${data.dueDate || '-'}`, 150, 77);
-      doc.text("TOP", 120, 83);
-      doc.text(`: ${data.topOption || data.billingPhase || '-'}`, 150, 83);
-
-      const tableRows = (data.items || []).map(item => [
-        item.quantity || 0,
-        (item.itemName || '').toUpperCase(),
-        (item.unit || '').toUpperCase(),
-        `Rp ${Number(item.price || 0).toLocaleString()}`,
-        `Rp ${(Number(item.quantity || 0) * Number(item.price || 0)).toLocaleString()}`
-      ]);
-
-      autoTable(doc, {
-        startY: 92,
-        head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Total (IDR)']],
-        body: tableRows,
-        theme: 'plain',
-        margin: { left: 5 },
-        headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-        bodyStyles: { halign: 'center' },
-        styles: { fontSize: 9, cellPadding: 4 },
-        columnStyles: {
-          0: { halign: 'center', cellWidth: 15 },
-          1: { halign: 'left', cellWidth: 75 },
-          2: { halign: 'center', cellWidth: 20 },
-          3: { halign: 'right', cellWidth: 45 },
-          4: { halign: 'right', cellWidth: 45 },
-        },
-        didDrawCell: (data) => {
-          if (data.section === 'body') {
-            doc.setDrawColor(230);
-            doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
-          }
-        }
-      });
-
-      const finalY = doc.lastAutoTable.finalY + 15;
-      let currentY = finalY;
-
-      doc.setFont(undefined, 'bold');
-      doc.setFontSize(10);
-      doc.text("Subtotal", 130, currentY);
-      doc.text(`Rp ${Number(data.totalContractValue - (data.shippingFee || 0) - (data.taxAmount || 0)).toLocaleString()}`, 196, currentY, { align: 'right' });
-
-      if (data.shippingFee > 0) {
-        currentY += 7;
-        doc.text("Shipping Fee", 130, currentY);
-        doc.text(`Rp ${Number(data.shippingFee).toLocaleString()}`, 196, currentY, { align: 'right' });
-      }
-
-      if (data.taxAmount > 0) {
-        currentY += 7;
-        doc.text(`PPN ${data.taxPercentage || 0}%`, 130, currentY);
-        doc.text(`Rp ${Number(data.taxAmount).toLocaleString()}`, 196, currentY, { align: 'right' });
-      }
-
-      currentY += 10;
-      doc.setFontSize(11);
-      doc.setTextColor(15, 23, 42);
-
-      const isProgress = data.billingPhase?.includes('REMAINING');
-
-      if (isProgress) {
-        doc.text("REMAINING BALANCE", 130, currentY);
-        doc.text(`Rp ${Number(data.amount).toLocaleString()}`, 196, currentY, { align: 'right' });
-        var paymentStartY = currentY + 20;
-      } else {
-        doc.text((data.billingPhase || 'FULL PAYMENT').toUpperCase(), 130, currentY);
-        doc.text(`Rp ${Number(data.amount).toLocaleString()}`, 196, currentY, { align: 'right' });
-        var paymentStartY = currentY + 20;
-      }
-
-      doc.setTextColor(0);
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
-      doc.text("PAYMENT & DELIVERY INFO :", 14, paymentStartY);
-
-      doc.setFont(undefined, 'normal');
-      const infoList = [
-        "Pembayaran melalui Cash / Transfer",
-        "Bank Mandiri : 1170011046968",
-        "A.n : BATAVIA JAYA KREASINDO",
-        `Term of Payment : ${data.topOption || data.billingPhase || '-'}`,
-        `Delivery Time   : 7 Working Days after PO / DP Received`,
-        "Warranty        : 1 Year"
-      ];
-      doc.text(infoList, 14, paymentStartY + 7);
-
-      const stampY = paymentStartY + (infoList.length * 4) + 10;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
-      doc.text(signer ? `( ${signer} )` : "(________________)", 167, stampY + 45, { align: 'center' });
-
-      doc.save(`${data.invoiceNumber}.pdf`);
-    } catch (error) {
-      console.error("PDF Error:", error);
-      Swal.fire('PDF Error', 'Failed to generate PDF', 'error');
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -347,25 +218,20 @@ const AddClientInvoice = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      const result = await Swal.fire({
+      /* Tanpa tombol Download PDF: invoice ini belum diverifikasi, jadi PDF-nya
+       * belum boleh beredar dari sini. Tersedia di Invoice Log setelah sah. */
+      await Swal.fire({
         icon: 'success',
-        title: 'INVOICE CREATED!',
+        title: t('sw.invoiceCreated'),
         html: `
           <div class="text-left">
-            <p class="font-bold mb-2">${formData.isProgressInvoice ? 'Progress Invoice' : 'Invoice'} <strong>${formData.invoiceNumber}</strong> has been created!</p>
-            <p class="text-sm text-slate-600 mt-2">Amount: <strong>Rp ${formData.amount.toLocaleString()}</strong></p>
+            <p class="font-bold mb-2">${formData.isProgressInvoice ? 'Progress Invoice' : 'Invoice'} <strong>${formData.invoiceNumber}</strong></p>
+            <p class="text-sm text-slate-600 mt-2">${t('label.amount')}: <strong>Rp ${formData.amount.toLocaleString('id-ID')}</strong></p>
           </div>
         `,
-        showCancelButton: true,
-        confirmButtonText: '📄 Download PDF',
-        cancelButtonText: 'Go to Dashboard',
+        confirmButtonText: t('btn.done'),
         confirmButtonColor: '#0f172a',
-        cancelButtonColor: '#64748b'
       });
-
-      if (result.isConfirmed) {
-        generatePDF(formData);
-      }
 
       navigate('/dashboard');
     } catch (err) {
@@ -537,27 +403,6 @@ const AddClientInvoice = () => {
               }`}
             >
               {loading ? 'GENERATING...' : formData.isProgressInvoice ? 'Generate Progress Invoice' : 'Generate Client Invoice'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => generatePDF(formData)}
-              disabled={formData.amount <= 0 || formData.items.length === 0}
-              className={`px-6 py-4 text-white rounded-xl transition-all active:scale-95 flex items-center justify-center group ${
-                formData.amount <= 0 || formData.items.length === 0 ? 'bg-slate-300 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-100'
-              }`}
-              title="Download PDF Only"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={3}
-                stroke="currentColor"
-                className="w-5 h-5 group-hover:translate-y-1 transition-transform"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
-              </svg>
             </button>
           </div>
         </form>

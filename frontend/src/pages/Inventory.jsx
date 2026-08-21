@@ -39,11 +39,11 @@ const Inventory = () => {
     const { value } = await Swal.fire({
       title: t('inv.updateUsed'),
       html: `<p style="font-size:13px;color:#475569;margin-bottom:8px;"><strong>${row.itemName}</strong></p>
-             <p style="font-size:11px;color:#94a3b8;">{t('form.initialAmount')} <strong>${row.initialQty}</strong> ${row.unit}</p>`,
+             <p style="font-size:11px;color:#94a3b8;">${t('form.initialAmount')} <strong>${row.initialQty}</strong> ${row.unit}</p>`,
       input: 'number',
       inputValue: row.usedQty,
       inputAttributes: { min: 0, max: row.initialQty, step: 1 },
-      inputLabel: `Jumlah terpakai (maks ${row.initialQty})`,
+      inputLabel: t('inv.usedMax', { n: row.initialQty }),
       showCancelButton: true,
       confirmButtonText: t('common.save'),
       cancelButtonText: t('common.cancel'),

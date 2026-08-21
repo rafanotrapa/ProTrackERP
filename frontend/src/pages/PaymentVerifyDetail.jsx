@@ -2,10 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
-import { mintaPenandatangan } from '../utils/pdfDocument';
-import { jsPDF } from "jspdf";
-import "jspdf-autotable";
-import autoTable from 'jspdf-autotable';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useSecureFileUrl } from '../utils/secureFile';
@@ -18,7 +14,6 @@ const PaymentVerifyDetail = () => {
   const [payment, setPayment] = useState(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [downloading, setDownloading] = useState(false);
   const [invoiceData, setInvoiceData] = useState(null);
   // Berkas bukti kini butuh token, jadi diambil sebagai blob lalu dipakai sebagai src.
   const buktiUrl = useSecureFileUrl(payment?.evidencePath);
@@ -97,149 +92,6 @@ const PaymentVerifyDetail = () => {
       });
     } finally {
       setActionLoading(false);
-    }
-  };
-
-  const downloadInvoicePDF = async (invoice) => {
-    if (!invoice) {
-      Swal.fire('Error', 'Invoice data not found', 'error');
-      return;
-    }
-
-    const signer = await mintaPenandatangan();
-    if (signer === null) return;
-
-    setDownloading(true);
-
-    try {
-      const doc = new jsPDF();
-
-      try {
-        doc.addImage("/header-batavia.png", 'PNG', 0, 0, 210, 40, 'hdr', 'FAST');
-      } catch {
-        doc.setFillColor(15, 23, 42);
-        doc.rect(0, 0, 210, 20, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text('PT. BATAVIA JAYA KREASI', 105, 13, { align: 'center' });
-        doc.setTextColor(0, 0, 0);
-      }
-
-      doc.setFontSize(26);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(15, 23, 42);
-      doc.text("INVOICE", 105, 55, { align: 'center' });
-
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text("To :", 14, 65);
-      doc.setFont('helvetica', 'bold');
-      doc.text((invoice.clientName || '').toUpperCase(), 14, 71);
-
-      doc.setFont('helvetica', 'normal');
-      doc.text("Date", 120, 65);
-      doc.text(`: ${new Date().toLocaleDateString('en-GB')}`, 150, 65);
-      doc.text("INVOICE #", 120, 71);
-      doc.text(`: ${invoice.invoiceNumber}`, 150, 71);
-      doc.text("Due Date", 120, 77);
-      doc.text(`: ${invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('en-GB') : '-'}`, 150, 77);
-      doc.text("TOP", 120, 83);
-      doc.text(`: ${invoice.topOption || invoice.billingPhase || '-'}`, 150, 83);
-
-      const tableRows = (invoice.items || []).map(item => [
-        item.quantity || 0,
-        (item.itemName || '').toUpperCase(),
-        (item.unit || '').toUpperCase(),
-        `Rp ${Number(item.price || 0).toLocaleString()}`,
-        `Rp ${(Number(item.quantity || 0) * Number(item.price || 0)).toLocaleString()}`
-      ]);
-
-      autoTable(doc, {
-        startY: 92,
-        head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Total (IDR)']],
-        body: tableRows,
-        theme: 'plain',
-        margin: { left: 5 },
-        headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center' },
-        bodyStyles: { halign: 'center' },
-        styles: { fontSize: 9, cellPadding: 4 },
-        columnStyles: {
-          0: { halign: 'center', cellWidth: 15 },
-          1: { halign: 'left', cellWidth: 75 },
-          2: { halign: 'center', cellWidth: 20 },
-          3: { halign: 'right', cellWidth: 45 },
-          4: { halign: 'right', cellWidth: 45 },
-        },
-        didDrawCell: (data) => {
-          if (data.section === 'body') {
-            doc.setDrawColor(230);
-            doc.line(data.cell.x, data.cell.y + data.cell.height, data.cell.x + data.cell.width, data.cell.y + data.cell.height);
-          }
-        }
-      });
-
-      const finalY = doc.lastAutoTable.finalY + 15;
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(10);
-      doc.text("Total", 130, finalY);
-      doc.text(`Rp ${Number(invoice.amount || 0).toLocaleString()}`, 196, finalY, { align: 'right' });
-
-      doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Payment Status: ${payment?.status || 'Unknown'}`, 14, finalY + 20);
-
-      if (payment?.status === 'Verified') {
-        doc.setTextColor(0, 128, 0);
-        doc.text(`✓ Verified on ${new Date(payment.updatedAt).toLocaleDateString('id-ID')}`, 14, finalY + 27);
-      } else if (payment?.status === 'Pending') {
-        doc.setTextColor(255, 140, 0);
-        doc.text(`⏳ Waiting for verification`, 14, finalY + 27);
-      } else if (payment?.status === 'Rejected') {
-        doc.setTextColor(255, 0, 0);
-        doc.text(`✗ Rejected`, 14, finalY + 27);
-      }
-
-      doc.setTextColor(0);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.text("PAYMENT & DELIVERY INFO :", 14, finalY + 40);
-
-      doc.setFont('helvetica', 'normal');
-      const infoList = [
-        "Pembayaran melalui Cash / Transfer",
-        "Bank Mandiri : 1170011046968",
-        "A.n : BATAVIA JAYA KREASINDO",
-        `Term of Payment : ${invoice.topOption || invoice.billingPhase || '-'}`,
-        `Delivery Time   : 7 Working Days after PO / DP Received`,
-        "Warranty        : 1 Year"
-      ];
-      doc.text(infoList, 14, finalY + 47);
-
-      const stampY = finalY + 85;
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(0, 0, 0);
-      doc.text("Hormat Kami,", 167, stampY + 5, { align: 'center' });
-      doc.text(signer ? `( ${signer} )` : "(________________)", 167, stampY + 45, { align: 'center' });
-
-      doc.save(`${invoice.invoiceNumber}.pdf`);
-
-      Swal.fire({
-        icon: 'success',
-        title: 'PDF Downloaded',
-        text: `Invoice ${invoice.invoiceNumber} has been downloaded`,
-        timer: 2000,
-        showConfirmButton: false
-      });
-
-    } catch (error) {
-      console.error("PDF Error:", error);
-      Swal.fire('Error', 'Failed to generate PDF', 'error');
-    } finally {
-      setDownloading(false);
     }
   };
 
@@ -405,16 +257,6 @@ const PaymentVerifyDetail = () => {
                 )}
               </div>
             </div>
-
-            {displayInvoice && (
-              <button
-                onClick={() => downloadInvoicePDF(displayInvoice)}
-                disabled={downloading}
-                className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {downloading ? 'GENERATING PDF...' : '📄 Download Invoice PDF'}
-              </button>
-            )}
 
             {isPending && (
               <div className="flex gap-4 pt-4">

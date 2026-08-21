@@ -39,27 +39,31 @@ const DeliveryManagement = () => {
   const handleSchedule = async (po) => {
     const totalQtyPO = (po.items || []).reduce((s, it) => s + (Number(it.quantity) || 0), 0);
     const { value: formValues } = await Swal.fire({
-      title: 'SET DELIVERY SCHEDULE',
+      title: t('sw.setDeliverySchedule'),
+      /* Ini template literal, bukan JSX: {t('...')} tidak pernah dievaluasi dan
+       * kurung kurawalnya tampil mentah di layar. Bentuk yang benar ${t('...')}.
+       * Khusus atribut HTML hasilnya harus dikutip — tanpa kutip, spasi di dalam
+       * terjemahan memotong nilai atributnya. */
       html: `
         <div class="text-left space-y-4">
-          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.deliveryDate')}</label><input id="swal-date" type="date" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.qty')}</label><input id="swal-qty" type="number" min="1" value="${totalQtyPO || ''}" placeholder={t('form.unitsSent')} class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-xs font-black uppercase text-slate-400">Kurir / Ekspedisi</label><input id="swal-courier" placeholder="Misal: Lalamove / Kurir Internal" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.tracking')}</label><input id="swal-resi" placeholder={t('form.fillLater')} class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.signer')}</label><input id="swal-signer" placeholder={t('form.senderName')} class="w-full p-3 border rounded-lg outline-none font-bold"></div>
-          <div><label class="text-xs font-black uppercase text-slate-400">{t('form.goodsPhoto')}</label><input id="swal-photo" type="file" accept="image/*" class="w-full p-3 border rounded-lg outline-none text-xs"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">${t('form.deliveryDate')}</label><input id="swal-date" type="date" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">${t('form.qty')}</label><input id="swal-qty" type="number" min="1" value="${totalQtyPO || ''}" placeholder="${t('form.unitsSent')}" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">${t('form.courier')}</label><input id="swal-courier" placeholder="${t('ph.courierExample')}" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">${t('form.tracking')}</label><input id="swal-resi" placeholder="${t('form.fillLater')}" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">${t('form.signer')}</label><input id="swal-signer" placeholder="${t('form.senderName')}" class="w-full p-3 border rounded-lg outline-none font-bold"></div>
+          <div><label class="text-xs font-black uppercase text-slate-400">${t('form.goodsPhoto')}</label><input id="swal-photo" type="file" accept="image/*" class="w-full p-3 border rounded-lg outline-none text-xs"></div>
         </div>
       `,
       focusConfirm: false,
       showCancelButton: true,
       confirmButtonColor: '#0f172a',
-      confirmButtonText: 'SAVE SCHEDULE',
+      confirmButtonText: t('btn.saveSchedule'),
       preConfirm: () => {
         const date = document.getElementById('swal-date').value;
         const qty = document.getElementById('swal-qty').value;
         const courier = document.getElementById('swal-courier').value;
         if (!date || !courier || !qty) {
-          Swal.showValidationMessage('Tanggal, Jumlah Barang, dan Kurir wajib diisi!');
+          Swal.showValidationMessage(t('sw.deliveryRequired'));
           return false;
         }
         return {

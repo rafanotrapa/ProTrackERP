@@ -4,7 +4,7 @@ const Vendor = require('../models/Vendor');
 const { computePOPaymentStatuses, UNPAID } = require('../utils/poPaymentStatus');
 const { lengkapiNamaProject } = require('../utils/projectNames');
 const { kirimDiamDiam } = require('../utils/notify');
-const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
+const { picMarketing, usersByRole, gabung, namaPelaku } = require('../utils/notifyTargets');
 
 // Field vendor yang dibutuhkan dokumen PO. Sebelumnya di sini tertulis
 // 'vendorContact', yang tidak ada di skema Vendor — nama sebenarnya
@@ -58,6 +58,8 @@ exports.createPO = async (req, res) => {
       projectId: quote.projectId,
       vendorId: realVendorObjectId, 
       items: quote.items, 
+      topOption: quote.topOption,
+      customTop: quote.customTop,
       additionalFee: addFee,
       additionalFeeRemarks: quote.additionalFeeRemarks, 
       isTaxIncluded: quote.isTaxIncluded,             
@@ -78,7 +80,7 @@ exports.createPO = async (req, res) => {
     res.status(201).json({ msg: 'Purchase Order resmi diterbitkan!', data: newPO });
 
     const [fin, mkt] = await Promise.all([usersByRole('Finance'), picMarketing(newPO.projectId)]);
-    const pPO = { nomor: newPO.poNumber, oleh: req.user?.username };
+    const pPO = { nomor: newPO.poNumber, oleh: await namaPelaku(req) };
     kirimDiamDiam({ penerima: gabung([fin], req.user?.id), jenis: 'poCreated', params: pPO,
       targetTipe: 'supplierPayment', actor: req.user?.id });
     kirimDiamDiam({ penerima: gabung([mkt], req.user?.id), jenis: 'poCreated', params: pPO,
@@ -127,10 +129,20 @@ exports.getAllPOs = async (req, res) => {
     // paymentStatus diturunkan dari tagihan supplier yang sudah dibayar supaya
     // tidak basi. Nilai yang disimpan di dokumen PO tidak pernah diperbarui.
     const statusMap = await computePOPaymentStatuses(pos);
-    const hasil = pos.map(po => ({
-      ...po.toObject(),
-      paymentStatus: statusMap.get(po.poNumber) || UNPAID,
-    }));
+    const hasil = pos.map(po => {
+      const obj = po.toObject();
+      /* PO yang terbit sebelum topOption/customTop ada di skema tidak menyimpan
+       * syarat pembayaran sama sekali, sehingga setiap tagihan supplier darinya
+       * jatuh ke 'Full Payment'. Quotation-nya sudah di-populate di atas, jadi
+       * nilainya bisa diambil dari sana tanpa query tambahan dan tanpa migrasi.
+       * Hanya sebagai cadangan: PO baru menyimpan salinannya sendiri, dan
+       * salinan itu yang menang kalau ada. */
+      if (!obj.topOption && obj.quotationId) {
+        obj.topOption = obj.quotationId.topOption || '';
+        obj.customTop = obj.quotationId.customTop || '';
+      }
+      return { ...obj, paymentStatus: statusMap.get(po.poNumber) || UNPAID };
+    });
 
     // Nama project ikut dikirim supaya daftar PO bisa dibaca dan dicari tanpa
     // harus hafal kode projectnya.
@@ -178,7 +190,7 @@ exports.qcCheckPO = async (req, res) => {
 
     res.json({ msg: `Status QC berhasil diupdate menjadi: ${status}`, data: po });
 
-    const pQC = { nomor: po.poNumber, oleh: req.user?.username };
+    const pQC = { nomor: po.poNumber, oleh: await namaPelaku(req) };
     if (status === 'Passed') {
       kirimDiamDiam({ penerima: gabung([await usersByRole('Procurement')], req.user?.id),
         jenis: 'poQcPassed', params: pQC, targetTipe: 'deliveryManagement', actor: req.user?.id });
@@ -212,7 +224,7 @@ exports.updateDelivery = async (req, res) => {
     if (status === 'Delivered') {
       const [mk, fn] = await Promise.all([picMarketing(po.projectId), usersByRole('Finance')]);
       kirimDiamDiam({ penerima: gabung([mk, fn], req.user?.id), jenis: 'poDelivered',
-        params: { nomor: po.poNumber, oleh: req.user?.username },
+        params: { nomor: po.poNumber, oleh: await namaPelaku(req) },
         targetTipe: 'projectBilling', targetId: po.projectId, actor: req.user?.id });
     }
   } catch (err) {

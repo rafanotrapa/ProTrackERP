@@ -3,7 +3,7 @@ const Log = require('../models/Log');
 const User = require('../models/User');
 const { nextDocumentNumber } = require('../utils/documentNumber');
 const { kirimDiamDiam } = require('../utils/notify');
-const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
+const { picMarketing, usersByRole, gabung, namaPelaku } = require('../utils/notifyTargets');
 
 exports.addProject = async (req, res) => {
   try {
@@ -128,7 +128,7 @@ exports.updateProjectPIC = async (req, res) => {
 
     // PIC baru diberi tahu bahwa project ini kini tanggung jawabnya.
     kirimDiamDiam({ penerima: gabung([[calonPIC._id]], req.user?.id), jenis: 'picChanged',
-      params: { nomor: project.projectId, oleh: req.user?.username },
+      params: { nomor: project.projectId, oleh: await namaPelaku(req) },
       targetTipe: 'projectLog', actor: req.user?.id });
   } catch (err) {
     console.error('Error ubah PIC:', err);

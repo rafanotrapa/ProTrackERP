@@ -6,6 +6,7 @@ import { Upload, CheckCircle2, AlertCircle, Search, Receipt, Anchor } from 'luci
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
+import { parsePaymentStages, resolveTopOption, labelTahap } from '../utils/paymentTerms';
 
 import { useLang } from '../i18n';
 const InvoiceSubmission = () => {
@@ -17,7 +18,10 @@ const InvoiceSubmission = () => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [selectedPO, setSelectedPO] = useState(null);
+  /* Tahap pembayaran diturunkan dari syarat TOP milik PO, bukan disimpan di PO.
+   * Menggantikan state selectedPO yang dulu ada di sini: satu-satunya yang
+   * dibacanya adalah po.paymentTerms, field yang tidak pernah ada di skema. */
+  const [tahapBayar, setTahapBayar] = useState([]);
   const dropdownRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -67,10 +71,6 @@ const InvoiceSubmission = () => {
   }, [availablePOs, searchTerm]);
 
   const handleSelect = (po) => {
-    setSelectedPO(po);
-    const safeTopOption = po.topOption || '';
-    const isTermin = safeTopOption === 'Termin' || safeTopOption.includes('DP');
-    const firstTermin = isTermin && po.paymentTerms && po.paymentTerms.length > 0 ? po.paymentTerms[0] : null;
 
     // Base billing = harga dari supplier saja (barang + ongkir/fee vendor).
     // Pajak dan bea masuk dicatat di field terpisah — kalau totalAmount PO dipakai
@@ -81,6 +81,19 @@ const InvoiceSubmission = () => {
     const poBaseAmount = goodsSubtotal + (Number(po.additionalFee) || 0);
     const poTaxAmount  = Number(po.taxAmount) || 0;
 
+    /* Tahap pembayaran dihitung dari syarat TOP milik PO.
+     *
+     * Sebelumnya baris ini membaca po.paymentTerms — field yang TIDAK PERNAH ADA
+     * di skema PurchaseOrder. Akibatnya isTermin selalu false dan setiap tagihan
+     * supplier tersimpan sebagai 'Full Payment', walaupun quotation-nya memakai
+     * termin berpersentase. Pemilih terminnya pun tidak pernah muncul.
+     *
+     * parsePaymentStages memakai util yang sama dengan backend, jadi pembagian
+     * nominalnya dijamin sama dengan yang dipakai saat menagih. */
+    const tahap = parsePaymentStages(resolveTopOption(po.topOption, po.customTop), poBaseAmount);
+    const isTermin = tahap.length > 1;
+    setTahapBayar(isTermin ? tahap : []);
+
     setFormData((prev) => ({
       ...prev,
       poId: po._id,
@@ -88,9 +101,10 @@ const InvoiceSubmission = () => {
       projectId: po.projectId || '',
       vendorName: po.vendorId?.vendorName || po.vendorId || 'Unknown Vendor',
       currency: po.currency || 'IDR',
-      terminName: isTermin ? (firstTermin ? firstTermin.description : 'Termin') : 'Full Payment',
+      // Nilai mentah yang disimpan ke database; terjemahannya hanya saat render.
+      terminName: tahap[0].name,
       // Untuk termin, nominalnya per tahap — pajak/bea diisi manual sesuai tagihan vendor.
-      amount: isTermin ? (firstTermin ? firstTermin.amount : poBaseAmount) : poBaseAmount,
+      amount: tahap[0].amount,
       isTaxEnabled: !isTermin && poTaxAmount > 0,
       taxAmount: !isTermin && poTaxAmount > 0 ? poTaxAmount : '',
       // Bea masuk tidak bisa diprediksi di awal — selalu dikosongkan.
@@ -102,13 +116,13 @@ const InvoiceSubmission = () => {
   };
 
   const handleTerminChange = (e) => {
-    const selectedDesc = e.target.value;
-    const selectedTerminObj = selectedPO.paymentTerms.find(t => t.description === selectedDesc);
+    const dipilih = e.target.value;
+    const tahap = tahapBayar.find((x) => x.name === dipilih);
 
     setFormData(prev => ({
         ...prev,
-        terminName: selectedDesc,
-        amount: selectedTerminObj ? selectedTerminObj.amount : prev.amount
+        terminName: dipilih,
+        amount: tahap ? tahap.amount : prev.amount
     }));
   };
 
@@ -229,17 +243,16 @@ const InvoiceSubmission = () => {
                   </div>
                 </div>
 
-                {selectedPO && selectedPO.paymentTerms && selectedPO.paymentTerms.length > 0 && (
+                {tahapBayar.length > 0 && (
                   <div className="space-y-1 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                      <label className="text-xs font-black text-amber-600 uppercase tracking-widest italic ml-1 mb-1 block font-bold leading-none">{t('pick.paymentTerm')}</label>
                      <StyledSelect
                         value={formData.terminName}
                         onChange={handleTerminChange}
                         searchable={false}
-                        options={selectedPO.paymentTerms.map((term) => ({
-                          value: term.description,
-                          disabled: term.status === 'Invoiced',
-                          label: `${term.description} - ${formData.currency} ${formatRupiah(term.amount)} ${term.status === 'Invoiced' ? '(Sudah Ditagih)' : ''}`,
+                        options={tahapBayar.map((tahap) => ({
+                          value: tahap.name,
+                          label: `${labelTahap(tahap.name, t)} - ${formData.currency} ${formatRupiah(tahap.amount)}`,
                         }))}
                      />
                   </div>
@@ -257,7 +270,7 @@ const InvoiceSubmission = () => {
                       required
                       value={formatRupiah(formData.amount)}
                       onChange={(e) => setFormData({...formData, amount: e.target.value.replace(/[^0-9]/g, '')})}
-                      className={`w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-black text-xl outline-none focus:border-indigo-600 shadow-sm text-right ${selectedPO && selectedPO.paymentTerms?.length > 0 ? 'text-amber-600' : 'text-slate-800'}`}
+                      className={`w-full p-4 bg-white border-2 border-slate-200 rounded-xl font-black text-xl outline-none focus:border-indigo-600 shadow-sm text-right ${tahapBayar.length > 0 ? 'text-amber-600' : 'text-slate-800'}`}
                     />
                   </div>
                 </div>

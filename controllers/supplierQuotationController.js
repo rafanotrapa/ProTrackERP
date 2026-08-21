@@ -3,7 +3,7 @@ const Vendor = require('../models/Vendor');
 const { lengkapiNamaProject } = require('../utils/projectNames');
 const { nextDocumentNumber } = require('../utils/documentNumber');
 const { kirimDiamDiam } = require('../utils/notify');
-const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
+const { picMarketing, usersByRole, gabung, namaPelaku } = require('../utils/notifyTargets');
 
 exports.createQuotation = async (req, res) => {
   try {
@@ -69,7 +69,7 @@ exports.createQuotation = async (req, res) => {
     kirimDiamDiam({
       penerima: gabung([await usersByRole('Management')], req.user?.id),
       jenis: 'supplierQuotationCreated',
-      params: { nomor: newQuotation.quotationId, oleh: req.user?.username },
+      params: { nomor: newQuotation.quotationId, oleh: await namaPelaku(req) },
       targetTipe: 'quotationApproval',
       targetId: newQuotation._id,
       actor: req.user?.id,
@@ -160,7 +160,7 @@ exports.approveQuotation = async (req, res) => {
 
     // Sesudah respons terkirim. Notifikasi adalah efek samping — kalau gagal,
     // approval yang sudah tersimpan tidak boleh ikut terlihat gagal di layar.
-    const params = { nomor: updatedQuo.quotationId, oleh: req.user?.username };
+    const params = { nomor: updatedQuo.quotationId, oleh: await namaPelaku(req) };
     if (status === 'Approved') {
       // Inti alurnya: Marketing pemegang project yang harus mengerjakan
       // Client Quotation berikutnya.

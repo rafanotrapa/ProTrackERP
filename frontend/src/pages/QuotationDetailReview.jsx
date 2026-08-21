@@ -6,6 +6,7 @@ import { CheckCircle, XCircle, Clock, FileText, Building2, Package } from 'lucid
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
+import { labelTop } from '../utils/paymentTerms';
 
 import { useLang } from '../i18n';
 const QuotationDetailReview = () => {
@@ -181,8 +182,8 @@ const QuotationDetailReview = () => {
                   <p className="text-lg font-black text-slate-800 uppercase mt-1">{quo.projectId}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Term of Payment</p>
-                  <p className="text-base font-black text-amber-600 uppercase mt-1">{quo.topOption === 'Custom' ? quo.customTop : quo.topOption}</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('label.top')}</p>
+                  <p className="text-base font-black text-amber-600 uppercase mt-1">{labelTop(quo.topOption, quo.customTop, t)}</p>
                 </div>
                 <div>
                   <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Currency</p>

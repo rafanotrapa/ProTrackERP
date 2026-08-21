@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
+import { labelTop } from '../utils/paymentTerms';
 import Footer from '../components/Footer';
 
 import { akunBacaSaja } from '../utils/peran';
@@ -173,7 +174,7 @@ const SupplierQuotationRecord = () => {
                       <td className="px-6 py-5">
                         <p className="text-xs font-black text-indigo-600 uppercase tracking-wider">{quo.quotationId}</p>
                         <p className="font-black text-slate-800 text-sm mt-0.5">{quo.vendorId}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{quo.items?.length || 0} Items &bull; {quo.topOption}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{quo.items?.length || 0} Items &bull; {labelTop(quo.topOption, quo.customTop, t)}</p>
                       </td>
                       <td className="px-6 py-5 text-center">
                         <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-black uppercase tracking-widest border border-indigo-100">

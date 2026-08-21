@@ -8,6 +8,7 @@ import {
   Boxes, MapPin, Phone, Activity, Banknote, Wallet, XCircle
 } from 'lucide-react';
 import Header from '../components/Header';
+import { labelTahap } from '../utils/paymentTerms';
 import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
 
@@ -518,7 +519,7 @@ const ProjectTimeline = () => {
                     <tr key={si._id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-5 py-3"><span className="font-black text-indigo-600 text-sm">{si.invoiceNumber}</span></td>
                       <td className="px-5 py-3"><span className="text-sm font-medium text-slate-700">{si.vendorName}</span></td>
-                      <td className="px-5 py-3"><span className="text-sm text-slate-500">{si.terminName}</span></td>
+                      <td className="px-5 py-3"><span className="text-sm text-slate-500">{labelTahap(si.terminName, t)}</span></td>
                       <td className="px-5 py-3"><span className="font-black text-slate-800">{fmt(si.amount)}</span></td>
                       <td className="px-5 py-3"><StatusPill status={si.status} /></td>
                       <td className="px-5 py-3"><span className="text-sm text-slate-500">{fmtDate(si.paymentDate, lang)}</span></td>

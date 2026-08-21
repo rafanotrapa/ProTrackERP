@@ -1,6 +1,6 @@
 const ExpenseSubmission = require('../models/ExpenseSubmission');
 const { kirimDiamDiam } = require('../utils/notify');
-const { gabung } = require('../utils/notifyTargets');
+const { gabung, namaPelaku } = require('../utils/notifyTargets');
 
 const parseItems = (rawItems) => {
   let items = rawItems;
@@ -205,7 +205,7 @@ exports.reviewExpense = async (req, res) => {
     kirimDiamDiam({
       penerima: gabung([[updated.submittedBy]], req.user?.id),
       jenis: updated.status === 'Approved' ? 'expenseApproved' : 'expenseRejected',
-      params: { nomor: updated.submissionId, oleh: req.user?.username },
+      params: { nomor: updated.submissionId, oleh: await namaPelaku(req) },
       targetTipe: 'expenseLog', actor: req.user?.id,
     });
   } catch (err) {

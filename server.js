@@ -60,6 +60,10 @@ app.get('/api/files/:filename', protect, (req, res) => {
   const filename = path.basename(req.params.filename);
   const candidates = [
     path.join(__dirname, 'uploads/documents', filename),
+    // Bukti pembayaran client mendarat di subfolder sendiri lewat
+    // routes/clientPaymentRoutes.js. Tanpa baris ini berkas itu SELALU 404
+    // walau ada di disk, karena tidak satu pun kandidat menunjuk ke sana.
+    path.join(__dirname, 'uploads/documents/payments', filename),
     path.join(__dirname, 'uploads', filename),
   ];
   const found = candidates.find(p => fs.existsSync(p));

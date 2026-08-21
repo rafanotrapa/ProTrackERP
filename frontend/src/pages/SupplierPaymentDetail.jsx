@@ -8,6 +8,7 @@ import {
   Download, Eye, CreditCard
 } from 'lucide-react';
 import Header from '../components/Header';
+import { labelTahap } from '../utils/paymentTerms';
 import Footer from '../components/Footer';
 import { useSecureFileUrl, openSecureFile } from '../utils/secureFile';
 
@@ -235,7 +236,7 @@ const SupplierPaymentDetail = () => {
                 </div>
                 <div>
                   <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Termin / Phase</p>
-                  <p className="text-base font-black text-amber-600 uppercase mt-1">{invoice.terminName || 'Full Payment'}</p>
+                  <p className="text-base font-black text-amber-600 uppercase mt-1">{labelTahap(invoice.terminName || 'Full Payment', t)}</p>
                 </div>
               </div>
             </div>

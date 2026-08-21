@@ -47,6 +47,25 @@ async function picMarketing(kodeProject) {
 }
 
 /**
+ * Nama pelaku untuk disisipkan ke kalimat notifikasi.
+ *
+ * req.user dibangun di middleware/auth.js dari isi token, dan `username` hanya
+ * ikut kalau token memang membawanya — auth.js:121-122 sendiri sudah berjaga
+ * dengan `if (decoded.username) ... else User.findById(...)`. Tanpa penjaga
+ * yang sama di sini, kalimat 'Client Quotation {nomor} dari {oleh}' terbaca
+ * "dari undefined" di lonceng penerima.
+ *
+ * Mengembalikan string kosong, bukan undefined, karena utils/notifTeks.js
+ * membuang parameter kosong dari kalimatnya alih-alih mencetaknya mentah.
+ */
+async function namaPelaku(req) {
+  if (req?.user?.username) return req.user.username;
+  if (!req?.user?.id) return '';
+  const u = await User.findById(req.user.id).select('username').lean().catch(() => null);
+  return u?.username || '';
+}
+
+/**
  * Gabungkan beberapa daftar penerima, buang duplikat, dan buang akun tertentu.
  * Pelaku dibuang secara bawaan — memberi tahu seseorang tentang perbuatannya
  * sendiri hanya menambah bising.
@@ -64,4 +83,4 @@ function gabung(daftar, kecuali) {
   return [...unik.values()];
 }
 
-module.exports = { usersByRole, picMarketing, gabung, samakanPeran };
+module.exports = { usersByRole, picMarketing, gabung, samakanPeran, namaPelaku };

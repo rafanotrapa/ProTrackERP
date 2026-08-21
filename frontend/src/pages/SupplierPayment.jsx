@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { Building2, CheckCircle, Clock, Eye, Search } from 'lucide-react';
 import Header from '../components/Header';
+import { labelTahap } from '../utils/paymentTerms';
 import Footer from '../components/Footer';
 
 import { useLang } from '../i18n';
@@ -228,7 +229,7 @@ const SupplierPayment = () => {
                     </td>
                     <td className="px-6 py-5 text-right">
                       <p className="font-black text-emerald-600">Rp {formatRupiah(p.totalAmount || p.amount)}</p>
-                      <p className="text-2xs text-slate-400">{p.terminName || 'Full Payment'}</p>
+                      <p className="text-2xs text-slate-400">{labelTahap(p.terminName || 'Full Payment', t)}</p>
                     </td>
                     <td className="px-6 py-5 text-center">{getStatusBadge(p.status)}</td>
                     <td className="px-6 py-5 text-center">

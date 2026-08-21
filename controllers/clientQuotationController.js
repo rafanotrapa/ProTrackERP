@@ -2,7 +2,7 @@ const ClientQuotation  = require('../models/ClientQuotation');
 const SupplierQuotation = require('../models/SupplierQuotation');
 const { resolveTopOption } = require('../utils/paymentTerms');
 const { kirimDiamDiam } = require('../utils/notify');
-const { picMarketing, usersByRole, gabung } = require('../utils/notifyTargets');
+const { picMarketing, usersByRole, gabung, namaPelaku } = require('../utils/notifyTargets');
 
 const calculateClientPrice = (items = []) =>
   items.reduce((total, item) => total + (item.quantity || 0) * (item.salesPrice || 0), 0);
@@ -46,6 +46,7 @@ exports.createQuotation = async (req, res) => {
     const cleanTaxAmount        = Number(taxAmount) || 0;
     const isPPN                 = cleanTaxAmount > 0;
     const finalTop              = resolveTopOption(topOption, customTop);
+    const statusAwal            = req.body.approvalStatus || 'Draft';
 
     const newQuotation = new ClientQuotation({
       quotationId,
@@ -59,7 +60,7 @@ exports.createQuotation = async (req, res) => {
       customTop:      finalTop,
       remarks:        remarks       || '',
       bankAccount:    isPPN ? (bankAccount || '') : '',
-      approvalStatus: req.body.approvalStatus || 'Draft',
+      approvalStatus: statusAwal,
       quotationMode:  quotationMode || 'auto',
       shippingFee:    Number(shippingFee) || 0,
       taxPercentage:  0,
@@ -67,7 +68,28 @@ exports.createQuotation = async (req, res) => {
     });
 
     const saved = await newQuotation.save();
-    res.status(201).json({ success: true, msg: 'Quotation draft saved!', data: saved });
+    res.status(201).json({
+      success: true,
+      msg: statusAwal === 'Pending' ? 'Quotation submitted for approval!' : 'Quotation draft saved!',
+      data: saved,
+    });
+
+    /* Tombol Submit di frontend bercabang: kalau draft-nya belum pernah
+     * disimpan, formData._id masih kosong sehingga yang terpanggil POST ke sini,
+     * bukan PUT /:id/submit. Dulu hanya submitQuotation yang mengirim
+     * notifikasi, jadi quotation yang diisi lalu langsung disubmit muncul di
+     * antrean approval TANPA memberi tahu Management sama sekali.
+     *
+     * Penjagaannya ditaruh di controller, bukan di frontend, supaya jalur POST
+     * mana pun — termasuk yang belum ada — ikut terlindungi. */
+    if (statusAwal === 'Pending') {
+      kirimDiamDiam({
+        penerima: gabung([await usersByRole('Management')], req.user?.id),
+        jenis: 'clientQuotationSubmitted',
+        params: { nomor: saved.quotationId, oleh: await namaPelaku(req) },
+        targetTipe: 'clientQuotationApproval', targetId: saved._id, actor: req.user?.id,
+      });
+    }
   } catch (err) {
     console.error('Error create client quotation:', err);
     res.status(500).json({ msg: err.message });
@@ -137,7 +159,7 @@ exports.approveQuotation = async (req, res) => {
     if (!updated) return res.status(404).json({ msg: 'Quotation tidak ditemukan' });
     res.json({ success: true, msg: `Quotation berhasil di-${status}!`, data: updated });
 
-    const params = { nomor: updated.quotationId, oleh: req.user?.username };
+    const params = { nomor: updated.quotationId, oleh: await namaPelaku(req) };
     if (status === 'Approved') {
       // Finance yang menerbitkan invoice termin setelah quotation disetujui.
       kirimDiamDiam({
@@ -264,7 +286,7 @@ exports.submitQuotation = async (req, res) => {
     kirimDiamDiam({
       penerima: gabung([await usersByRole('Management')], req.user?.id),
       jenis: 'clientQuotationSubmitted',
-      params: { nomor: updated.quotationId, oleh: req.user?.username },
+      params: { nomor: updated.quotationId, oleh: await namaPelaku(req) },
       targetTipe: 'clientQuotationApproval', targetId: updated._id, actor: req.user?.id,
     });
   } catch (err) {

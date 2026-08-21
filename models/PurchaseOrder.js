@@ -18,6 +18,21 @@ const PurchaseOrderSchema = new mongoose.Schema({
     cogs: Number
   }],
 
+  /* Skema pembayaran, disalin apa adanya dari Supplier Quotation saat PO terbit.
+   *
+   * Dulu tidak ada di sini sama sekali, dan itu memutus rantai termin: frontend
+   * membaca po.topOption yang selalu undefined, sehingga setiap tagihan supplier
+   * jatuh ke terminName 'Full Payment' — bukan salah tampil, tapi mustahil benar.
+   *
+   * Disalin, bukan di-populate lewat quotationId, karena PO adalah surat resmi
+   * ke supplier: syarat pembayaran yang tercetak di sana harus tetap sama walau
+   * quotation-nya kelak diubah. Nilainya mengikuti bentuk di SupplierQuotation —
+   * topOption berisi label ('Termin', 'Net 30'), customTop berisi skemanya
+   * ('Termin 30% 20% 10% 40%'). Gabungkan dengan utils/paymentTerms.js.
+   */
+  topOption: { type: String },
+  customTop: { type: String },
+
   additionalFee: { type: Number, default: 0 },
   additionalFeeRemarks: { type: String },
   isTaxIncluded: { type: Boolean, default: false },

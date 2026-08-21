@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { FileText, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
+import { labelTahap } from '../utils/paymentTerms';
 import Footer from '../components/Footer';
 import { fetchFileObjectUrl } from '../utils/secureFile';
 
@@ -172,7 +173,7 @@ const SupplierInvoiceRecord = () => {
                     <tr key={inv._id} className="hover:bg-slate-50/50 transition-all">
                       <td className="px-6 py-5">
                         <p className="text-xs font-black text-indigo-600 uppercase tracking-wider">{inv.invoiceNumber}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">PO: {inv.poNumber} &bull; {inv.terminName}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">PO: {inv.poNumber} &bull; {labelTahap(inv.terminName, t)}</p>
                       </td>
                       <td className="px-6 py-5">
                         <p className="font-bold text-slate-800 text-sm">{inv.vendorName}</p>

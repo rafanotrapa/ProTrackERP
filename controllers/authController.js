@@ -92,13 +92,13 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(401).json({ msg: 'Email atau password salah!' });
+      return res.status(401).json({ msg: 'Incorrect email or password!' });
     }
 
     if (user.isLocked && user.lockedUntil > Date.now()) {
       const remainingMinutes = Math.ceil((user.lockedUntil - Date.now()) / 60000);
       return res.status(423).json({
-        msg: `Akun Anda telah diblokir. Silakan hubungi Admin untuk membuka blokir.`,
+        msg: `Your account is locked. Please contact an Administrator to unlock it.`,
         isLocked: true,
         remainingMinutes
       });
@@ -131,7 +131,7 @@ exports.login = async (req, res) => {
         });
 
         return res.status(423).json({
-          msg: `Akun Anda telah diblokir karena 3 kali gagal login. Silakan hubungi Admin untuk membuka blokir.`,
+          msg: `Your account is locked after 3 failed sign-in attempts. Please contact an Administrator to unlock it.`,
           isLocked: true,
           remainingAttempts: 0
         });
@@ -140,7 +140,7 @@ exports.login = async (req, res) => {
       await user.save();
 
       return res.status(401).json({
-        msg: `Password salah! ${remainingAttempts} kesempatan lagi sebelum akun diblokir.`,
+        msg: `Wrong password! ${remainingAttempts} attempt(s) left before the account is locked.`,
         remainingAttempts
       });
     }
@@ -181,7 +181,7 @@ exports.login = async (req, res) => {
     });
   } catch (err) {
     console.error("❌ ERROR LOGIN:", err);
-    res.status(500).json({ msg: 'Server Error saat login' });
+    res.status(500).json({ msg: 'Server error during sign-in' });
   }
 };
 

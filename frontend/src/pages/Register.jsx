@@ -135,25 +135,28 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-10 font-sans flex flex-col items-center">
+    // Header harus berada DI LUAR container ber-padding. Ditaruh di dalamnya,
+    // navbar ikut terpotong padding dan tercentang items-center, sehingga tidak
+    // lagi selebar layar dan menyisakan celah putih di kiri-kanan.
+    <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
       <Header />
 
-      <div className="w-full max-w-6xl">
+      <div className="w-full max-w-6xl mx-auto p-6 md:p-10">
 
         <header className="flex justify-between items-end mb-8 px-2">
           <div>
             <h1 className="text-4xl font-black text-slate-900 tracking-tighter italic uppercase leading-none">
-              Add New <span className="text-indigo-600">Employee</span>
+              {t('reg.title')}
             </h1>
             <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em] mt-2">
-              Human Resources • Access Control Protocol
+              {t('reg.subtitle')}
             </p>
           </div>
           <button
             onClick={() => navigate('/manage-users')}
             className="text-slate-400 font-black text-xs uppercase border-b-2 border-transparent hover:border-indigo-600 hover:text-indigo-600 transition-all tracking-widest pb-1"
           >
-            Back to User List
+            {t('reg.backToList')}
           </button>
         </header>
 
@@ -162,7 +165,7 @@ const Register = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">Full Name</label>
+                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">{t('reg.fullName')}</label>
                 <input
                   type="text" required
                   className="w-full rounded-2xl bg-slate-50 border border-slate-100 p-4 text-xl font-black italic uppercase outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all text-slate-800"
@@ -172,7 +175,7 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">Work Email</label>
+                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">{t('reg.workEmail')}</label>
                 <input
                   type="email" required
                   className="w-full rounded-2xl bg-slate-50 border border-slate-100 p-4 font-bold outline-none focus:ring-4 focus:ring-indigo-500/10 focus:bg-white transition-all text-slate-600"
@@ -186,7 +189,7 @@ const Register = () => {
               </div>
 
               <div className="space-y-2 relative" ref={dropdownRef}>
-                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">Assign Division Role</label>
+                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">{t('reg.divisionRole')}</label>
 
                 <div
                   onClick={() => setIsOpen(!isOpen)}
@@ -254,7 +257,7 @@ const Register = () => {
               )}
 
               <div className="md:col-span-2 space-y-2">
-                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">Initial Password</label>
+                <label className="text-xs font-black uppercase text-slate-400 tracking-widest ml-1">{t('reg.initialPassword')}</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}

@@ -375,7 +375,7 @@ const AddExpenseSubmission = () => {
                 <Upload size={20} className="text-amber-600" />
                 <div>
                   <p className="text-xs font-black text-amber-700">
-                    {formData.file ? formData.file.name : 'Klik untuk upload file'}
+                    {formData.file ? formData.file.name : t('up.clickToUpload')}
                   </p>
                   <p className="text-xs text-amber-500">{t('hint.fileRule')}</p>
                 </div>

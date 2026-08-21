@@ -376,7 +376,7 @@ const DeliveryManagement = () => {
                               onClick={() => openSecureFile(po.deliveryPhoto)}
                               className="inline-block mt-1 text-xs font-black text-indigo-600 hover:underline uppercase tracking-widest"
                             >
-                              📷 Lihat Foto
+                              {t('dm.viewPhoto')}
                             </button>
                           )}
                         </div>

@@ -1173,8 +1173,7 @@ const AddClientQuotation = () => {
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <p className="text-xs font-black text-amber-700 uppercase tracking-widest flex items-center gap-2">
               <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-              Approval Required: Quotation akan direview Management sebelum bisa digunakan untuk Client Invoice.
-              PDF dapat didownload kapan saja sebagai draft preview.
+              {t('cq.approvalRequired')}
             </p>
           </div>
 

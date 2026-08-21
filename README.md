@@ -79,14 +79,19 @@ The frontend runs at `http://localhost:5173`.
 Create a `.env` file in the project root with the following:
 
 ```env
-MONGO_URI=your_mongo_uri
-JWT_SECRET=your_jwt_secret
-EMAIL_HOST=your_smtp_host
-EMAIL_PORT=your_smtp_port
-EMAIL_USER=<your_smtp_user
-EMAIL_PASS=your_smtp_password
-FRONTEND_URL=your_url
-PORT=your_port
+PORT=
+MONGO_URI=
+JWT_SECRET=
+EMAIL_HOST=
+EMAIL_PORT=
+EMAIL_USER=
+EMAIL_PASS=
+EMAIL_FROM=
+EMAIL_FROM_NAME=
+FRONTEND_URL=
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
+VAPID_SUBJECT=
 ```
 
 > The email credentials are used for the forgot/reset-password feature (SMTP, e.g. Mailtrap for development).

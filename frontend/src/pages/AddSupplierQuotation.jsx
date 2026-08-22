@@ -244,7 +244,7 @@ const AddSupplierQuotation = () => {
       Swal.fire({ icon: 'success', title: 'SAVED', text: 'Quotation recorded. Database updated.', confirmButtonColor: '#0f172a' });
       navigate('/supplier-quotation-menu');
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || "Gagal simpan quotation!" });
+      Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || t('sw.saveQuotationFailed') });
     } finally { setLoading(false); }
   };
 

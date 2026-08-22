@@ -11,18 +11,20 @@ import { fetchFileObjectUrl } from '../utils/secureFile';
 import { useLang } from '../i18n';
 const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
-const viewPaymentProof = async (inv) => {
+// t dioper sebagai argumen: fungsi ini hidup di luar komponen sehingga
+// tidak punya akses ke context bahasa.
+const viewPaymentProof = async (inv, t) => {
   // Berkas kini memerlukan token, jadi diambil sebagai blob dulu; Swal hanya
   // menerima URL, dan <img>/<iframe> tidak bisa mengirim header Authorization.
   let url;
   try {
     url = await fetchFileObjectUrl(inv.paymentProof);
   } catch (err) {
-    return Swal.fire('Gagal', err.message, 'error');
+    return Swal.fire(t('msg.failed'), err.message, 'error');
   }
   const isPdf = inv.paymentProof.toLowerCase().endsWith('.pdf');
   Swal.fire({
-    title: `Bukti Transfer — ${inv.invoiceNumber}`,
+    title: `${t('label.transferProof')} — ${inv.invoiceNumber}`,
     html: `
       ${isPdf
         ? `<iframe src="${url}" style="width:100%; height:60vh; border:1px solid #e2e8f0; border-radius:12px;"></iframe>`
@@ -192,7 +194,7 @@ const SupplierInvoiceRecord = () => {
                         </span>
                         {currentStatus === 'Paid' && inv.paymentProof && (
                           <button
-                            onClick={() => viewPaymentProof(inv)}
+                            onClick={() => viewPaymentProof(inv, t)}
                             title={t('tip.viewDownloadProof')}
                             className="mt-1.5 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-2xs font-black uppercase bg-indigo-100 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all"
                           >

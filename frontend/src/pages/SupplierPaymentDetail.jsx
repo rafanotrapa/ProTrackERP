@@ -460,13 +460,13 @@ const SupplierPaymentDetail = () => {
                   {isPDF(invoice.paymentProof) ? (
                     <iframe
                       src={buktiTfUrl}
-                      title="Bukti Transfer"
+                      title={t('label.transferProof')}
                       className="w-full h-80 rounded-xl border border-slate-200"
                     />
                   ) : (
                     <img
                       src={buktiTfUrl}
-                      alt="Bukti Transfer"
+                      alt={t('label.transferProof')}
                       className="w-full rounded-xl border border-slate-200 object-contain"
                     />
                   )}

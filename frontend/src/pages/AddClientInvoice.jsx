@@ -238,7 +238,7 @@ const AddClientInvoice = () => {
       Swal.fire({
         icon: 'error',
         title: 'FAILED',
-        text: err.response?.data?.msg || 'Gagal membuat invoice'
+        text: err.response?.data?.msg || t('sw.createInvoiceFailed')
       });
     } finally {
       setLoading(false);

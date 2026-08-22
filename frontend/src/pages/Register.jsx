@@ -119,7 +119,7 @@ const Register = () => {
       const rincian = err.response?.data?.errors;
       Swal.fire({
         title: 'ERROR!',
-        text: Array.isArray(rincian) ? undefined : (err.response?.data?.msg || 'Gagal registrasi user'),
+        text: Array.isArray(rincian) ? undefined : (err.response?.data?.msg || t('reg.failed')),
         html: Array.isArray(rincian)
           ? `<p class="text-slate-700">${err.response.data.msg}</p>
              <ul class="text-left text-sm text-slate-600 mt-3 list-disc pl-5">

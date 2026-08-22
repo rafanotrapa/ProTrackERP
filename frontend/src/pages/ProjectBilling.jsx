@@ -182,7 +182,7 @@ const ProjectBilling = () => {
                         <button
                           onClick={() => navigate(`/project-billing/${p.projectId}`)}
                           className="p-2 text-slate-500 hover:text-indigo-600 transition-all"
-                          title="Lihat Detail Billing"
+                          title={t('btn.viewBilling')}
                         >
                           <Eye size={16} />
                         </button>

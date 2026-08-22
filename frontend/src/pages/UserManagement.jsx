@@ -3,7 +3,8 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Swal from 'sweetalert2';
-import { cekSyarat, RINGKASAN_ATURAN } from '../utils/passwordPolicy';
+import { cekSyarat, RINGKASAN_ATURAN, PANJANG_MIN } from '../utils/passwordPolicy';
+import { KUNCI_SYARAT } from '../utils/passwordRuleKeys';
 
 import { useLang } from '../i18n';
 const UserManagement = () => {
@@ -38,26 +39,30 @@ const UserManagement = () => {
 
   const resetPasswordManual = async (id, username, email) => {
     const { value: newPass } = await Swal.fire({
-      title: 'FORCE RESET PASSWORD',
-      html: `Set password baru untuk <strong>${username}</strong>
+      title: t('um.forceReset'),
+      html: `${t('um.setNewPasswordFor', { username })}
              <p class="text-slate-500 text-xs mt-3 leading-relaxed">${RINGKASAN_ATURAN}
-             Tidak boleh memuat username, email, atau kata yang mudah ditebak.</p>`,
+             ${t('um.noGuessable')}</p>`,
       input: 'password',
-      inputPlaceholder: 'Password baru',
+      inputPlaceholder: t('um.newPassword'),
       // Divalidasi di dalam modal supaya Admin langsung tahu bagian mana yang
       // kurang, tanpa modalnya keburu tertutup.
       inputValidator: (value) => {
-        if (!value) return 'Password wajib diisi.';
+        if (!value) return t('um.passwordRequired');
+        // Labelnya diterjemahkan lewat indeks, sama seperti PasswordChecklist —
+        // s.label sendiri selalu berbahasa Indonesia karena passwordPolicy.js
+        // sengaja dijaga bebas dari i18n.
         const belum = cekSyarat(value, { username, email })
+          .map((s, i) => ({ ...s, teks: t(KUNCI_SYARAT[i], { min: PANJANG_MIN }) }))
           .filter((s) => !s.lolos)
-          .map((s) => s.label);
-        if (belum.length) return `Belum memenuhi: ${belum.join(', ')}.`;
+          .map((s) => s.teks);
+        if (belum.length) return t('um.notYetMet', { daftar: belum.join(', ') });
         return undefined;
       },
       showCancelButton: true,
       confirmButtonColor: '#4f46e5',
       cancelButtonColor: '#94a3b8',
-      confirmButtonText: 'OVERRIDE PASSWORD',
+      confirmButtonText: t('um.overridePassword'),
       cancelButtonText: 'CANCEL',
       customClass: {
         title: 'font-black italic uppercase tracking-tighter',
@@ -76,8 +81,8 @@ const UserManagement = () => {
         );
         Swal.fire({
           icon: 'success',
-          title: 'PASSWORD DIUBAH!',
-          text: `Password ${username} berhasil diganti.`,
+          title: t('um.passwordChanged'),
+          text: t('um.passwordChangedFor', { username }),
           confirmButtonColor: '#4f46e5'
         });
         fetchUsers();
@@ -86,7 +91,7 @@ const UserManagement = () => {
         Swal.fire({
           icon: 'error',
           title: t('msg.failed'),
-          text: Array.isArray(rincian) ? undefined : (err.response?.data?.msg || "Gagal reset password"),
+          text: Array.isArray(rincian) ? undefined : (err.response?.data?.msg || t('um.resetFailed')),
           html: Array.isArray(rincian)
             ? `<p class="text-slate-700">${err.response.data.msg}</p>
                <ul class="text-left text-sm text-slate-600 mt-3 list-disc pl-5">
@@ -101,14 +106,14 @@ const UserManagement = () => {
 
   const unlockAccount = async (id, username) => {
     const result = await Swal.fire({
-      title: 'BUKA BLOKIR AKUN?',
-      html: `Akun <strong>${username}</strong> akan dibuka kembali.`,
+      title: t('um.unlockTitle'),
+      html: t('um.unlockBody', { username }),
       icon: 'question',
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#94a3b8',
-      confirmButtonText: 'YA, BUKA!',
-      cancelButtonText: 'BATAL',
+      confirmButtonText: t('um.yesUnlock'),
+      cancelButtonText: t('btn.cancel'),
       customClass: {
         title: 'font-black italic uppercase tracking-tighter',
         confirmButton: 'rounded-xl font-black text-xs tracking-widest px-6 py-3',
@@ -124,8 +129,8 @@ const UserManagement = () => {
         });
         Swal.fire({
           icon: 'success',
-          title: 'AKUN DIBUKA!',
-          text: `Akun ${username} telah berhasil dibuka.`,
+          title: t('um.unlocked'),
+          text: t('um.unlockedFor', { username }),
           confirmButtonColor: '#10b981'
         });
         fetchUsers();
@@ -133,7 +138,7 @@ const UserManagement = () => {
         Swal.fire({
           icon: 'error',
           title: t('msg.failed'),
-          text: err.response?.data?.msg || 'Gagal membuka akun.',
+          text: err.response?.data?.msg || t('um.unlockFailed'),
           confirmButtonColor: '#ef4444'
         });
       }
@@ -174,7 +179,7 @@ const UserManagement = () => {
         Swal.fire({
           icon: 'error',
           title: t('msg.failed'),
-          text: err.response?.data?.msg || 'Gagal menghapus user.',
+          text: err.response?.data?.msg || t('um.deleteFailed'),
           confirmButtonColor: '#ef4444'
         });
       }

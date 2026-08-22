@@ -50,8 +50,8 @@ const PaymentVerifyDetail = () => {
         console.error("Fetch error:", err);
         Swal.fire({
           icon: 'error',
-          title: 'GAGAL',
-          text: err.response?.data?.msg || 'Gagal memuat detail pembayaran',
+          title: t('msg.failed'),
+          text: err.response?.data?.msg || t('sw.loadPaymentFailed'),
           confirmButtonColor: '#1e293b'
         });
         navigate('/verify-payment');

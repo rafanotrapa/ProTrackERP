@@ -84,7 +84,7 @@ const CreatePO = () => {
 
       navigate('/po-record');
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || "Gagal membuat PO" });
+      Swal.fire({ icon: 'error', title: 'ERROR', text: err.response?.data?.msg || t('sw.createPoFailed') });
     } finally { setLoading(false); }
   };
 

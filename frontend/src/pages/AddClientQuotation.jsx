@@ -141,7 +141,7 @@ const AddClientQuotation = () => {
 
             const itemNamesString = supplierItems.length > 0
               ? supplierItems.map((i) => `- ${i.itemName} (${i.quantity} ${i.unit})`).join('\n')
-              : 'Tidak ada item ditemukan';
+              : t('empty.noItemsFound');
 
             // TOP diwarisi dari Supplier Quotation. Kalau nilainya "Termin", customTop
             // wajib ikut terisi — kalau kosong, skema termin hilang saat disimpan
@@ -169,7 +169,7 @@ const AddClientQuotation = () => {
               ...prev,
               projectName:   resProject.data.projectName || 'Tanpa Nama Project',
               clientName:    resProject.data.clientName  || 'N/A',
-              selectedItems: 'Belum ada penawaran supplier yang sudah di-approve.',
+              selectedItems: t('empty.noApprovedSq'),
               items:         [],
             }));
           }
@@ -452,11 +452,11 @@ const AddClientQuotation = () => {
         icon:               'warning',
         title: t('msg.incomplete'),
         html:
-          'Lengkapi semua field yang diperlukan:<br/>' +
-          '- Semua item harus memiliki Sales Price &gt; 0<br/>' +
-          '- Term of Payment harus dipilih<br/>' +
+          t('sw.completeAllFields') + '<br/>' +
+          '- ' + t('sw.needSalesPrice') + '<br/>' +
+          '- ' + t('sw.needTop') + '<br/>' +
           (formData.topOption === 'Termin' && terminSum !== 100 ? `- ${t('top.mustBe100', { n: terminSum })}<br/>` : '') +
-          (missingBank ? '- Rekening Bank wajib diisi jika kena pajak<br/>' : ''),
+          (missingBank ? '- ' + t('sw.needBank') + '<br/>' : ''),
         confirmButtonColor: '#0f172a',
       });
       return;

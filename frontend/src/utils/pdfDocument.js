@@ -8,6 +8,12 @@
  */
 import Swal from 'sweetalert2';
 import autoTable from 'jspdf-autotable';
+import { terjemah } from '../i18n';
+
+/* Modul ini bukan komponen React, jadi bahasanya dibaca dari localStorage —
+ * pola yang sama dengan utils/secureFile.js. Kuncinya sama persis dengan yang
+ * dipakai t() di komponen. */
+const tr = (kunci) => terjemah(localStorage.getItem('lang') === 'en' ? 'en' : 'id', kunci);
 
 /** Lebar halaman A4 potret dalam milimeter, dipakai untuk menengahkan teks. */
 export const LEBAR_HALAMAN = 210;
@@ -23,12 +29,13 @@ export const tanggalDokumen = (nilai) =>
  */
 export const mintaPenandatangan = async () => {
   const hasil = await Swal.fire({
-    title: 'Nama Penandatangan',
+    title: tr('pdf.signerName'),
     input: 'text',
-    inputPlaceholder: 'Nama yang menandatangani',
+    inputPlaceholder: tr('pdf.signerPlaceholder'),
     showCancelButton: true,
-    confirmButtonText: 'Generate PDF',
-    inputValidator: (v) => (!v || !v.trim()) && 'Nama penandatangan wajib diisi',
+    confirmButtonText: tr('pdf.generate'),
+    cancelButtonText: tr('btn.cancel'),
+    inputValidator: (v) => (!v || !v.trim()) && tr('pdf.signerRequired'),
   });
   if (!hasil.isConfirmed) return null;
   return (hasil.value || '').trim();

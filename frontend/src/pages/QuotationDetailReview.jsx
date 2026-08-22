@@ -62,12 +62,12 @@ const QuotationDetailReview = () => {
       const { value: text } = await Swal.fire({
         title: 'REJECT QUOTATION',
         input: 'textarea',
-        inputLabel: 'Alasan Penolakan',
+        inputLabel: t('form.rejectionReason'),
         inputPlaceholder: 'Contoh: Harga terlalu tinggi dibanding vendor lain...',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
         confirmButtonText: 'Tolak Quotation',
-        inputValidator: (value) => { if (!value) return 'Alasan penolakan wajib diisi!'; }
+        inputValidator: (value) => { if (!value) return t('sw.rejectionRequired'); }
       });
       if (!text) return;
       rejectionReason = text;
@@ -99,7 +99,7 @@ const QuotationDetailReview = () => {
       });
       navigate('/quotation-approval');
     } catch (err) {
-      Swal.fire('GAGAL', err.response?.data?.msg || 'Gagal memproses approval', 'error');
+      Swal.fire(t('msg.failed'), err.response?.data?.msg || t('sw.approvalFailed'), 'error');
     } finally {
       setProcessing(false);
     }

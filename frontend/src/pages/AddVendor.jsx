@@ -82,7 +82,7 @@ const AddVendor = () => {
         return Swal.fire({
           icon: 'error',
           title: 'RESTRICTED',
-          text: `Project ini berstatus AUTO MODE (Maksimal 1 Supplier). Sudah ada supplier yang terikat dengan project ini!`,
+          text: t('sw.autoModeOneSupplier'),
           confirmButtonColor: '#0f172a'
         });
       }
@@ -102,7 +102,7 @@ const AddVendor = () => {
       });
       navigate('/existing-vendors');
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'FAILED', text: err.response?.data?.msg || 'Gagal simpan vendor' });
+      Swal.fire({ icon: 'error', title: 'FAILED', text: err.response?.data?.msg || t('sw.saveVendorFailed') });
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, CheckCircle, Clock, XCircle, Eye, Search } from 'lucide-react';
 import Header from '../components/Header';
+import { labelTahap } from '../utils/paymentTerms';
 import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
 
@@ -161,7 +162,7 @@ const InputPaymentLog = () => {
                       <p className="text-xs font-black text-indigo-600 uppercase tracking-wider">
                         {p.invoiceId?.invoiceNumber || '-'}
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{p.invoiceId?.billingPhase || '-'}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{labelTahap(p.invoiceId?.billingPhase, t)}</p>
                     </td>
                     <td className="px-6 py-5">
                       <p className="font-bold text-slate-800 text-sm">{p.invoiceId?.clientName || '-'}</p>

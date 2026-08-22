@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, CheckCircle, Clock, XCircle, Eye, Search } from 'lucide-react';
 import Header from '../components/Header';
+import { labelTahap } from '../utils/paymentTerms';
 import Footer from '../components/Footer';
 
 import { useLang } from '../i18n';
@@ -155,7 +156,7 @@ const PaymentVerification = () => {
                       <p className="text-xs font-black text-indigo-600 uppercase tracking-wider">
                         {p.invoiceId?.invoiceNumber || '-'}
                       </p>
-                      <p className="text-xs text-slate-400 mt-0.5">{p.invoiceId?.billingPhase || '-'}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">{labelTahap(p.invoiceId?.billingPhase, t)}</p>
                     </td>
                     <td className="px-6 py-5">
                       <p className="font-bold text-slate-800 text-sm">{p.invoiceId?.clientName || '-'}</p>
@@ -174,7 +175,7 @@ const PaymentVerification = () => {
                       <button
                         onClick={() => navigate(`/verify-payment/${p._id}`)}
                         className="p-2 text-slate-500 hover:text-indigo-600 transition-all"
-                        title="Lihat Detail & Verifikasi"
+                        title={t('btn.viewAndVerify')}
                       >
                         <Eye size={16} />
                       </button>

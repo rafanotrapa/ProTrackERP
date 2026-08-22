@@ -12,9 +12,12 @@ import {
   Printer, Download
 } from 'lucide-react';
 import Header from '../components/Header';
+import { labelTahap } from '../utils/paymentTerms';
+import { useLang } from '../i18n';
 import Footer from '../components/Footer';
 
 const InvoiceLogDetail = () => {
+  const { t } = useLang();
   const { id } = useParams();
   const navigate = useNavigate();
   const [invoice, setInvoice] = useState(null);
@@ -259,7 +262,7 @@ const InvoiceLogDetail = () => {
                 </div>
                 <div>
                   <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Billing Phase</p>
-                  <p className="text-base font-black text-slate-800 mt-1">{invoice.billingPhase || 'Full Payment'}</p>
+                  <p className="text-base font-black text-slate-800 mt-1">{labelTahap(invoice.billingPhase || 'Full Payment', t)}</p>
                 </div>
               </div>
             </div>

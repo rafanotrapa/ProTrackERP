@@ -50,8 +50,8 @@ const Inventory = () => {
       confirmButtonColor: '#4f46e5',
       inputValidator: (val) => {
         const n = Number(val);
-        if (val === '' || isNaN(n) || n < 0) return 'Masukkan angka valid (>= 0)';
-        if (n > row.initialQty) return `Tidak boleh melebihi jumlah awal (${row.initialQty})`;
+        if (val === '' || isNaN(n) || n < 0) return t('inv.needValidNumber');
+        if (n > row.initialQty) return t('inv.overInitial', { n: row.initialQty });
         return null;
       },
     });
@@ -63,7 +63,7 @@ const Inventory = () => {
       await axios.patch('http://localhost:5000/api/inventory/use',
         { itemName: row.itemName, usedQty: Number(value) },
         { headers: { Authorization: `Bearer ${token}` } });
-      Swal.fire({ icon: 'success', title: 'Tersimpan!', timer: 1200, showConfirmButton: false });
+      Swal.fire({ icon: 'success', title: t('msg.saved'), timer: 1200, showConfirmButton: false });
       fetchInventory();
     } catch (err) {
       console.error('Gagal update usage:', err);
@@ -162,7 +162,7 @@ const Inventory = () => {
           <div className="py-32 text-center border-2 border-dashed border-slate-200 rounded-3xl">
             <Boxes size={48} className="text-slate-300 mx-auto" />
             <p className="text-slate-400 font-black text-lg uppercase tracking-tighter italic mt-3">
-              {items.length === 0 ? 'Belum ada barang — buat Purchase Order dulu' : 'No items found'}
+              {items.length === 0 ? t('empty.noStockYet') : t('empty.noItemsFound')}
             </p>
           </div>
         ) : (

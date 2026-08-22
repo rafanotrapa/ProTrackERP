@@ -38,11 +38,11 @@ const ReceiveQCGoods = () => {
       const { value: text } = await Swal.fire({
         title: 'REJECT / RETURN GOODS',
         input: 'textarea',
-        inputLabel: 'Alasan Retur / Gagal QC',
+        inputLabel: t('form.returnReason'),
         inputPlaceholder: 'Contoh: Barang cacat, quantity kurang...',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
-        inputValidator: (value) => { if (!value) return 'Alasan retur wajib diisi!'; }
+        inputValidator: (value) => { if (!value) return t('sw.returnReasonRequired'); }
       });
       if (!text) return;
       qcRemarks = text;
@@ -63,10 +63,10 @@ const ReceiveQCGoods = () => {
       await axios.put(`http://localhost:5000/api/po/${id}/qc-check`, { status: actionStatus, qcRemarks }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      Swal.fire('BERHASIL', `Status QC diupdate menjadi ${actionStatus}`, 'success');
+      Swal.fire(t('msg.success'), t('sw.qcUpdated', { status: actionStatus }), 'success');
       fetchPOs();
     } catch (err) {
-      Swal.fire('ERROR', err.response?.data?.msg || 'Gagal update status QC', 'error');
+      Swal.fire(t('msg.failed'), err.response?.data?.msg || t('sw.qcUpdateFailed'), 'error');
     }
   };
 

@@ -171,7 +171,7 @@ const AddExpenseSubmission = () => {
     } catch (err) {
       console.error('FULL ERROR TRACE:', err);
       const errorMessage = err.response?.data?.msg || err.message;
-      Swal.fire('GAGAL', `Detail: ${errorMessage}`, 'error');
+      Swal.fire(t('msg.failed'), `${t('label.detail')}: ${errorMessage}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -327,7 +327,7 @@ const AddExpenseSubmission = () => {
                         type="button"
                         onClick={() => removeItem(item.id)}
                         className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Hapus item"
+                        title={t('btn.deleteItem')}
                       >
                         <Trash2 size={16} />
                       </button>

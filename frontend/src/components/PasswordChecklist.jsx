@@ -1,29 +1,9 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { cekSyarat, PANJANG_MIN } from '../utils/passwordPolicy';
+import { KUNCI_SYARAT as KUNCI } from '../utils/passwordRuleKeys';
 import { useLang, terjemah } from '../i18n';
 
-/* Kunci terjemahan dipetakan berdasarkan URUTAN yang dikembalikan cekSyarat,
- * bukan berdasarkan teks labelnya.
- *
- * utils/passwordPolicy.js sengaja TIDAK disentuh: berkas itu punya kembaran di
- * backend, dan tests/passwordPolicy.test.js mengimpor versi frontend-nya dengan
- * Node polos untuk memastikan kedua sisi sepakat. Menambahkan import React atau
- * context ke sana akan langsung membuat `npm test` merah. Jadi aturannya tetap
- * murni logika, dan penerjemahan terjadi di sini — di lapisan tampilan.
- *
- * Kalau urutan atau jumlah syarat di cekSyarat berubah, daftar ini harus ikut
- * berubah. Pengujian 'Daftar aturan yang ditampilkan' menjaga jumlahnya tetap
- * tujuh. */
-const KUNCI = [
-  'password.minLength',
-  'password.lower',
-  'password.upper',
-  'password.digit',
-  'password.symbol',
-  'password.notCommon',
-  'password.notIdentity',
-];
 
 /**
  * Checklist syarat password yang berubah realtime saat user mengetik.

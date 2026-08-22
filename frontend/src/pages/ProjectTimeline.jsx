@@ -265,7 +265,7 @@ const ProjectTimeline = () => {
           </div>
         </div>
 
-        <Section icon={<Receipt size={14} />} title="Payment Stages (Termin)" id="stages"
+        <Section icon={<Receipt size={14} />} title={t('tl.paymentStages')} id="stages"
           badge={`${progress.paidStages}/${progress.totalStages} paid`}
           open={open.stages} onToggle={toggle}
         >

@@ -65,14 +65,14 @@ const ProjectLog = () => {
       text: `${p.projectId} — ${p.projectName}`,
       input: 'text',
       inputValue: String(p.amount || 0),
-      inputLabel: 'Nominal (IDR)',
+      inputLabel: t('form.amountIdr'),
       showCancelButton: true,
       confirmButtonText: t('common.save'),
       cancelButtonText: t('common.cancel'),
       confirmButtonColor: '#4f46e5',
       inputValidator: (val) => {
         const num = Number(String(val).replace(/[^0-9]/g, ''));
-        if (!val || num <= 0) return 'Nominal wajib diisi dengan angka valid!';
+        if (!val || num <= 0) return t('sw.amountRequired');
         return null;
       },
     });
@@ -122,12 +122,12 @@ const ProjectLog = () => {
       input: 'select',
       inputOptions: pilihan,
       inputValue: picSekarang,
-      inputPlaceholder: 'Pilih akun Marketing',
+      inputPlaceholder: t('ph.pickMarketing'),
       showCancelButton: true,
       confirmButtonText: 'Pindahkan',
       cancelButtonText: t('common.cancel'),
       confirmButtonColor: '#4f46e5',
-      inputValidator: (val) => (!val ? 'Pilih dulu PIC tujuannya!' : null),
+      inputValidator: (val) => (!val ? t('sw.pickPicFirst') : null),
     });
 
     if (!value || value === picSekarang) return;
@@ -147,7 +147,7 @@ const ProjectLog = () => {
       fetchProjects();
     } catch (err) {
       console.error('Gagal ubah PIC:', err);
-      Swal.fire('Error', err.response?.data?.msg || 'Gagal memindahkan PIC.', 'error');
+      Swal.fire(t('msg.failed'), err.response?.data?.msg || t('sw.movePicFailed'), 'error');
     }
   };
 

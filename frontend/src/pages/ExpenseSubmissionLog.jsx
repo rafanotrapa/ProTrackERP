@@ -74,9 +74,9 @@ const ExpenseSubmissionLog = () => {
     let rejectionReason = '';
     if (status === 'Rejected') {
       const { value } = await Swal.fire({
-        title: 'Alasan Penolakan',
+        title: t('form.rejectionReason'),
         input: 'textarea',
-        inputPlaceholder: 'Jelaskan alasan menolak submission ini...',
+        inputPlaceholder: t('ph.rejectionReason'),
         showCancelButton: true,
         confirmButtonColor: '#dc2626',
         confirmButtonText: 'Tolak Submission',
@@ -105,7 +105,7 @@ const ExpenseSubmissionLog = () => {
       Swal.fire({ icon: 'success', title: status === 'Approved' ? 'DISETUJUI' : 'DITOLAK', timer: 1500, showConfirmButton: false });
       fetchExpenses();
     } catch (err) {
-      Swal.fire('GAGAL', err.response?.data?.msg || 'Gagal memproses review', 'error');
+      Swal.fire(t('msg.failed'), err.response?.data?.msg || t('sw.reviewFailed'), 'error');
     }
   };
 
@@ -129,7 +129,7 @@ const ExpenseSubmissionLog = () => {
       Swal.fire({ icon: 'success', title: 'DIHAPUS', timer: 1200, showConfirmButton: false });
       fetchExpenses();
     } catch (err) {
-      Swal.fire('GAGAL', err.response?.data?.msg || 'Submission tidak bisa dihapus', 'error');
+      Swal.fire(t('msg.failed'), err.response?.data?.msg || t('sw.submissionUndeletable'), 'error');
     }
   };
 
@@ -269,7 +269,7 @@ const ExpenseSubmissionLog = () => {
                             type="button"
                             onClick={() => openSecureFile(exp.file)}
                             className="p-2 text-slate-500 hover:text-indigo-600 transition-all"
-                            title="Lihat Lampiran"
+                            title={t('btn.viewAttachment')}
                           >
                             <Eye size={15} />
                           </button>
@@ -282,7 +282,7 @@ const ExpenseSubmissionLog = () => {
                           <button
                             onClick={() => handleDelete(exp)}
                             className="p-2 text-slate-500 hover:text-rose-600 transition-all"
-                            title="Hapus"
+                            title={t('btn.delete')}
                           >
                             <Trash2 size={15} />
                           </button>

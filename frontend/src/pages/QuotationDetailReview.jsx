@@ -7,6 +7,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { openSecureFile } from '../utils/secureFile';
 import { labelTop } from '../utils/paymentTerms';
+import NilaiUang from '../components/NilaiUang';
+import { formatUang } from '../utils/uang';
 
 import { useLang } from '../i18n';
 const QuotationDetailReview = () => {
@@ -35,8 +37,6 @@ const QuotationDetailReview = () => {
 
   useEffect(() => { fetchDetail(); }, [id]);
 
-  const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
-
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -54,6 +54,11 @@ const QuotationDetailReview = () => {
   const additionalFee = quo.additionalFee || 0;
   const taxAmount     = quo.taxAmount || 0;
   const grandTotal     = subtotalCOGS + additionalFee + taxAmount;
+  // Mata uang dokumen ini. Sebelumnya seluruh nominal di halaman ini mencetak
+  // 'Rp' padahal kode mata uangnya ditampilkan beberapa baris di atasnya —
+  // quotation CNY tampil "Currency: CNY" lalu "Rp 45.000" di bawahnya.
+  const mata = quo?.currency || 'IDR';
+  const kurs = quo?.exchangeRate || 1;
 
   const handleApprove = async (status) => {
     let rejectionReason = '';
@@ -74,7 +79,7 @@ const QuotationDetailReview = () => {
     } else {
       const result = await Swal.fire({
         title: t('msg.approveThisQuotation'),
-        html: `Modal dari vendor <strong>${quo.vendorName || quo.vendorId}</strong> sebesar <strong class="text-emerald-600">Rp ${formatRupiah(grandTotal)}</strong> akan disetujui dan bisa dipakai sebagai dasar Client Quotation.`,
+        html: `Modal dari vendor <strong>${quo.vendorName || quo.vendorId}</strong> sebesar <strong class="text-emerald-600">${formatUang(grandTotal, mata)}</strong> akan disetujui dan bisa dipakai sebagai dasar Client Quotation.`,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#16a34a',
@@ -224,9 +229,9 @@ const QuotationDetailReview = () => {
                         <td className="px-5 py-3 font-bold text-slate-700 text-sm">{item.itemName}</td>
                         <td className="px-5 py-3 text-center text-slate-600 text-sm">{item.quantity}</td>
                         <td className="px-5 py-3 text-center text-slate-500 text-sm">{item.unit}</td>
-                        <td className="px-5 py-3 text-right text-slate-600 text-sm">Rp {formatRupiah(item.cogs)}</td>
+                        <td className="px-5 py-3 text-right text-slate-600 text-sm">{formatUang(item.cogs, mata)}</td>
                         <td className="px-5 py-3 text-right font-black text-slate-800 text-sm">
-                          Rp {formatRupiah((item.cogs || 0) * (item.quantity || 0))}
+                          {formatUang((item.cogs || 0) * (item.quantity || 0), mata)}
                         </td>
                       </tr>
                     ))}
@@ -234,7 +239,7 @@ const QuotationDetailReview = () => {
                   <tfoot>
                     <tr className="bg-slate-50 border-t border-slate-200">
                       <td colSpan="4" className="px-5 py-3 text-right font-black text-xs uppercase text-slate-500">{t('page.itemSubtotal')}</td>
-                      <td className="px-5 py-3 text-right font-black text-slate-800">Rp {formatRupiah(subtotalCOGS)}</td>
+                      <td className="px-5 py-3 text-right font-black text-slate-800">{formatUang(subtotalCOGS, mata)}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -260,12 +265,12 @@ const QuotationDetailReview = () => {
               <div className="space-y-3">
                 <div className="flex justify-between py-2 border-b border-white/10">
                   <span className="text-xs font-bold text-slate-300">{t('page.itemSubtotal')}</span>
-                  <span className="font-black text-white">Rp {formatRupiah(subtotalCOGS)}</span>
+                  <span className="font-black text-white">{formatUang(subtotalCOGS, mata)}</span>
                 </div>
                 {additionalFee > 0 && (
                   <div className="flex justify-between py-2 border-b border-white/10">
                     <span className="text-xs font-bold text-slate-300">Additional Fee</span>
-                    <span className="font-black text-amber-300">+ Rp {formatRupiah(additionalFee)}</span>
+                    <span className="font-black text-amber-300">+ {formatUang(additionalFee, mata)}</span>
                   </div>
                 )}
                 {taxAmount > 0 && (
@@ -273,12 +278,12 @@ const QuotationDetailReview = () => {
                     <span className="text-xs font-bold text-slate-300">
                       Tax {quo.isTaxIncluded ? '(Included)' : ''}
                     </span>
-                    <span className="font-black text-amber-300">+ Rp {formatRupiah(taxAmount)}</span>
+                    <span className="font-black text-amber-300">+ {formatUang(taxAmount, mata)}</span>
                   </div>
                 )}
                 <div className="flex justify-between py-3 mt-2 bg-indigo-500/20 -mx-3 px-3 rounded-xl">
                   <span className="text-sm font-black text-indigo-300 uppercase tracking-wider">{t('page.totalCapital')}</span>
-                  <span className="text-xl font-black text-indigo-300">Rp {formatRupiah(grandTotal)}</span>
+                  <span className="text-right"><NilaiUang nominal={grandTotal} currency={mata} rate={kurs} tampilkanKurs className="text-xl font-black text-indigo-300" /></span>
                 </div>
               </div>
 

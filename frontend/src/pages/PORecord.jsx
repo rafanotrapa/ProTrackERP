@@ -3,12 +3,12 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { ClipboardCheck, Search, Download } from 'lucide-react';
 import Header from '../components/Header';
+import NilaiUang from '../components/NilaiUang';
 import Footer from '../components/Footer';
 import { unduhDokumenPO } from '../utils/poDocument';
 
 import { akunBacaSaja } from '../utils/peran';
 import { useLang } from '../i18n';
-const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 const PORecord = () => {
   const { t } = useLang();
@@ -185,7 +185,7 @@ const PORecord = () => {
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <p className="font-black text-sky-600">{po.currency || 'IDR'} {formatRupiah(po.totalAmount)}</p>
+                      <p className="font-black text-sky-600"><NilaiUang nominal={po.totalAmount} currency={po.currency} rate={po.exchangeRate} /></p>
                     </td>
                     <td className="px-6 py-5 text-center">
                       <p className="text-xs font-bold text-slate-500">{formatDate(po.timestamp)}</p>

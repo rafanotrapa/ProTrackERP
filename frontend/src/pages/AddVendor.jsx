@@ -5,9 +5,17 @@ import Swal from 'sweetalert2';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
+import { currencyOptions } from '../utils/currencies';
 
 import { useLang } from '../i18n';
-const COMPANY_TYPES = ['PT', 'CV', 'Persero', 'Individual'].map((v) => ({ value: v, label: v }));
+/* Empat pertama bentuk badan usaha Indonesia dan sengaja tetap di depan karena
+ * itu yang paling sering dipakai; sisanya bentuk asing, ditambahkan karena
+ * vendor luar negeri sebelumnya terpaksa dipaksa memilih 'PT'. Daftarnya harus
+ * sejalan dengan enum di models/Vendor.js. */
+const COMPANY_TYPES = [
+  'PT', 'CV', 'Persero', 'Individual',
+  'Ltd', 'Inc', 'Co., Ltd', 'Pte Ltd', 'GmbH', 'Sdn Bhd', 'Other',
+].map((v) => ({ value: v, label: v }));
 
 const AddVendor = () => {
   const { t } = useLang();
@@ -41,6 +49,8 @@ const AddVendor = () => {
     projectId: '',
     vendorName: '',
     companyType: 'PT',
+    country: '',
+    defaultCurrency: 'IDR',
     contactPerson: '',
     email: '',
     phone: '',
@@ -156,6 +166,36 @@ const AddVendor = () => {
                   value={formData.companyType}
                   onChange={handleChange}
                   options={COMPANY_TYPES}
+                />
+              </div>
+            </div>
+
+            {/* Vendor luar negeri sebelumnya tidak termodelkan sama sekali. Mata
+                uang bawaan di sini yang nantinya mengisi otomatis kolom currency
+                saat Supplier Quotation dibuat untuk vendor ini. */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-1">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">
+                  {t('vendor.country')}
+                </label>
+                <input
+                  name="country"
+                  type="text"
+                  placeholder={t('vendor.countryHint')}
+                  value={formData.country}
+                  onChange={handleChange}
+                  className="w-full p-4 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 outline-none focus:border-indigo-600 shadow-sm transition-all"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">
+                  {t('vendor.defaultCurrency')}
+                </label>
+                <StyledSelect
+                  name="defaultCurrency"
+                  value={formData.defaultCurrency}
+                  onChange={handleChange}
+                  options={currencyOptions}
                 />
               </div>
             </div>

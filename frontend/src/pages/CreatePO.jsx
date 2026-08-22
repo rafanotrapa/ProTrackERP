@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { ShoppingCart } from 'lucide-react';
 import Header from '../components/Header';
+import { formatUang } from '../utils/uang';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 import { unduhDokumenPO } from '../utils/poDocument';
@@ -51,8 +52,14 @@ const CreatePO = () => {
     setSelectedQuote(foundQuote || null);
   };
 
+  // Mata uang PO diwarisi dari quotation yang dipilih sebagai dasarnya.
+  const mataUangPO = selectedQuote?.currency || 'IDR';
+
   const formatRupiah = (number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+    // Mata uang mengikuti PO yang sedang dibuat. Sebelumnya kode 'IDR'
+    // di-hardcode di dalam formatternya sendiri, sehingga PO asing pun tercetak
+    // rupiah di layar maupun di PDF-nya.
+    return formatUang(number, mataUangPO);
   };
 
   const handleSubmit = async (e) => {

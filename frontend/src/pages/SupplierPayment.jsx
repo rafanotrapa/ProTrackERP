@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { Building2, CheckCircle, Clock, Eye, Search } from 'lucide-react';
 import Header from '../components/Header';
 import { labelTahap } from '../utils/paymentTerms';
+import NilaiUang from '../components/NilaiUang';
 import Footer from '../components/Footer';
 
 import { useLang } from '../i18n';
@@ -91,8 +92,6 @@ const SupplierPayment = () => {
       }
     }
   };
-
-  const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
   const getStatusBadge = (status) => {
     if (status === 'Paid') {
@@ -228,7 +227,7 @@ const SupplierPayment = () => {
                       </div>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <p className="font-black text-emerald-600">Rp {formatRupiah(p.totalAmount || p.amount)}</p>
+                      <p className="font-black text-emerald-600"><NilaiUang nominal={p.totalAmount || p.amount} currency={p.currency} rate={p.exchangeRate} /></p>
                       <p className="text-2xs text-slate-400">{labelTahap(p.terminName || 'Full Payment', t)}</p>
                     </td>
                     <td className="px-6 py-5 text-center">{getStatusBadge(p.status)}</td>

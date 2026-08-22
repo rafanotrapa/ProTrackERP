@@ -21,6 +21,10 @@ router.post('/', authorizeRoles('Procurement','Admin'), async (req, res) => {
       projectId: req.body.projectId,
       vendorName: req.body.vendorName,
       companyType: req.body.companyType,
+      // Negara dan mata uang bawaan vendor. Keduanya opsional: vendor dalam
+      // negeri cukup dibiarkan kosong dan otomatis dianggap IDR.
+      country: req.body.country || '',
+      defaultCurrency: String(req.body.defaultCurrency || 'IDR').toUpperCase(),
       contactPerson: req.body.contactPerson,
       email: req.body.email,
       phone: req.body.phone,

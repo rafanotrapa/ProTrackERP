@@ -592,6 +592,17 @@ export const id = {
   'pdf.signerPlaceholder': 'Nama yang menandatangani',
   'pdf.signerRequired': 'Nama penandatangan wajib diisi',
   'pdf.generate': 'Buat PDF',
+
+  // Mata uang dan kurs
+  'cur.rateLabel': 'Kurs 1 {kode} ke Rupiah',
+  'cur.rateRequired': 'Kurs wajib diisi untuk dokumen dalam {kode}',
+  'cur.equivalent': 'setara {nilai}',
+  'cur.inIDR': 'Nilai dalam Rupiah',
+  'cur.reportNote': 'Seluruh angka di laporan ini disajikan dalam Rupiah, dikonversi memakai kurs yang tercatat di tiap dokumen.',
+  'cur.docCurrency': 'Mata uang dokumen',
+  'vendor.country': 'Negara',
+  'vendor.defaultCurrency': 'Mata Uang Bawaan',
+  'vendor.countryHint': 'Kosongkan kalau vendor dalam negeri.',
 };
 
 export const en = {
@@ -1146,6 +1157,17 @@ export const en = {
   'pdf.signerPlaceholder': 'Name of the person signing',
   'pdf.signerRequired': 'The signer name is required',
   'pdf.generate': 'Generate PDF',
+
+  // Mata uang dan kurs
+  'cur.rateLabel': 'Exchange rate: 1 {kode} to Rupiah',
+  'cur.rateRequired': 'An exchange rate is required for documents in {kode}',
+  'cur.equivalent': 'equals {nilai}',
+  'cur.inIDR': 'Value in Rupiah',
+  'cur.reportNote': 'All figures in this report are shown in Rupiah, converted using the exchange rate recorded on each document.',
+  'cur.docCurrency': 'Document currency',
+  'vendor.country': 'Country',
+  'vendor.defaultCurrency': 'Default Currency',
+  'vendor.countryHint': 'Leave blank for domestic vendors.',
 };
 
 export const KAMUS = { id, en };

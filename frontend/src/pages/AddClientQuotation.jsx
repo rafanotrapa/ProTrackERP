@@ -6,6 +6,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 import { currencyOptions, currencySymbol } from '../utils/currencies';
+import InputKurs from '../components/InputKurs';
+import { kursValid } from '../utils/uang';
 
 import { useLang } from '../i18n';
 const formatRupiah = (value) => {
@@ -66,6 +68,7 @@ const AddClientQuotation = () => {
     selectedItems:  '',
     items:          [],
     currency:       'IDR',
+    exchangeRate:   1,
     topOption:      'COD',
     customTop:      '',
     timestamp:      new Date().toISOString().split('T')[0],
@@ -227,6 +230,7 @@ const AddClientQuotation = () => {
           selectedItems:  itemNamesString      || prev.selectedItems,
           items:          mode === 'auto' ? (draft.items || prev.items) : prev.items,
           currency:       draft.currency       || prev.currency,
+          exchangeRate:   draft.exchangeRate   || prev.exchangeRate,
           topOption:      draftIsTermin ? 'Termin' : (draft.topOption || prev.topOption),
           customTop:      draftIsTermin ? composeTermin(draftRows || terminRows) : '',
           remarks:        draft.remarks        || '',
@@ -262,6 +266,8 @@ const AddClientQuotation = () => {
     if (!formData.topOption)  return false;
     if (formData.topOption === 'Termin' && terminSum !== 100) return false;
     if (isPPN && !formData.bankAccount.trim()) return false;
+    // Dokumen bermata uang asing wajib punya kurs; server menolak tanpa itu.
+    if (!kursValid(formData.currency, formData.exchangeRate)) return false;
 
     if (quotationMode === 'auto') {
       if (formData.items.length === 0) return false;
@@ -273,6 +279,8 @@ const AddClientQuotation = () => {
       );
     }
   }, [
+    formData.currency,
+    formData.exchangeRate,
     formData.projectId,
     formData.topOption,
     terminSum,
@@ -380,6 +388,7 @@ const AddClientQuotation = () => {
       clientName:     formData.clientName,
       items:          itemsToUse,
       currency:       formData.currency,
+      exchangeRate:   formData.exchangeRate,
       topOption:      finalTop,
       customTop:      formData.topOption === 'Termin' ? finalTop : '',
       remarks:        formData.remarks  || '',
@@ -456,7 +465,9 @@ const AddClientQuotation = () => {
           '- ' + t('sw.needSalesPrice') + '<br/>' +
           '- ' + t('sw.needTop') + '<br/>' +
           (formData.topOption === 'Termin' && terminSum !== 100 ? `- ${t('top.mustBe100', { n: terminSum })}<br/>` : '') +
-          (missingBank ? '- ' + t('sw.needBank') + '<br/>' : ''),
+          (missingBank ? '- ' + t('sw.needBank') + '<br/>' : '') +
+          (!kursValid(formData.currency, formData.exchangeRate)
+            ? '- ' + t('cur.rateRequired', { kode: String(formData.currency).toUpperCase() }) + '<br/>' : ''),
         confirmButtonColor: '#0f172a',
       });
       return;
@@ -806,6 +817,14 @@ const AddClientQuotation = () => {
                   options={currencyOptions}
                 />
               </div>
+
+              {/* Kolom kurs hanya muncul untuk mata uang asing. */}
+              <InputKurs
+                currency={formData.currency}
+                value={formData.exchangeRate}
+                onChange={handleChange}
+                nominal={grandTotal}
+              />
 
               <div className="space-y-1">
                 <label className="text-xs font-black text-amber-500 uppercase tracking-widest ml-1 italic">

@@ -9,6 +9,8 @@ import StyledSelect from '../components/StyledSelect';
 // Halaman ini sudah menampilkan KODE mata uang ({formData.currency}) di setiap
 // nominalnya, jadi tidak butuh simbol — hanya daftar opsinya yang diperluas.
 import { currencyOptions } from '../utils/currencies';
+import InputKurs from '../components/InputKurs';
+import { kursValid } from '../utils/uang';
 
 import { useLang } from '../i18n';
 const AddSupplierQuotation = () => {
@@ -35,6 +37,7 @@ const AddSupplierQuotation = () => {
     projectId: '',
     vendorId: '',
     currency: 'IDR',
+    exchangeRate: 1,
     topOption: 'Termin 30 Days',
     customTop: '',
     additionalFee: '',
@@ -139,10 +142,14 @@ const AddSupplierQuotation = () => {
     const linkedVendors = vendors.filter(v => v.projectId === pId);
 
     if (projMode === 'auto') {
+      // Mata uang mengikuti bawaan vendor supaya tidak perlu dipilih ulang tiap
+      // kali bertransaksi dengan vendor asing yang sama. Tetap bisa diubah.
+      const vendorTerpilih = linkedVendors[0];
       setFormData(prev => ({
         ...prev,
         projectId: pId,
-        vendorId: linkedVendors.length > 0 ? linkedVendors[0].vendorId : ''
+        vendorId: vendorTerpilih ? vendorTerpilih.vendorId : '',
+        currency: vendorTerpilih?.defaultCurrency || prev.currency,
       }));
 
       if (linkedVendors.length === 0) {
@@ -170,6 +177,14 @@ const AddSupplierQuotation = () => {
     if (name === 'topOption') {
       const custom = value === 'Termin' ? composeTermin(terminRows) : '';
       setFormData((prev) => ({ ...prev, topOption: value, customTop: custom }));
+      return;
+    }
+    if (name === 'vendorId') {
+      const v = vendors.find((x) => x.vendorId === value);
+      setFormData((prev) => ({
+        ...prev, vendorId: value,
+        currency: v?.defaultCurrency || prev.currency,
+      }));
       return;
     }
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -218,6 +233,13 @@ const AddSupplierQuotation = () => {
 
     if (formData.topOption === 'Termin' && terminSum !== 100) {
        return Swal.fire(t('sw.dataIncomplete'), t('top.mustBe100', { n: terminSum }), 'warning');
+    }
+
+    // Server juga menolak ini; penjagaan di sini supaya pengguna tidak baru tahu
+    // setelah menunggu permintaan bolak-balik.
+    if (!kursValid(formData.currency, formData.exchangeRate)) {
+       return Swal.fire(t('sw.dataIncomplete'),
+         t('cur.rateRequired', { kode: String(formData.currency).toUpperCase() }), 'warning');
     }
 
     setLoading(true);
@@ -316,6 +338,15 @@ const AddSupplierQuotation = () => {
                   options={currencyOptions}
                 />
               </div>
+
+              {/* Muncul hanya untuk mata uang asing. Nominal grand total dikirim
+                  supaya pengguna langsung melihat setara Rupiahnya sebelum simpan. */}
+              <InputKurs
+                currency={formData.currency}
+                value={formData.exchangeRate}
+                onChange={handleChange}
+                nominal={calculateGrandTotal()}
+              />
 
               <div className="space-y-1">
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1 italic leading-none mb-1.5">

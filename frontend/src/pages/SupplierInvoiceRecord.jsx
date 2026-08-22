@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { FileText, Search, Eye } from 'lucide-react';
 import Header from '../components/Header';
+import NilaiUang from '../components/NilaiUang';
 import { labelTahap } from '../utils/paymentTerms';
 import Footer from '../components/Footer';
 import { fetchFileObjectUrl } from '../utils/secureFile';
 
 import { useLang } from '../i18n';
-const formatRupiah = (value) => (Number(value) || 0).toLocaleString('id-ID');
 
 // t dioper sebagai argumen: fungsi ini hidup di luar komponen sehingga
 // tidak punya akses ke context bahasa.
@@ -182,7 +182,7 @@ const SupplierInvoiceRecord = () => {
                         <p className="text-xs text-slate-400">{inv.projectId}</p>
                       </td>
                       <td className="px-6 py-5 text-right">
-                        <p className="font-black text-emerald-600">{inv.currency} {formatRupiah(grandTotal)}</p>
+                        <p className="font-black text-emerald-600"><NilaiUang nominal={grandTotal} currency={inv.currency} rate={inv.exchangeRate} /></p>
                       </td>
                       <td className="px-6 py-5 text-center">
                         <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${

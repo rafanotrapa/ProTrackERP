@@ -89,15 +89,20 @@ export const unduhDokumenPO = async (po) => {
     doc.setFont('helvetica', 'normal');
     teksBungkus(doc, po.shippingAddress, 120, infoY + 26, 80);
 
+    const mataUang = String(po.currency || 'IDR').toUpperCase();
+
+
     const akhirTabel = tabelItem(doc, {
       startY: infoY + 48,
-      head: [['Qty', 'Description', 'Unit', 'Unit Price (IDR)', 'Line Total (IDR)']],
+      // Header dan nominal mengikuti mata uang PO-nya. Sebelumnya '(IDR)'
+      // di-hardcode di sini, jadi PO ke supplier asing salah cetak.
+      head: [['Qty', 'Description', 'Unit', `Unit Price (${mataUang})`, `Line Total (${mataUang})`]],
       body: items.map((it) => [
         it.quantity || 0,
         String(it.itemName || '').toUpperCase(),
         String(it.unit || '').toUpperCase(),
-        rp(it.cogs),
-        rp((Number(it.cogs) || 0) * (Number(it.quantity) || 0)),
+        rp(it.cogs, mataUang),
+        rp((Number(it.cogs) || 0) * (Number(it.quantity) || 0), mataUang),
       ]),
     });
 
@@ -114,7 +119,7 @@ export const unduhDokumenPO = async (po) => {
         { label: labelBiaya, nilai: po.additionalFee },
         { label: `Tax / PPN${po.taxPercentage ? ` ${po.taxPercentage}%` : ''}`, nilai: po.taxAmount },
       ],
-      { nilaiAkhir: po.totalAmount }
+      { nilaiAkhir: po.totalAmount, mataUang }
     );
 
     doc.setFontSize(9);

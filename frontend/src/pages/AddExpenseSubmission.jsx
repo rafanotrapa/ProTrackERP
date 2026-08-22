@@ -7,6 +7,8 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 import { currencyOptions, currencySymbol } from '../utils/currencies';
+import InputKurs from '../components/InputKurs';
+import { kursValid } from '../utils/uang';
 
 import { useLang } from '../i18n';
 const formatRupiah = (value) => {
@@ -39,6 +41,7 @@ const AddExpenseSubmission = () => {
     projectId:    '',
     projectName:  '',
     currency:     'IDR',
+    exchangeRate: 1,
     remarks:      '',
     file:         null,
   });
@@ -140,11 +143,19 @@ const AddExpenseSubmission = () => {
     }
 
     setLoading(true);
+    // Server juga menolak ini; penjagaan di layar supaya tidak perlu menunggu
+    // permintaan bolak-balik dulu.
+    if (!kursValid(formData.currency, formData.exchangeRate)) {
+      return Swal.fire(t('sw.dataIncomplete'),
+        t('cur.rateRequired', { kode: String(formData.currency).toUpperCase() }), 'warning');
+    }
+
     const data = new FormData();
     data.append('submissionId', formData.submissionId);
     data.append('projectId', formData.projectId);
     data.append('projectName', formData.projectName);
     data.append('currency', formData.currency);
+    data.append('exchangeRate', formData.exchangeRate);
     data.append('remarks', formData.remarks);
     data.append('file', formData.file);
     data.append('items', JSON.stringify(
@@ -269,6 +280,16 @@ const AddExpenseSubmission = () => {
                 onChange={handleChange}
                 triggerClassName="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-amber-600 outline-none cursor-pointer flex justify-between items-center hover:border-amber-500 transition-all"
                 options={currencyOptions}
+              />
+            </div>
+
+            {/* Kolom kurs hanya muncul untuk mata uang asing. */}
+            <div className="space-y-1">
+              <InputKurs
+                currency={formData.currency}
+                value={formData.exchangeRate}
+                onChange={handleChange}
+                nominal={totalAmount}
               />
             </div>
           </div>

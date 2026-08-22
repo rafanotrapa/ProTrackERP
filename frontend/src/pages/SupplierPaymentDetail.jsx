@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import Header from '../components/Header';
 import { labelTahap } from '../utils/paymentTerms';
+import NilaiUang from '../components/NilaiUang';
+import { formatUang } from '../utils/uang';
 import Footer from '../components/Footer';
 import { useSecureFileUrl, openSecureFile } from '../utils/secureFile';
 
@@ -121,12 +123,6 @@ const SupplierPaymentDetail = () => {
       </div>
     );
   };
-
-  const formatRupiah = (value) => {
-    if (!value) return '0';
-    return Number(value).toLocaleString('id-ID');
-  };
-
 
   const isPDF = (filename) => {
     if (!filename) return false;
@@ -315,27 +311,27 @@ const SupplierPaymentDetail = () => {
 
                 <div className="flex justify-between py-2 border-b border-white/10">
                   <span className="text-xs font-bold text-slate-300">Base Amount</span>
-                  <span className="font-black text-white">Rp {formatRupiah(invoice.amount)}</span>
+                  <span className="font-black text-white">{formatUang(invoice.amount, invoice.currency)}</span>
                 </div>
 
                 {invoice.isTaxEnabled && invoice.taxAmount > 0 && (
                   <div className="flex justify-between py-2 border-b border-white/10">
                     <span className="text-xs font-bold text-slate-300">PPN / Tax</span>
-                    <span className="font-black text-amber-300">+ Rp {formatRupiah(invoice.taxAmount)}</span>
+                    <span className="font-black text-amber-300">+ {formatUang(invoice.taxAmount, invoice.currency)}</span>
                   </div>
                 )}
 
                 {invoice.isImportEnabled && invoice.importDutyAmount > 0 && (
                   <div className="flex justify-between py-2 border-b border-white/10">
                     <span className="text-xs font-bold text-slate-300">Bea Masuk / Import Duty</span>
-                    <span className="font-black text-orange-300">+ Rp {formatRupiah(invoice.importDutyAmount)}</span>
+                    <span className="font-black text-orange-300">+ {formatUang(invoice.importDutyAmount, invoice.currency)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between py-3 mt-2 bg-indigo-500/20 -mx-3 px-3 rounded-xl">
                   <span className="text-sm font-black text-indigo-300 uppercase tracking-wider">TOTAL</span>
                   <span className="text-xl font-black text-indigo-300">
-                    Rp {formatRupiah(invoice.totalAmount || invoice.amount)}
+                    <NilaiUang nominal={invoice.totalAmount || invoice.amount} currency={invoice.currency} rate={invoice.exchangeRate} tampilkanKurs />
                   </span>
                 </div>
               </div>

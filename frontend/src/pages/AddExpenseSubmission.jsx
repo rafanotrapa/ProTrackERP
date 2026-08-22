@@ -6,6 +6,7 @@ import { Upload, Search, ReceiptText, Plus, Trash2 } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
+import { currencyOptions, currencySymbol } from '../utils/currencies';
 
 import { useLang } from '../i18n';
 const formatRupiah = (value) => {
@@ -266,13 +267,8 @@ const AddExpenseSubmission = () => {
                 name="currency"
                 value={formData.currency}
                 onChange={handleChange}
-                searchable={false}
                 triggerClassName="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-amber-600 outline-none cursor-pointer flex justify-between items-center hover:border-amber-500 transition-all"
-                options={[
-                  { value: 'IDR', label: 'IDR (Indonesian Rupiah)' },
-                  { value: 'USD', label: 'USD (US Dollar)' },
-                  { value: 'SGD', label: 'SGD (Singapore Dollar)' },
-                ]}
+                options={currencyOptions}
               />
             </div>
           </div>
@@ -353,7 +349,7 @@ const AddExpenseSubmission = () => {
               <div className="text-right w-72">
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest">{t('form.submissionTotal')}</p>
                 <p className="text-2xl font-black text-amber-600 tracking-tighter">
-                  Rp {formatRupiah(totalAmount)}
+                  {currencySymbol(formData.currency)} {formatRupiah(totalAmount)}
                 </p>
               </div>
             </div>

@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
+import { currencyOptions, currencySymbol } from '../utils/currencies';
 
 import { useLang } from '../i18n';
 const formatRupiah = (value) => {
@@ -522,6 +523,12 @@ const AddClientQuotation = () => {
     }
   };
 
+  /* Simbol mengikuti mata uang yang dipilih. Sebelumnya seluruh halaman
+   * mencetak 'Rp' apa pun pilihannya, sehingga pemilih currency-nya tersimpan
+   * di database tapi tidak pernah terlihat pengaruhnya. Tidak ada konversi kurs
+   * — angkanya tetap angka yang diketik, hanya simbolnya yang benar. */
+  const simbol = currencySymbol(formData.currency);
+
   const hasItems = quotationMode === 'auto' ? formData.items.length > 0 : manualItems.length > 0;
 
   return (
@@ -626,7 +633,7 @@ const AddClientQuotation = () => {
                       </div>
                       <div className="col-span-3 space-y-1">
                         <label className="text-xs font-black text-slate-500 uppercase tracking-widest">{t('label.cogsCapital')}</label>
-                        <p className="font-bold text-slate-400 text-sm">Rp {Number(item.cogs || 0).toLocaleString('id-ID')}</p>
+                        <p className="font-bold text-slate-400 text-sm">{simbol} {Number(item.cogs || 0).toLocaleString('id-ID')}</p>
                       </div>
                       <div className="col-span-3 space-y-1">
                         <label className="text-xs font-black text-emerald-600 uppercase tracking-widest">
@@ -731,7 +738,7 @@ const AddClientQuotation = () => {
             <div className="flex justify-end mt-6 pt-4 border-t border-slate-200">
               <div className="text-right w-80 space-y-2">
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Subtotal</p>
-                <p className="text-2xl font-black text-slate-800">Rp {formatRupiah(subtotal)}</p>
+                <p className="text-2xl font-black text-slate-800">{simbol} {formatRupiah(subtotal)}</p>
 
                 <div className="flex items-center justify-between gap-4 pt-2">
                   <label className="text-xs font-black text-slate-500 uppercase tracking-widest">Shipping Fee</label>
@@ -763,7 +770,7 @@ const AddClientQuotation = () => {
                 {isPPN && (
                   <div className="flex justify-end">
                     <span className="text-2xs font-black bg-orange-100 text-orange-600 border border-orange-200 rounded-full px-2 py-0.5 uppercase tracking-widest">
-                      {t('label.taxableAmount', { nominal: formatRupiah(taxAmount) })}
+                      {t('label.taxableAmount', { simbol, nominal: formatRupiah(taxAmount) })}
                     </span>
                   </div>
                 )}
@@ -772,12 +779,12 @@ const AddClientQuotation = () => {
                   {isPPN && (
                     <>
                       <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Tax / PPN</p>
-                      <p className="text-sm font-black text-slate-500">Rp {formatRupiah(taxAmount)}</p>
+                      <p className="text-sm font-black text-slate-500">{simbol} {formatRupiah(taxAmount)}</p>
                     </>
                   )}
                   <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-2">Grand Total</p>
                   <p className="text-3xl font-black text-emerald-600 tracking-tighter">
-                    Rp {formatRupiah(grandTotal)}
+                    {simbol} {formatRupiah(grandTotal)}
                   </p>
                 </div>
               </div>
@@ -795,13 +802,8 @@ const AddClientQuotation = () => {
                   name="currency"
                   value={formData.currency}
                   onChange={handleChange}
-                  searchable={false}
                   triggerClassName="w-full p-3 border border-slate-300 rounded-xl bg-white font-black text-indigo-600 outline-none cursor-pointer flex justify-between items-center hover:border-indigo-600 transition-all"
-                  options={[
-                    { value: 'IDR', label: 'IDR (Indonesian Rupiah)' },
-                    { value: 'USD', label: 'USD (US Dollar)' },
-                    { value: 'SGD', label: 'SGD (Singapore Dollar)' },
-                  ]}
+                  options={currencyOptions}
                 />
               </div>
 

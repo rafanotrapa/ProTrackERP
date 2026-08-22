@@ -492,7 +492,7 @@ export const id = {
   'inv.usedMax': 'Jumlah terpakai (maks {n})',
 
   // Rekening bank dan PPN di Client Quotation
-  'label.taxableAmount': 'Kena PPN Rp {nominal}',
+  'label.taxableAmount': 'Kena PPN {simbol} {nominal}',
   'ph.bankExample': 'Contoh: BCA 123-456-7890 a/n PT. Batavia Jaya Kreasi',
   'ph.bankNotNeeded': 'Tidak diperlukan (Non-PPN)',
   'hint.bankRequiredForTax': 'Rekening bank wajib diisi untuk transaksi kena PPN',
@@ -975,7 +975,7 @@ export const en = {
   'inv.usedMax': 'Quantity used (max {n})',
 
   // Rekening bank dan PPN di Client Quotation
-  'label.taxableAmount': 'Taxable Rp {nominal}',
+  'label.taxableAmount': 'Taxable {simbol} {nominal}',
   'ph.bankExample': 'e.g. BCA 123-456-7890 under PT. Batavia Jaya Kreasi',
   'ph.bankNotNeeded': 'Not required (non-taxable)',
   'hint.bankRequiredForTax': 'A bank account is required for taxable transactions',

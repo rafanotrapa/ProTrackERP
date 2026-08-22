@@ -6,6 +6,9 @@ import { Plus, Trash2, Info, Truck, Receipt } from 'lucide-react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
+// Halaman ini sudah menampilkan KODE mata uang ({formData.currency}) di setiap
+// nominalnya, jadi tidak butuh simbol — hanya daftar opsinya yang diperluas.
+import { currencyOptions } from '../utils/currencies';
 
 import { useLang } from '../i18n';
 const AddSupplierQuotation = () => {
@@ -309,14 +312,8 @@ const AddSupplierQuotation = () => {
                   name="currency"
                   value={formData.currency}
                   onChange={handleChange}
-                  searchable={false}
                   triggerClassName="w-full p-3.5 border border-indigo-200 rounded-xl bg-indigo-50 font-black text-indigo-600 outline-none cursor-pointer flex justify-between items-center hover:border-indigo-400 transition-all"
-                  options={[
-                    { value: 'IDR', label: 'IDR (Rp)' },
-                    { value: 'USD', label: 'USD ($)' },
-                    { value: 'SGD', label: 'SGD (S$)' },
-                    { value: 'EUR', label: 'EUR (€)' },
-                  ]}
+                  options={currencyOptions}
                 />
               </div>
 

@@ -38,11 +38,39 @@ exports.createPayment = async (req, res) => {
     ]);
     const alreadyPaid   = priorVerified[0]?.total || 0;
     const invoiceDue    = Math.max(Number(invoice?.amount || 0) - alreadyPaid, 0);
-    const excessAmount  = Math.max(Number(amountPaid || 0) - invoiceDue, 0);
+
+    /* Nominalnya divalidasi di sini, bukan hanya dikunci di browser.
+     *
+     * Sebelumnya amountPaid disimpan mentah-mentah dari klien: tidak pernah
+     * diperiksa berupa angka, tidak pernah dibandingkan dengan tagihan. Kolom
+     * read-only di layar hanya menghalangi kekeliruan pengetikan, bukan
+     * permintaan yang dibuat langsung ke API.
+     *
+     * Kelebihan bayar TIDAK dilarang — models/Payment.js memang menyediakan
+     * excessAmount untuk itu — tapi harus disengaja. Tanpa penanda eksplisit,
+     * nominal di atas sisa tagihan ditolak, termasuk saat sisanya sudah nol
+     * (invoice lunas). Pemeriksaannya sengaja tidak dilewati saat invoiceDue
+     * bernilai 0, karena justru di situlah invoice yang sudah lunas bisa
+     * menerima pembayaran tambahan tanpa batas. */
+    const nominal = Number(amountPaid);
+    if (!Number.isFinite(nominal) || nominal <= 0) {
+      return res.status(400).json({ msg: 'Nominal pembayaran harus berupa angka lebih dari nol' });
+    }
+
+    const izinLebihBayar = String(req.body.allowOverpayment) === 'true';
+    if (nominal > invoiceDue && !izinLebihBayar) {
+      return res.status(400).json({
+        msg: invoiceDue === 0
+          ? 'Invoice ini sudah lunas, tidak ada sisa tagihan yang bisa dibayar'
+          : `Nominal pembayaran (${nominal.toLocaleString('id-ID')}) melebihi sisa tagihan invoice (${invoiceDue.toLocaleString('id-ID')})`,
+      });
+    }
+
+    const excessAmount  = Math.max(nominal - invoiceDue, 0);
 
     const newPayment = new Payment({
       invoiceId,
-      amountPaid,
+      amountPaid: nominal,
       excessAmount,
       paymentDate,
       remarks,

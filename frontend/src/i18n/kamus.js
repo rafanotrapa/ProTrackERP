@@ -502,6 +502,25 @@ export const id = {
   'common.search': 'Cari...',
   'empty.noOptions': 'Tidak ada pilihan',
   'pick.select': '-- Pilih --',
+
+  // Input pembayaran Finance
+  'label.amountPaid': 'Nominal Dibayar',
+  'label.amountToPay': 'SISA YANG DITAGIH',
+  'hint.partialRemaining': 'Sudah dibayar Rp {dibayar} dari Rp {total} — kolom ini menampilkan sisanya.',
+
+  // Dialog kelebihan bayar dan validasi Finance
+  'msg.overpaymentDetail': 'Tagihan invoice <b>{tagihan}</b>, dibayar <b>{dibayar}</b>.<br/>Kelebihan <b>{kelebihan}</b> akan dicatat sebagai lebih bayar.',
+  'btn.yesContinue': 'Ya, lanjutkan',
+  'sw.warning': 'Perhatian',
+  'sw.pickProject': 'Pilih project dulu',
+  'sw.pickInvoice': 'Pilih invoice yang akan dibayar',
+  'sw.needEvidence': 'Bukti pembayaran wajib diunggah',
+  'sw.invalidAmount': 'Nominal pembayaran tidak valid',
+
+  // Label tahap pembayaran
+  'sec.selectInvoiceTerm': '02. Pilih Invoice / Termin',
+  'label.termPhase': 'TERMIN / TAHAP',
+  'label.invoiceNumber': 'NOMOR INVOICE',
 };
 
 export const en = {
@@ -966,6 +985,25 @@ export const en = {
   'common.search': 'Search...',
   'empty.noOptions': 'No options',
   'pick.select': '-- Select --',
+
+  // Input pembayaran Finance
+  'label.amountPaid': 'Amount Paid',
+  'label.amountToPay': 'AMOUNT TO PAY',
+  'hint.partialRemaining': 'Rp {dibayar} of Rp {total} already paid — this field shows the remainder.',
+
+  // Dialog kelebihan bayar dan validasi Finance
+  'msg.overpaymentDetail': 'Invoice due <b>{tagihan}</b>, paid <b>{dibayar}</b>.<br/>The <b>{kelebihan}</b> difference will be recorded as an overpayment.',
+  'btn.yesContinue': 'Yes, continue',
+  'sw.warning': 'Warning',
+  'sw.pickProject': 'Please select a project',
+  'sw.pickInvoice': 'Please select an invoice to pay',
+  'sw.needEvidence': 'Please upload payment evidence',
+  'sw.invalidAmount': 'Invalid payment amount',
+
+  // Label tahap pembayaran
+  'sec.selectInvoiceTerm': '02. Select Invoice / Term',
+  'label.termPhase': 'TERM / PHASE',
+  'label.invoiceNumber': 'INVOICE NUMBER',
 };
 
 export const KAMUS = { id, en };

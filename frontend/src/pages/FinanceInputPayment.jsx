@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import Header from '../components/Header';
+import { labelTahap } from '../utils/paymentTerms';
 import Footer from '../components/Footer';
 import StyledSelect from '../components/StyledSelect';
 
@@ -90,9 +91,16 @@ const FinanceInputPayment = () => {
 
     if (stage && stage.invoice) {
       setSelectedInvoice(stage.invoice);
+      /* Terkunci ke SISA tagihan, bukan nilai penuh termin.
+       *
+       * Bedanya baru terasa pada termin berstatus Partial: layar ini sengaja
+       * membiarkan termin seperti itu tetap bisa dipilih untuk pelunasan
+       * susulan, dan mengunci di nilai penuh akan mencatat angka yang tidak
+       * pernah diterima. remaining dihitung server di projectBillingController
+       * dari pembayaran yang sudah terverifikasi. */
       setFormData(prev => ({
         ...prev,
-        amountPaid: stage.invoice.amount
+        amountPaid: sisaTagihan(stage.invoice)
       }));
     }
   };
@@ -110,22 +118,22 @@ const FinanceInputPayment = () => {
     e.preventDefault();
 
     if (!selectedProject) {
-      Swal.fire('Warning', 'Please select a project', 'warning');
+      Swal.fire(t('sw.warning'), t('sw.pickProject'), 'warning');
       return;
     }
 
     if (!selectedInvoice) {
-      Swal.fire('Warning', 'Please select an invoice to pay', 'warning');
+      Swal.fire(t('sw.warning'), t('sw.pickInvoice'), 'warning');
       return;
     }
 
     if (!formData.evidence) {
-      Swal.fire('Warning', 'Please upload payment evidence', 'warning');
+      Swal.fire(t('sw.warning'), t('sw.needEvidence'), 'warning');
       return;
     }
 
     if (!formData.amountPaid || Number(formData.amountPaid) <= 0) {
-      Swal.fire('Warning', 'Invalid payment amount', 'warning');
+      Swal.fire(t('sw.warning'), t('sw.invalidAmount'), 'warning');
       return;
     }
 
@@ -137,10 +145,13 @@ const FinanceInputPayment = () => {
       const confirm = await Swal.fire({
         icon: 'warning',
         title: t('msg.overpayment'),
-        html: `Tagihan invoice <b>${formatRupiah(invoiceAmount)}</b>, dibayar <b>${formatRupiah(Number(formData.amountPaid))}</b>.<br/>`
-            + `Kelebihan <b>${formatRupiah(excess)}</b> akan dicatat sebagai lebih bayar.`,
+        html: t('msg.overpaymentDetail', {
+          tagihan: formatRupiah(invoiceAmount),
+          dibayar: formatRupiah(Number(formData.amountPaid)),
+          kelebihan: formatRupiah(excess),
+        }),
         showCancelButton: true,
-        confirmButtonText: 'Ya, lanjutkan',
+        confirmButtonText: t('btn.yesContinue'),
         cancelButtonText: t('msg.fixAmount'),
         confirmButtonColor: '#0f172a',
       });
@@ -152,6 +163,9 @@ const FinanceInputPayment = () => {
     const submitData = new FormData();
     submitData.append('invoiceId', selectedInvoice.id);
     submitData.append('amountPaid', formData.amountPaid);
+    // Server menolak nominal di atas sisa tagihan kecuali kelebihan bayar
+    // memang sudah dikonfirmasi pengguna di dialog di atas.
+    if (excess > 0) submitData.append('allowOverpayment', 'true');
     submitData.append('paymentDate', formData.paymentDate);
     submitData.append('remarks', formData.remarks);
     submitData.append('evidence', formData.evidence);
@@ -187,10 +201,22 @@ const FinanceInputPayment = () => {
     }
   };
 
+  /* Dulu fungsi ini tidak membuang karakter non-digit lebih dulu, tidak seperti
+   * kembarannya di AddSupplierQuotation.jsx. Karena nilai yang sudah bertitik
+   * ikut disimpan ke state lalu dititik lagi tiap render, angkanya berubah jadi
+   * "3.00.000.000" dan Number()-nya menjadi NaN. NaN lolos dari kedua penjagaan
+   * (NaN <= 0 dan NaN > 0 sama-sama false) sehingga permintaan tetap terkirim
+   * dan gagal saat Mongoose meng-cast-nya. */
   const formatRupiah = (value) => {
-    if (!value) return '';
-    return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const angka = String(value ?? '').replace(/[^0-9]/g, '');
+    if (!angka) return '';
+    return angka.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   };
+
+  // Sisa yang benar-benar belum dibayar. Invoice lama yang belum membawa
+  // 'remaining' jatuh ke nilai penuhnya, sama seperti perilaku sebelumnya.
+  const sisaTagihan = (invoice) =>
+    Number(invoice?.remaining ?? invoice?.amount ?? 0);
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col">
@@ -237,7 +263,7 @@ const FinanceInputPayment = () => {
           {selectedProject && (
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <h3 className="text-sm font-black text-slate-800 uppercase tracking-[0.3em] flex items-center gap-3 mb-6">
-                <span className="w-8 h-1 bg-indigo-600"></span> 02. Select Invoice / Termin
+                <span className="w-8 h-1 bg-indigo-600"></span> {t('sec.selectInvoiceTerm')}
               </h3>
               <div>
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Unpaid Invoices</label>
@@ -248,7 +274,7 @@ const FinanceInputPayment = () => {
                     placeholder="-- Select Invoice --"
                     options={unpaidStages.map((stage, idx) => ({
                       value: idx,
-                      label: `${stage.invoice?.invoiceNumber} - ${stage.name} (Rp ${stage.invoice?.amount?.toLocaleString()})`,
+                      label: `${stage.invoice?.invoiceNumber} - ${labelTahap(stage.name, t)} (Rp ${stage.invoice?.amount?.toLocaleString('id-ID')})`,
                     }))}
                   />
                 </div>
@@ -263,12 +289,12 @@ const FinanceInputPayment = () => {
             <div className="bg-linear-to-r from-slate-800 to-slate-900 rounded-2xl p-6 text-white shadow-xl">
               <div className="flex flex-wrap justify-between items-start gap-4">
                 <div>
-                  <p className="text-xs font-black text-indigo-400 uppercase tracking-widest">INVOICE NUMBER</p>
+                  <p className="text-xs font-black text-indigo-400 uppercase tracking-widest">{t('label.invoiceNumber')}</p>
                   <p className="text-xl md:text-2xl font-black mt-1">{selectedInvoice.invoiceNumber}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-black text-indigo-400 uppercase tracking-widest">TERMIN / PHASE</p>
-                  <p className="text-base md:text-lg font-black mt-1 text-amber-300">{selectedStage?.name || '-'}</p>
+                  <p className="text-xs font-black text-indigo-400 uppercase tracking-widest">{t('label.termPhase')}</p>
+                  <p className="text-base md:text-lg font-black mt-1 text-amber-300">{labelTahap(selectedStage?.name, t)}</p>
                 </div>
               </div>
 
@@ -284,8 +310,8 @@ const FinanceInputPayment = () => {
               </div>
 
               <div className="mt-5 pt-5 border-t border-white/10 text-right">
-                <p className="text-xs font-black text-emerald-400 uppercase tracking-widest">AMOUNT TO PAY</p>
-                <p className="text-2xl md:text-3xl font-black tracking-tighter">Rp {selectedInvoice.amount?.toLocaleString()}</p>
+                <p className="text-xs font-black text-emerald-400 uppercase tracking-widest">{t('label.amountToPay')}</p>
+                <p className="text-2xl md:text-3xl font-black tracking-tighter">Rp {sisaTagihan(selectedInvoice).toLocaleString('id-ID')}</p>
               </div>
             </div>
           )}
@@ -300,17 +326,25 @@ const FinanceInputPayment = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div>
                     <label className="text-xs font-black text-emerald-600 uppercase tracking-widest ml-1">
-                      Amount Paid <span className="text-red-500">*</span>
+                      {t('label.amountPaid')}
                     </label>
+                    {/* Terkunci: nominalnya berasal dari tagihan termin yang dipilih,
+                        jadi Finance tinggal mengonfirmasi dan tidak bisa salah ketik. */}
                     <input
                       type="text"
                       name="amountPaid"
-                      required
+                      readOnly
                       value={formatRupiah(formData.amountPaid)}
-                      onChange={handleChange}
-                      className="w-full mt-1 p-4 bg-white border border-slate-300 rounded-xl font-black text-emerald-600 text-xl outline-none focus:border-emerald-500"
-                      placeholder="0"
+                      className="w-full mt-1 p-4 bg-slate-50 border border-slate-200 rounded-xl font-black text-emerald-600 text-xl outline-none cursor-not-allowed"
                     />
+                    {selectedInvoice?.paidAmount > 0 && (
+                      <p className="text-2xs font-bold text-amber-600 mt-1 ml-1">
+                        {t('hint.partialRemaining', {
+                          dibayar: formatRupiah(selectedInvoice.paidAmount),
+                          total: formatRupiah(selectedInvoice.amount),
+                        })}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Payment Date <span className="text-red-500">*</span></label>

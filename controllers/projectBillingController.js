@@ -8,7 +8,7 @@ const SupplierInvoice = require('../models/SupplierInvoice');
 const Project = require('../models/Project');
 const { parsePaymentStages, resolveTopOption } = require('../utils/paymentTerms');
 const { computeProcessPercent } = require('../utils/processProgress');
-const { statusPerInvoice, totalTerbayar, sudahLunas } = require('../utils/clientPaymentStatus');
+const { statusPerInvoice, totalTerbayarPerInvoice, totalTerbayar, sudahLunas } = require('../utils/clientPaymentStatus');
 
 // Dulu berkas ini punya getInvoicePaymentStatus sendiri yang menjalankan satu
 // findOne per invoice, dan hanya memeriksa ADA atau TIDAK pembayaran
@@ -144,6 +144,10 @@ exports.getProjectBillingDetail = async (req, res) => {
 
     // Status seluruh termin diambil sekali di depan, bukan satu query per tahap.
     const statusInvoice = await statusPerInvoice(invoices);
+    // Nominal yang sudah benar-benar masuk per invoice. Dipakai untuk sisa
+    // tagihan; tanpa ini layar input pembayaran tidak punya cara tahu bahwa
+    // sebuah termin sudah dibayar sebagian.
+    const terbayarInvoice = await totalTerbayarPerInvoice(invoices.map((i) => i._id));
 
     const stagesWithStatus = await Promise.all(expectedStages.map(async (stage, idx) => {
       const invoice = invoices[idx];
@@ -160,10 +164,18 @@ exports.getProjectBillingDetail = async (req, res) => {
           paymentDate = verifiedPayment?.paymentDate || null;
         }
 
+        /* paidAmount dan remaining ikut dikirim supaya Finance Input Payment bisa
+         * mengunci kolom nominal ke SISA tagihan, bukan ke nilai penuh termin.
+         * Bedanya nyata begitu sebuah termin berstatus Partial: mengunci di nilai
+         * penuh akan mencatat angka yang tidak pernah diterima. */
+        const sudahMasuk = terbayarInvoice.get(String(invoice._id)) || 0;
+
         invoiceData = {
           id: invoice._id,
           invoiceNumber: invoice.invoiceNumber,
           amount: invoice.amount,
+          paidAmount: sudahMasuk,
+          remaining: Math.max(Number(invoice.amount || 0) - sudahMasuk, 0),
           dueDate: invoice.dueDate,
           createdAt: invoice.createdAt,
           paymentDate

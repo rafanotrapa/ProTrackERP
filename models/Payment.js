@@ -11,6 +11,16 @@ const paymentSchema = new mongoose.Schema({
     required: true
   },
 
+  /* Mata uang dan kurs diwarisi dari invoice yang dibayar.
+   *
+   * Pembayaran WAJIB satu mata uang dengan tagihannya — divalidasi di
+   * controllers/paymentController.js. Karena itu perbandingan "sudah lunas atau
+   * belum" di utils/clientPaymentStatus.js tetap dilakukan dalam mata uang
+   * aslinya: tidak perlu konversi, dan terhindar dari selisih pembulatan.
+   * Konversi ke rupiah hanya terjadi saat agregasi lintas dokumen. */
+  currency:     { type: String, default: 'IDR' },
+  exchangeRate: { type: Number, default: 1 },
+
   // Siapa yang membuat dokumen ini. Tanpa ini, notifikasi arah balik
   // ('dokumenmu ditolak') tidak bisa dituju ke orangnya dan terpaksa
   // disiarkan ke seluruh peran. Diisi server dari req.user.id.

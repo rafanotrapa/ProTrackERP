@@ -17,6 +17,9 @@ const SupplierInvoiceSchema = new mongoose.Schema({
   vendorName: { type: String, required: true },
   
   currency: { type: String, default: 'IDR' },
+  // Kurs terkunci saat dokumen dibuat; lihat models/SupplierQuotation.js.
+  exchangeRate: { type: Number, default: 1 },
+
   terminName: { type: String, default: 'Full Payment' }, 
 
   amount: { type: Number, required: true }, 

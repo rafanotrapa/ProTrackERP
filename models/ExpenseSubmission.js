@@ -24,6 +24,9 @@ const ExpenseSubmissionSchema = new mongoose.Schema({
 
   amount:       { type: Number, required: true },
   currency:     { type: String, default: 'IDR' },
+  // Kurs terkunci saat dokumen dibuat; lihat models/SupplierQuotation.js.
+  exchangeRate: { type: Number, default: 1 },
+
 
   file:         { type: String },
 

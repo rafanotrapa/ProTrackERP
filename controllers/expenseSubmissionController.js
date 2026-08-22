@@ -1,6 +1,7 @@
 const ExpenseSubmission = require('../models/ExpenseSubmission');
 const { kirimDiamDiam } = require('../utils/notify');
 const { gabung, namaPelaku } = require('../utils/notifyTargets');
+const { normalkanUang } = require('../utils/uang');
 
 const parseItems = (rawItems) => {
   let items = rawItems;
@@ -45,13 +46,24 @@ exports.submitExpense = async (req, res) => {
 
     const totalAmount = items.reduce((sum, it) => sum + it.amount, 0);
 
+    /* Pengajuan dalam mata uang asing wajib membawa kurs. Nominalnya ikut
+     * dijumlahkan ke biaya project di laporan keuangan, jadi tanpa kurs angka
+     * asing itu akan terhitung sebagai rupiah. */
+    const uang = normalkanUang(currency, req.body.exchangeRate);
+    if (!uang) {
+      return res.status(400).json({
+        msg: `Pengajuan dalam ${String(currency).toUpperCase()} wajib menyertakan kurs terhadap Rupiah yang lebih besar dari nol`,
+      });
+    }
+
     const newExpense = new ExpenseSubmission({
       submissionId:    submissionId || `EXP-${Date.now()}`,
       projectId,
       projectName:     projectName || '',
       items,
       amount:          totalAmount,
-      currency:        currency || 'IDR',
+      currency:        uang.currency,
+      exchangeRate:    uang.exchangeRate,
       file:            req.file ? req.file.filename : null,
       submittedBy:     userId,
       submittedByName: userName,

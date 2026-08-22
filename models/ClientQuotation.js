@@ -15,6 +15,9 @@ const ClientQuotationSchema = new mongoose.Schema({
   }],
 
   currency:    { type: String, default: 'IDR' },
+  // Kurs terkunci saat dokumen dibuat; lihat models/SupplierQuotation.js.
+  exchangeRate: { type: Number, default: 1 },
+
   clientPrice: { type: Number, required: true },
   topOption:   { type: String },
   // Skema termin mentah (mis. "DP 50%" / "Termin 30% 30% 40%"). Disimpan terpisah

@@ -31,6 +31,12 @@ const PurchaseOrderSchema = new mongoose.Schema({
    * ('Termin 30% 20% 10% 40%'). Gabungkan dengan utils/paymentTerms.js.
    */
   topOption: { type: String },
+  // Mata uang dan kurs terkunci saat dokumen dibuat; nilai rupiahnya dihitung
+  // saat agregasi lewat utils/uang.js. Lihat penjelasan lengkap di
+  // models/SupplierQuotation.js.
+  currency:     { type: String, default: 'IDR' },
+  exchangeRate: { type: Number, default: 1 },
+
   customTop: { type: String },
 
   additionalFee: { type: Number, default: 0 },

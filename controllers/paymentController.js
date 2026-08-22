@@ -68,9 +68,26 @@ exports.createPayment = async (req, res) => {
 
     const excessAmount  = Math.max(nominal - invoiceDue, 0);
 
+    /* Mata uang pembayaran diwarisi dari invoicenya, tidak diterima dari klien.
+     *
+     * Konsekuensinya perbandingan lunas/belum di utils/clientPaymentStatus.js
+     * tetap sah dilakukan dalam mata uang asli tanpa konversi apa pun — kedua
+     * sisi dijamin satu satuan. Konversi ke rupiah hanya terjadi saat agregasi
+     * lintas dokumen di laporan keuangan. */
+    const mataUangInvoice = invoice?.currency || 'IDR';
+    const kursInvoice     = invoice?.exchangeRate || 1;
+    const mataUangKiriman = req.body.currency ? String(req.body.currency).toUpperCase() : mataUangInvoice;
+    if (mataUangKiriman !== mataUangInvoice) {
+      return res.status(400).json({
+        msg: `Pembayaran harus dalam mata uang yang sama dengan invoicenya (${mataUangInvoice})`,
+      });
+    }
+
     const newPayment = new Payment({
       invoiceId,
       amountPaid: nominal,
+      currency: mataUangInvoice,
+      exchangeRate: kursInvoice,
       excessAmount,
       paymentDate,
       remarks,

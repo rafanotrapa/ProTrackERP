@@ -1,4 +1,6 @@
 const SupplierInvoice = require('../models/SupplierInvoice');
+const PurchaseOrder = require('../models/PurchaseOrder');
+const SupplierQuotation = require('../models/SupplierQuotation');
 const { kirimDiamDiam } = require('../utils/notify');
 const { picMarketing, usersByRole, gabung, namaPelaku } = require('../utils/notifyTargets');
 
@@ -19,6 +21,24 @@ exports.submitInvoice = async (req, res) => {
     const baseAmount       = Number(req.body.amount) || 0;
     const totalAmount      = baseAmount + importDutyAmount + taxAmount;
 
+    /* Mata uang diambil dari PO-nya di server, bukan dari yang dikirim browser.
+     *
+     * Tagihan ke vendor harus memakai mata uang yang tertulis di Purchase Order
+     * — itu dokumen yang mengikat kedua pihak. Membiarkan klien menentukannya
+     * berarti satu permintaan yang dibuat langsung ke API bisa mengubah CNY jadi
+     * IDR dan menyusutkan tagihan ribuan kali lipat.
+     *
+     * PO lama belum menyimpan mata uangnya sendiri, jadi kalau kosong nilainya
+     * diambil dari quotation asalnya — cadangan yang sama dengan getAllPOs. */
+    let uangDok = { currency: 'IDR', exchangeRate: 1 };
+    const po = req.body.poId ? await PurchaseOrder.findById(req.body.poId).lean() : null;
+    if (po?.currency) {
+      uangDok = { currency: po.currency, exchangeRate: po.exchangeRate || 1 };
+    } else if (po?.quotationId) {
+      const sq = await SupplierQuotation.findById(po.quotationId).select('currency exchangeRate').lean();
+      if (sq?.currency) uangDok = { currency: sq.currency, exchangeRate: sq.exchangeRate || 1 };
+    }
+
     const newInvoice = new SupplierInvoice({
       submissionId:    req.body.submissionId,
       poId:            req.body.poId,
@@ -26,7 +46,8 @@ exports.submitInvoice = async (req, res) => {
       projectId:       req.body.projectId,
       vendorName:      req.body.vendorName,
       invoiceNumber:   req.body.invoiceNumber,
-      currency:        req.body.currency || 'IDR',
+      currency:        uangDok.currency,
+      exchangeRate:    uangDok.exchangeRate,
       terminName:      req.body.terminName || 'Full Payment',
       amount:          baseAmount,
       totalAmount,

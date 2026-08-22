@@ -1,6 +1,7 @@
 const ClientQuotation  = require('../models/ClientQuotation');
 const SupplierQuotation = require('../models/SupplierQuotation');
 const { resolveTopOption } = require('../utils/paymentTerms');
+const { keIDR, normalkanUang } = require('../utils/uang');
 const { kirimDiamDiam } = require('../utils/notify');
 const { picMarketing, usersByRole, gabung, namaPelaku } = require('../utils/notifyTargets');
 
@@ -11,21 +12,40 @@ const injectSupplierModal = async (quo) => {
   const quoObj = typeof quo.toObject === 'function' ? quo.toObject() : quo;
   let sqSubtotal = 0, sqFee = 0, sqTax = 0, sqModalMurni = 0;
 
+  /* Modal SELALU dikembalikan dalam Rupiah.
+   *
+   * Alasannya: angka ini dipakai untuk menghitung margin terhadap harga jual,
+   * dan quotation supplier bisa berbeda mata uang dengan quotation client-nya.
+   * Sebelum ini keduanya dijumlahkan sebagai angka telanjang — COGS dalam CNY
+   * dibandingkan langsung dengan harga jual dalam Rupiah.
+   *
+   * Karena hasilnya kini benar-benar Rupiah, label 'Rp' yang sudah lama
+   * di-hardcode di halaman review justru menjadi benar. */
   if (quoObj.quotationMode === 'auto') {
     const sq = await SupplierQuotation.findOne({
       projectId: quoObj.projectId, approvalStatus: 'Approved',
     });
     if (sq) {
-      sqSubtotal   = sq.items.reduce((s, i) => s + (i.cogs || 0) * (i.quantity || 1), 0);
-      sqFee        = sq.additionalFee || 0;
-      sqTax        = sq.taxAmount     || 0;
+      const kurs = sq.exchangeRate;
+      const mata = sq.currency;
+      sqSubtotal   = keIDR(sq.items.reduce((s, i) => s + (i.cogs || 0) * (i.quantity || 1), 0), kurs, mata);
+      sqFee        = keIDR(sq.additionalFee || 0, kurs, mata);
+      sqTax        = keIDR(sq.taxAmount     || 0, kurs, mata);
       sqModalMurni = sqSubtotal + sqFee;
     }
   } else {
-    sqSubtotal   = (quoObj.items || []).reduce((s, i) => s + (i.cogs || 0) * (i.quantity || 1), 0);
+    // Mode manual: COGS diketik langsung di quotation ini, jadi mata uangnya
+    // mengikuti quotation ini pula.
+    sqSubtotal   = keIDR(
+      (quoObj.items || []).reduce((s, i) => s + (i.cogs || 0) * (i.quantity || 1), 0),
+      quoObj.exchangeRate, quoObj.currency
+    );
     sqModalMurni = sqSubtotal;
   }
 
+  // Ditandai eksplisit supaya frontend tahu satuan angka-angka ini, dan tidak
+  // perlu menebak dari currency milik quotation-nya.
+  quoObj.modalCurrency    = 'IDR';
   quoObj.supplierSubtotal = sqSubtotal;
   quoObj.supplierFee      = sqFee;
   quoObj.supplierTax      = sqTax;
@@ -48,13 +68,24 @@ exports.createQuotation = async (req, res) => {
     const finalTop              = resolveTopOption(topOption, customTop);
     const statusAwal            = req.body.approvalStatus || 'Draft';
 
+    /* Mata uang asing wajib membawa kurs — sama seperti Supplier Quotation.
+     * Angka ini menentukan nilai Rupiah yang masuk ke laporan dan margin, jadi
+     * divalidasi di server, bukan hanya di layar. */
+    const uang = normalkanUang(currency, req.body.exchangeRate);
+    if (!uang) {
+      return res.status(400).json({
+        msg: `Quotation dalam ${String(currency).toUpperCase()} wajib menyertakan kurs terhadap Rupiah yang lebih besar dari nol`,
+      });
+    }
+
     const newQuotation = new ClientQuotation({
       quotationId,
       projectId,
       projectName,
       clientName,
       items:          items         || [],
-      currency:       currency      || 'IDR',
+      currency:       uang.currency,
+      exchangeRate:   uang.exchangeRate,
       clientPrice:    calculatedClientPrice,
       topOption:      finalTop,
       customTop:      finalTop,
@@ -257,6 +288,16 @@ exports.submitQuotation = async (req, res) => {
     const cleanTaxAmount        = Number(taxAmount) || 0;
     const isPPN                 = cleanTaxAmount > 0;
 
+    /* Mata uang asing wajib membawa kurs — sama seperti Supplier Quotation.
+     * Angka ini menentukan nilai Rupiah yang masuk ke laporan dan margin, jadi
+     * divalidasi di server, bukan hanya di layar. */
+    const uang = normalkanUang(currency, req.body.exchangeRate);
+    if (!uang) {
+      return res.status(400).json({
+        msg: `Quotation dalam ${String(currency).toUpperCase()} wajib menyertakan kurs terhadap Rupiah yang lebih besar dari nol`,
+      });
+    }
+
     const updated = await ClientQuotation.findByIdAndUpdate(
       id,
       {
@@ -265,7 +306,8 @@ exports.submitQuotation = async (req, res) => {
         projectName,
         clientName,
         items:          items         || [],
-        currency:       currency      || 'IDR',
+        currency:       uang.currency,
+        exchangeRate:   uang.exchangeRate,
         clientPrice:    calculatedClientPrice,
         topOption:      finalTop,
         customTop:      finalTop,

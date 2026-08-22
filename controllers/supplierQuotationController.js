@@ -4,13 +4,26 @@ const { lengkapiNamaProject } = require('../utils/projectNames');
 const { nextDocumentNumber } = require('../utils/documentNumber');
 const { kirimDiamDiam } = require('../utils/notify');
 const { picMarketing, usersByRole, gabung, namaPelaku } = require('../utils/notifyTargets');
+const { normalkanUang } = require('../utils/uang');
 
 exports.createQuotation = async (req, res) => {
   try {
     const {
       projectId, vendorId, topOption, customTop, remarks,
-      additionalFee, additionalFeeRemarks, isTaxIncluded, taxAmount, currency
+      additionalFee, additionalFeeRemarks, isTaxIncluded, taxAmount, currency,
+      exchangeRate
     } = req.body;
+
+    /* Mata uang asing wajib membawa kurs. Divalidasi di sini, bukan hanya di
+     * layar: nilai ini menentukan seluruh angka COGS yang masuk ke laporan
+     * keuangan, jadi permintaan yang dibuat langsung ke API tidak boleh
+     * melewatinya. normalkanUang memaksa kurs IDR selalu 1 sekaligus. */
+    const uang = normalkanUang(currency, exchangeRate);
+    if (!uang) {
+      return res.status(400).json({
+        msg: `Quotation dalam ${String(currency).toUpperCase()} wajib menyertakan kurs terhadap Rupiah yang lebih besar dari nol`,
+      });
+    }
 
     // Nomor dibuat server dan berurutan. Sebelumnya browser mengaraknya dan tidak
     // ada pemeriksaan duplikat sama sekali, sehingga tabrakan pada index unik
@@ -54,7 +67,8 @@ exports.createQuotation = async (req, res) => {
       additionalFeeRemarks,
       isTaxIncluded: taxBool,
       taxAmount: cleanTaxAmount,
-      currency: currency || 'IDR',
+      currency: uang.currency,
+      exchangeRate: uang.exchangeRate,
       topOption,
       customTop: topOption === 'Termin' ? customTop : '',
       remarks,

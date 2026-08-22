@@ -7,6 +7,7 @@ const SupplierQuotation  = require('../models/SupplierQuotation');
 const SupplierInvoice    = require('../models/SupplierInvoice');
 const ExpenseSubmission  = require('../models/ExpenseSubmission');
 const { parsePaymentStages, resolveTopOption } = require('../utils/paymentTerms');
+const { keIDR, jumlahIDR } = require('../utils/uang');
 const { computePOPaymentStatuses, UNPAID } = require('../utils/poPaymentStatus');
 const { computeProcessSteps } = require('../utils/processProgress');
 
@@ -45,6 +46,20 @@ exports.getProjectTimeline = async (req, res) => {
     const taxPercentage = clientQuotation?.taxPercentage || 0;
 
     const grandTotal = getContractGrandTotal(clientQuotation || { clientPrice, shippingFee, taxAmount });
+
+    /* Dua satuan yang sengaja dipisah, dan pemisahan ini penting:
+     *
+     *   - clientPrice / grandTotal tetap dalam MATA UANG QUOTATION-nya. Keduanya
+     *     membagi tahap termin yang nantinya diterbitkan sebagai invoice ke
+     *     client, jadi mengonversinya di sini akan mengubah nominal tagihan.
+     *   - clientPriceIDR dipakai HANYA untuk margin dan laba, karena semua biaya
+     *     (COGS, bea masuk, expense) sudah dinyatakan dalam rupiah.
+     *
+     * Sebelum ini keduanya satu variabel, sehingga harga jual berdenominasi
+     * asing dibandingkan langsung dengan biaya berdenominasi rupiah. */
+    const kontrakMata = clientQuotation?.currency || 'IDR';
+    const kontrakKurs = clientQuotation?.exchangeRate || 1;
+    const clientPriceIDR = keIDR(clientPrice, kontrakKurs, kontrakMata);
 
     const topOption = resolveTopOption(clientQuotation?.topOption, clientQuotation?.customTop) || '—';
     const rawInvoices = await CreateInvoice.find({ projectId }).sort({ createdAt: 1 });
@@ -152,13 +167,17 @@ exports.getProjectTimeline = async (req, res) => {
       approvalStatus: 'Approved'
     }).sort({ createdAt: -1 });
 
-    const estimatedCOGS = supplierQuotations.reduce((sum, sq) => {
-      const itemsCost = (sq.items || []).reduce(
-        (s, it) => s + (it.cogs || 0) * (it.quantity || 1),
-        0
-      );
-      return sum + itemsCost + (sq.additionalFee || 0) + (sq.taxAmount || 0);
-    }, 0);
+    /* Seluruh angka biaya di bawah ini dinyatakan dalam RUPIAH.
+     *
+     * Quotation supplier bisa berdenominasi asing, dan sebelum ini nominalnya
+     * dijumlahkan apa adanya — CNY 100.000 masuk sebagai Rp 100.000. jumlahIDR
+     * mengalikannya dengan kurs yang terkunci di dokumen masing-masing.
+     * Dokumen lama tidak punya kurs dan seluruhnya rupiah, jadi bawaan 1 membuat
+     * hasilnya persis sama seperti sebelumnya. */
+    const estimatedCOGS = jumlahIDR(supplierQuotations, (sq) =>
+      (sq.items || []).reduce((s, it) => s + (it.cogs || 0) * (it.quantity || 1), 0)
+      + (sq.additionalFee || 0) + (sq.taxAmount || 0)
+    );
 
     const sqSummary = supplierQuotations.map(sq => ({
       _id: sq._id,
@@ -168,10 +187,19 @@ exports.getProjectTimeline = async (req, res) => {
       additionalFee: sq.additionalFee || 0,
       taxAmount: sq.taxAmount || 0,
       taxPercentage: sq.taxPercentage || 0,
-      totalCOGS:
+      // Nominal asli tetap dibawa supaya layar bisa menampilkan mata uang
+      // dokumennya; totalCOGS sendiri sudah dalam rupiah agar bisa dibandingkan
+      // dengan harga jual.
+      currency: sq.currency || 'IDR',
+      exchangeRate: sq.exchangeRate || 1,
+      totalCOGSAsli:
         (sq.items || []).reduce((s, it) => s + (it.cogs || 0) * (it.quantity || 1), 0) +
-        (sq.additionalFee || 0) +
-        (sq.taxAmount || 0),
+        (sq.additionalFee || 0) + (sq.taxAmount || 0),
+      totalCOGS: keIDR(
+        (sq.items || []).reduce((s, it) => s + (it.cogs || 0) * (it.quantity || 1), 0) +
+        (sq.additionalFee || 0) + (sq.taxAmount || 0),
+        sq.exchangeRate, sq.currency
+      ),
       approvalStatus: sq.approvalStatus,
       createdAt: sq.createdAt
     }));
@@ -181,16 +209,15 @@ exports.getProjectTimeline = async (req, res) => {
     const paidSupplierInvoices    = supplierInvoices.filter(si => si.status === 'Paid');
     const pendingSupplierInvoices = supplierInvoices.filter(si => si.status !== 'Paid');
 
-    const actualCOGS       = paidSupplierInvoices.reduce((sum, si) => sum + Number(si.amount || 0), 0);
-    const actualImportDuty = paidSupplierInvoices.reduce((sum, si) => sum + Number(si.importDutyAmount || 0), 0);
-    const actualTaxPassThru = paidSupplierInvoices.reduce((sum, si) => sum + Number(si.taxAmount || 0), 0);
+    const nilaiPenuh = (si) =>
+      Number(si.totalAmount || (si.amount + si.taxAmount + si.importDutyAmount) || si.amount || 0);
 
-    const totalSupplierPaid = paidSupplierInvoices.reduce(
-      (sum, si) => sum + Number(si.totalAmount || (si.amount + si.taxAmount + si.importDutyAmount) || si.amount || 0), 0
-    );
-    const totalSupplierPending = pendingSupplierInvoices.reduce(
-      (sum, si) => sum + Number(si.totalAmount || (si.amount + si.taxAmount + si.importDutyAmount) || si.amount || 0), 0
-    );
+    const actualCOGS        = jumlahIDR(paidSupplierInvoices, (si) => Number(si.amount || 0));
+    const actualImportDuty  = jumlahIDR(paidSupplierInvoices, (si) => Number(si.importDutyAmount || 0));
+    const actualTaxPassThru = jumlahIDR(paidSupplierInvoices, (si) => Number(si.taxAmount || 0));
+
+    const totalSupplierPaid    = jumlahIDR(paidSupplierInvoices, nilaiPenuh);
+    const totalSupplierPending = jumlahIDR(pendingSupplierInvoices, nilaiPenuh);
 
     const siSummary = supplierInvoices.map(si => ({
       _id: si._id,
@@ -230,28 +257,30 @@ exports.getProjectTimeline = async (req, res) => {
       createdAt:       e.createdAt
     }));
 
-    const totalOtherExpenseApproved = expenseSubmissions
-      .filter(e => e.status === 'Approved')
-      .reduce((sum, e) => sum + (e.amount || 0), 0);
+    // Pengajuan biaya juga bisa berdenominasi asing — currency-nya bahkan sudah
+    // ikut dikirim ke layar di expenseSummary di atas, tapi tidak pernah dibaca
+    // saat menjumlah. Itu yang membuat ProjectTimeline mencetak "Rp 500" tepat
+    // di atas label "Total • USD".
+    const totalOtherExpenseApproved = jumlahIDR(
+      expenseSubmissions.filter(e => e.status === 'Approved'), (e) => e.amount || 0);
 
-    const totalOtherExpensePending = expenseSubmissions
-      .filter(e => e.status === 'Pending Verification')
-      .reduce((sum, e) => sum + (e.amount || 0), 0);
+    const totalOtherExpensePending = jumlahIDR(
+      expenseSubmissions.filter(e => e.status === 'Pending Verification'), (e) => e.amount || 0);
 
     const totalActualExpense = actualCOGS + actualImportDuty + totalOtherExpenseApproved;
-    const grossProfit = clientPrice - actualCOGS;
-    const netProfit    = clientPrice - totalActualExpense;
+    const grossProfit = clientPriceIDR - actualCOGS;
+    const netProfit   = clientPriceIDR - totalActualExpense;
 
-    const profitMarginPct = clientPrice > 0
-      ? parseFloat(((grossProfit / clientPrice) * 100).toFixed(2))
+    const profitMarginPct = clientPriceIDR > 0
+      ? parseFloat(((grossProfit / clientPriceIDR) * 100).toFixed(2))
       : 0;
-    const netMarginPct = clientPrice > 0
-      ? parseFloat(((netProfit / clientPrice) * 100).toFixed(2))
+    const netMarginPct = clientPriceIDR > 0
+      ? parseFloat(((netProfit / clientPriceIDR) * 100).toFixed(2))
       : 0;
 
-    const estimatedNetProfit = clientPrice - estimatedCOGS - totalOtherExpenseApproved;
-    const estimatedMarginPct = clientPrice > 0
-      ? parseFloat(((estimatedNetProfit / clientPrice) * 100).toFixed(2))
+    const estimatedNetProfit = clientPriceIDR - estimatedCOGS - totalOtherExpenseApproved;
+    const estimatedMarginPct = clientPriceIDR > 0
+      ? parseFloat(((estimatedNetProfit / clientPriceIDR) * 100).toFixed(2))
       : 0;
 
     const milestones = {
@@ -290,6 +319,11 @@ exports.getProjectTimeline = async (req, res) => {
       },
 
       financial: {
+        // Mata uang kontrak dikirim supaya layar tahu satuan clientPrice dan
+        // grandTotal; angka laba/margin di blok lain selalu rupiah.
+        currency: kontrakMata,
+        exchangeRate: kontrakKurs,
+        clientPriceIDR,
         clientPrice,
         shippingFee,
         taxPercentage,

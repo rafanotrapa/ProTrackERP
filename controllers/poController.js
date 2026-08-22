@@ -60,6 +60,13 @@ exports.createPO = async (req, res) => {
       items: quote.items, 
       topOption: quote.topOption,
       customTop: quote.customTop,
+      /* Mata uang dan kursnya ikut disalin. Ini titik yang dulu memutus seluruh
+       * rantai: PurchaseOrder tidak punya field currency sama sekali, sehingga
+       * SupplierInvoice.jsx yang membaca `po.currency || 'IDR'` SELALU jatuh ke
+       * IDR — quotation CNY 100.000 berubah jadi tagihan Rp 100.000 tanpa satu
+       * pun peringatan. Sama persis dengan kasus topOption di atasnya. */
+      currency: quote.currency || 'IDR',
+      exchangeRate: quote.exchangeRate || 1,
       additionalFee: addFee,
       additionalFeeRemarks: quote.additionalFeeRemarks, 
       isTaxIncluded: quote.isTaxIncluded,             
@@ -140,6 +147,13 @@ exports.getAllPOs = async (req, res) => {
       if (!obj.topOption && obj.quotationId) {
         obj.topOption = obj.quotationId.topOption || '';
         obj.customTop = obj.quotationId.customTop || '';
+      }
+      // Alasan yang sama untuk mata uang: PO yang terbit sebelum field ini ada
+      // mewarisinya dari quotation saat dibaca, jadi 16 PO lama ikut benar tanpa
+      // migrasi. PO baru menyimpan salinannya sendiri dan salinan itu yang menang.
+      if (!obj.currency && obj.quotationId) {
+        obj.currency = obj.quotationId.currency || 'IDR';
+        obj.exchangeRate = obj.quotationId.exchangeRate || 1;
       }
       return { ...obj, paymentStatus: statusMap.get(po.poNumber) || UNPAID };
     });

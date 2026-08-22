@@ -287,6 +287,10 @@ exports.generateNextInvoice = async (req, res) => {
       projectId,
       projectName: quotation.projectName,
       clientName: quotation.clientName,
+      // Invoice memakai mata uang quotation-nya; nominal tahap juga dihitung
+      // dari nilai kontrak yang berdenominasi sama, jadi keduanya konsisten.
+      currency: quotation.currency || 'IDR',
+      exchangeRate: quotation.exchangeRate || 1,
       amount: nextStage.amount,
       items: itemsWithSalesPrice,
       status: 'Unpaid',

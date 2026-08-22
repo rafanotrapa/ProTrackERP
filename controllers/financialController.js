@@ -5,6 +5,18 @@ const SupplierInvoice   = require('../models/SupplierInvoice');
 const Payment           = require('../models/Payment');
 const Project           = require('../models/Project');
 const ExpenseSubmission = require('../models/ExpenseSubmission');
+const { keIDR, jumlahIDR } = require('../utils/uang');
+
+/* SELURUH angka di laporan ini dinyatakan dalam RUPIAH.
+ *
+ * Sebelumnya berkas ini tidak menyebut kata 'currency' satu kali pun di 518
+ * barisnya: revenue, COGS, bea masuk, expense, cash flow, dan tren bulanan
+ * semuanya menjumlah nominal apa adanya. Quotation CNY 100.000 masuk sebagai
+ * Rp 100.000 — dan tidak ada yang gagal, angkanya sekadar salah.
+ *
+ * keIDR/jumlahIDR mengalikan tiap dokumen dengan kurs yang terkunci di dokumen
+ * itu sendiri. Dokumen lama tidak punya kurs dan seluruhnya rupiah, sehingga
+ * bawaan 1 membuat hasilnya identik dengan sebelum perubahan ini. */
 
 const norm = (id) => String(id || '').trim().toLowerCase();
 
@@ -64,13 +76,13 @@ exports.getFinancialSummary = async (req, res) => {
     let totalCashReceived    = 0;
 
     quotations.forEach(q => {
-      totalClientRevenue  += Number(q.clientPrice  || 0);
-      totalClientTax      += Number(q.taxAmount     || 0);
-      totalClientShipping += Number(q.shippingFee   || 0);
+      totalClientRevenue  += keIDR(q.clientPrice, q.exchangeRate, q.currency);
+      totalClientTax      += keIDR(q.taxAmount,   q.exchangeRate, q.currency);
+      totalClientShipping += keIDR(q.shippingFee, q.exchangeRate, q.currency);
     });
 
     payments.forEach(p => {
-      totalCashReceived += Number(p.amountPaid || 0);
+      totalCashReceived += keIDR(p.amountPaid, p.exchangeRate, p.currency);
     });
 
     let totalCOGS                = 0;
@@ -78,12 +90,12 @@ exports.getFinancialSummary = async (req, res) => {
     let totalSupplierTaxPassThru = 0;
 
     supplierInvoices.forEach(si => {
-      totalCOGS                += Number(si.amount           || 0);
-      totalImportDuty          += Number(si.importDutyAmount || 0);
-      totalSupplierTaxPassThru += Number(si.taxAmount        || 0);
+      totalCOGS                += keIDR(si.amount,           si.exchangeRate, si.currency);
+      totalImportDuty          += keIDR(si.importDutyAmount, si.exchangeRate, si.currency);
+      totalSupplierTaxPassThru += keIDR(si.taxAmount,        si.exchangeRate, si.currency);
     });
 
-    const totalOtherExpense = otherExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+    const totalOtherExpense = jumlahIDR(otherExpenses, (e) => e.amount || 0);
 
     const totalExpense = totalCOGS + totalImportDuty + totalOtherExpense;
     const netProfit     = totalClientRevenue - totalExpense;
@@ -173,7 +185,7 @@ exports.getProjectProfitability = async (req, res) => {
       const inv = p.invoiceId;
       if (!inv) return;
       const pid = norm(inv.projectId);
-      cashReceivedByProject[pid] = (cashReceivedByProject[pid] || 0) + Number(p.amountPaid || 0);
+      cashReceivedByProject[pid] = (cashReceivedByProject[pid] || 0) + keIDR(p.amountPaid, p.exchangeRate, p.currency);
     });
 
     // Dikelompokkan sekali di depan, bukan disaring ulang untuk tiap project.
@@ -196,13 +208,13 @@ exports.getProjectProfitability = async (req, res) => {
 
       if (pQuotations.length > 0) {
         pQuotations.forEach(q => {
-          clientRevenue  += Number(q.clientPrice  || 0);
-          clientTax      += Number(q.taxAmount     || 0);
-          clientShipping += Number(q.shippingFee   || 0);
+          clientRevenue  += keIDR(q.clientPrice, q.exchangeRate, q.currency);
+          clientTax      += keIDR(q.taxAmount,   q.exchangeRate, q.currency);
+          clientShipping += keIDR(q.shippingFee, q.exchangeRate, q.currency);
         });
       } else {
         pClientInvoices.forEach(inv => {
-          clientRevenue += Number(inv.amount || 0);
+          clientRevenue += keIDR(inv.amount, inv.exchangeRate, inv.currency);
         });
       }
 
@@ -219,7 +231,7 @@ exports.getProjectProfitability = async (req, res) => {
         }))
       );
 
-      const estimatedCOGS = pSupplierQuotations.reduce((sum, sq) => sum + getEstimatedCOGS(sq), 0);
+      const estimatedCOGS = jumlahIDR(pSupplierQuotations, getEstimatedCOGS);
 
       let supplierCOGS        = 0;
       let supplierImportDuty  = 0;
@@ -228,10 +240,15 @@ exports.getProjectProfitability = async (req, res) => {
       let supplierTotalPaid   = 0;
 
       const supplierBreakdown = pSupplierInvoices.map(si => {
-        const cogs       = Number(si.amount           || 0);
-        const tax        = Number(si.taxAmount         || 0);
-        const importDuty = Number(si.importDutyAmount  || 0);
-        const total      = Number(si.totalAmount       || (cogs + tax + importDuty));
+        // Dikonversi ke rupiah supaya bisa dijumlahkan lintas dokumen; mata uang
+        // aslinya ikut dikirim di bawah agar layar tetap bisa menampilkannya.
+        const cogs       = keIDR(si.amount,           si.exchangeRate, si.currency);
+        const tax        = keIDR(si.taxAmount,        si.exchangeRate, si.currency);
+        const importDuty = keIDR(si.importDutyAmount, si.exchangeRate, si.currency);
+        const total      = keIDR(
+          Number(si.totalAmount || (Number(si.amount || 0) + Number(si.taxAmount || 0) + Number(si.importDutyAmount || 0))),
+          si.exchangeRate, si.currency
+        );
 
         supplierCOGS        += cogs;
         supplierTaxPassThru += tax;
@@ -244,6 +261,8 @@ exports.getProjectProfitability = async (req, res) => {
           invoiceNumber:    si.invoiceNumber,
           vendorName:       si.vendorName,
           status:           si.status,
+          currency:         si.currency || 'IDR',
+          exchangeRate:     si.exchangeRate || 1,
           cogs,
           taxAmount:        tax,
           importDuty,
@@ -256,7 +275,7 @@ exports.getProjectProfitability = async (req, res) => {
         };
       });
 
-      const otherExpenseTotal = pOtherExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      const otherExpenseTotal = jumlahIDR(pOtherExpenses, (e) => e.amount || 0);
       const otherExpenseBreakdown = pOtherExpenses.map(e => ({
         submissionId: e.submissionId,
         items:        (e.items || []).map(it => ({
@@ -264,7 +283,8 @@ exports.getProjectProfitability = async (req, res) => {
           description: it.description || '',
           amount:      it.amount,
         })),
-        amount:       Number(e.amount || 0),
+        amount:       keIDR(e.amount, e.exchangeRate, e.currency),
+        currency:     e.currency || 'IDR',
         submittedBy:  e.submittedByName,
         approvedAt:   e.reviewDate,
         createdAt:    e.createdAt,
@@ -359,9 +379,9 @@ exports.getCashFlow = async (req, res) => {
       description: `Payment – ${p.invoiceId?.invoiceNumber || 'INV'}`,
       projectName: p.invoiceId?.projectName || '-',
       clientName:  p.invoiceId?.clientName  || '-',
-      amount:      Number(p.amountPaid || 0),
+      amount:      keIDR(p.amountPaid, p.exchangeRate, p.currency),
       breakdown: {
-        grossAmount: Number(p.amountPaid || 0),
+        grossAmount: keIDR(p.amountPaid, p.exchangeRate, p.currency),
       },
     }));
 
@@ -371,11 +391,11 @@ exports.getCashFlow = async (req, res) => {
       description: `Supplier – ${si.invoiceNumber}`,
       projectName: si.projectId || '-',
       vendorName:  si.vendorName,
-      amount:      Number(si.totalAmount || 0),
+      amount:      keIDR(si.totalAmount, si.exchangeRate, si.currency),
       breakdown: {
-        cogs:       Number(si.amount           || 0),
-        taxAmount:  Number(si.taxAmount         || 0),
-        importDuty: Number(si.importDutyAmount  || 0),
+        cogs:       keIDR(si.amount,           si.exchangeRate, si.currency),
+        taxAmount:  keIDR(si.taxAmount,        si.exchangeRate, si.currency),
+        importDuty: keIDR(si.importDutyAmount, si.exchangeRate, si.currency),
       },
     }));
 
@@ -387,9 +407,9 @@ exports.getCashFlow = async (req, res) => {
         description: `Expense – ${itemNames || e.submissionId} (${e.submissionId})`,
         projectName: e.projectName || e.projectId || '-',
         vendorName:  e.submittedByName || '-',
-        amount:      Number(e.amount || 0),
+        amount:      keIDR(e.amount, e.exchangeRate, e.currency),
         breakdown: {
-          otherExpense: Number(e.amount || 0),
+          otherExpense: keIDR(e.amount, e.exchangeRate, e.currency),
         },
       };
     });
@@ -435,7 +455,9 @@ exports.getReceivables = async (req, res) => {
         projectId:     inv.projectId,
         projectName:   inv.projectName,
         clientName:    inv.clientName,
-        amount:        Number(inv.amount || 0),
+        amount:        keIDR(inv.amount, inv.exchangeRate, inv.currency),
+        currency:      inv.currency || 'IDR',
+        amountAsli:    Number(inv.amount || 0),
         dueDate:       inv.dueDate,
         overdueDays,
         isOverdue:     due ? now > due : false,
@@ -483,22 +505,22 @@ exports.getMonthlyTrend = async (req, res) => {
     quotations.forEach(q => {
       const key = getKey(q.approvalDate || q.updatedAt || q.timestamp);
       const m = ensureMonth(key);
-      m.revenue        += Number(q.clientPrice  || 0);
-      m.clientTax      += Number(q.taxAmount     || 0);
-      m.clientShipping += Number(q.shippingFee   || 0);
+      m.revenue        += keIDR(q.clientPrice, q.exchangeRate, q.currency);
+      m.clientTax      += keIDR(q.taxAmount,   q.exchangeRate, q.currency);
+      m.clientShipping += keIDR(q.shippingFee, q.exchangeRate, q.currency);
     });
 
     supplierInvoices.forEach(si => {
       const key = getKey(si.paymentDate || si.updatedAt);
       const m = ensureMonth(key);
-      m.cogs       += Number(si.amount           || 0);
-      m.importDuty += Number(si.importDutyAmount || 0);
+      m.cogs       += keIDR(si.amount,           si.exchangeRate, si.currency);
+      m.importDuty += keIDR(si.importDutyAmount, si.exchangeRate, si.currency);
     });
 
     otherExpenses.forEach(e => {
       const key = getKey(e.reviewDate || e.updatedAt);
       const m = ensureMonth(key);
-      m.otherExpense += Number(e.amount || 0);
+      m.otherExpense += keIDR(e.amount, e.exchangeRate, e.currency);
     });
 
     const result = Object.values(monthlyMap)

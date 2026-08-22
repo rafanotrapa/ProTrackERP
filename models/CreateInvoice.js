@@ -11,6 +11,12 @@ const CreateInvoiceSchema = new mongoose.Schema({
   projectName: { type: String }, 
   clientName: { type: String, required: true },
   amount: { type: Number, required: true },
+  // Mata uang dan kurs terkunci saat dokumen dibuat; nilai rupiahnya dihitung
+  // saat agregasi lewat utils/uang.js. Lihat penjelasan lengkap di
+  // models/SupplierQuotation.js.
+  currency:     { type: String, default: 'IDR' },
+  exchangeRate: { type: Number, default: 1 },
+
   items: { type: Array }, 
   status: { type: String, default: 'Unpaid' }, 
   dueDate: { type: Date }, 

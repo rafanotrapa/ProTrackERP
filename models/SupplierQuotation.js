@@ -24,6 +24,19 @@ const SupplierQuotationSchema = new mongoose.Schema({
   taxAmount: { type: Number, default: 0 },
   
   currency: { type: String, default: 'IDR' },
+  /* Mata uang dan kurs terkunci saat dokumen dibuat.
+   *
+   * Nominal di atas disimpan APA ADANYA dalam mata uang aslinya — yang dikirim
+   * ke pihak luar harus persis angka yang disepakati. Nilai rupiahnya dihitung
+   * saat agregasi lewat utils/uang.js, bukan disimpan terpisah, supaya tidak ada
+   * dua sumber kebenaran yang bisa berbeda.
+   *
+   * Kurs sengaja dibekukan di dokumen: pergerakan pasar tidak boleh mengubah
+   * angka transaksi yang sudah terjadi. Bawaan 1 membuat seluruh dokumen lama
+   * yang berdenominasi rupiah menghasilkan angka yang persis sama.
+   */
+  exchangeRate: { type: Number, default: 1 },
+
   topOption: { type: String },
   customTop: { type: String },
   remarks: { type: String },
